@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkhyunmoahn_github_io=self.webpackChunkhyunmoahn_github_io||[]).push([[22],{5860:function(a){a.exports=JSON.parse('{"allTagsPath":"/tags","slug":"/tags/hola","name":"hola","count":1,"permalink":"/tags/hola"}')}}]);
