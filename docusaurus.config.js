@@ -10,8 +10,9 @@ module.exports = {
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
-  organizationName: 'Hyunmoahn', // Usually your GitHub org/user name.
-  projectName: 'hmos.dev', // Usually your repo name.
+  organizationName: 'HyunmoAhn', // Usually your GitHub org/user name.
+  projectName: 'hyunmoahn.github.io', // Usually your repo name.
+  trailingSlash: false,
   themeConfig: {
     navbar: {
       title: 'hmos.dev',
@@ -36,7 +37,7 @@ module.exports = {
           items: [
             {
               label: 'Blog',
-              to: '/blog',
+              to: '/',
             },
             {
               label: 'GitHub',
