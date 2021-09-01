@@ -13,6 +13,10 @@ module.exports = {
   organizationName: 'HyunmoAhn', // Usually your GitHub org/user name.
   projectName: 'hyunmoahn.github.io', // Usually your repo name.
   trailingSlash: false,
+  i18n: {
+    defaultLocale: 'ko',
+    locales: ['ko', 'en'],
+  },
   themeConfig: {
     navbar: {
       title: 'hmos.dev',
@@ -22,6 +26,10 @@ module.exports = {
       },
       items: [
         { to: '/about', label: 'About', position: 'left' },
+        {
+          type: 'localeDropdown',
+          position: 'right',
+        },
         {
           href: 'https://github.com/HyunmoAhn',
           label: 'GitHub',
