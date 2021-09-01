@@ -4,7 +4,9 @@
   "compilerOptions": {
     "paths": {
       "@site/*": ["./*"]
-    }
+    },
+    "skipLibCheck": true
   },
-  "include": ["src/"]
+  "include": ["src", "*.js"],
+  "exclude": ["node_modules"]
 }
