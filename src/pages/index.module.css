@@ -21,3 +21,12 @@
   align-items: center;
   justify-content: center;
 }
+
+.alignCenter {
+  justify-content: center;
+}
+
+.underline {
+  text-decoration: underline;
+  text-decoration-color: #00a400;
+}

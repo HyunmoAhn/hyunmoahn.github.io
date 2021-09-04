@@ -15,10 +15,13 @@
     "project": "./tsconfig.json"
   },
   "rules": {
+    "object-curly-newline": 0,
+    "operator-linebreak": 0,
     "react/no-array-index-key": 0,
     "react/jsx-props-no-spreading": 0,
     "react/jsx-one-expression-per-line": 0,
     "@typescript-eslint/no-var-requires": 0,
-    "@typescript-eslint/parser": 0
+    "@typescript-eslint/parser": 0,
+    "@typescript-eslint/explicit-module-boundary-types": 0
   }
 }

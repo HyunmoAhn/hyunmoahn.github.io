@@ -48,13 +48,17 @@ module.exports = {
               to: '/',
             },
             {
+              label: 'About',
+              to: '/about',
+            },
+            {
               label: 'GitHub',
               href: 'https://github.com/HyunmoAhn',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Hyunmo Ahn. Built with Docusaurus.`,
     },
     prism: {
       theme: lightCodeTheme,
