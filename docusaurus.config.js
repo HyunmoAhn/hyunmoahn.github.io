@@ -60,6 +60,9 @@ module.exports = {
       theme: lightCodeTheme,
       darkTheme: darkCodeTheme,
     },
+    googleAnalytics: {
+      trackingID: 'G-6FFCRK5ZZD',
+    },
   },
   presets: [
     [
