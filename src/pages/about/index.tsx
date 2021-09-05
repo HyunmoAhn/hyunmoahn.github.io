@@ -112,6 +112,23 @@ function About() {
             ))}
           </div>
         </div>
+        <div className="row container">
+          <div className="col col--2">
+            <h2 className={style.underline}>Education</h2>
+          </div>
+          <div className="col col--10 row margin-bottom--lg">
+            <div className="margin-bottom--xl">
+              <h3>
+                <a href="https://www.pusan.ac.kr/eng/Main.do">Pusan National University of Korea</a>
+              </h3>
+              <p>
+                Bachelor of Computer Science Engineering
+                <br />
+                <em>Match 2013 to August 2019</em>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </Layout>
   );
