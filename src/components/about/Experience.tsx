@@ -1,5 +1,5 @@
 import React from 'react';
-import style from '../index.module.css';
+import style from '../../pages/index.module.css';
 
 export interface ProjectInfo {
   name: string;

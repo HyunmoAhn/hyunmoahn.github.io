@@ -5,7 +5,7 @@ import linebankIdIcon from '@site/static/icon/line-bank-id.png';
 import modusignIcon from '@site/static/icon/modusign.png';
 import investIcon from '@site/static/icon/invest.png';
 
-import Experience, { ExperienceInfo, ProjectInfo } from './Experience';
+import Experience, { ExperienceInfo, ProjectInfo } from '../../components/about/Experience';
 import style from '../index.module.css';
 
 const EXPERIENCE_INFO: ExperienceInfo[] = [
