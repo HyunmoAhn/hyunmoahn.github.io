@@ -9,7 +9,7 @@ module.exports = {
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
-  favicon: 'img/favicon.ico',
+  favicon: 'favicon/favicon.ico',
   organizationName: 'HyunmoAhn', // Usually your GitHub org/user name.
   projectName: 'hyunmoahn.github.io', // Usually your repo name.
   trailingSlash: false,
@@ -58,7 +58,7 @@ module.exports = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Hyunmo Ahn. Built with Docusaurus.`,
+      copyright: `<div>Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>Copyright © ${new Date().getFullYear()} Hyunmo Ahn. Built with Docusaurus.\n`,
     },
     prism: {
       theme: lightCodeTheme,
