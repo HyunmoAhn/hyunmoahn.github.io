@@ -18,6 +18,9 @@ module.exports = {
     locales: ['ko', 'en'],
   },
   themeConfig: {
+    colorMode: {
+      defaultMode: 'dark',
+    },
     navbar: {
       title: 'hmos.dev',
       logo: {
