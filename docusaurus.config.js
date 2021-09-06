@@ -5,7 +5,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 module.exports = {
   title: 'hmos.dev',
   tagline: 'Front-End developer',
-  url: 'https://hyunmoahn.github.io',
+  url: 'https://hmos.dev',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
