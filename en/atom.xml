@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-    <id>https://hyunmoahn.github.io/en/</id>
+    <id>https://hmos.dev/en/</id>
     <title>hmos.dev Blog</title>
     <updated>2019-05-28T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
-    <link rel="alternate" href="https://hyunmoahn.github.io/en/"/>
+    <link rel="alternate" href="https://hmos.dev/en/"/>
     <subtitle>hmos.dev Blog</subtitle>
-    <icon>https://hyunmoahn.github.io/en/favicon/favicon.ico</icon>
+    <icon>https://hmos.dev/en/favicon/favicon.ico</icon>
     <entry>
         <title type="html"><![CDATA[First Blog Post]]></title>
         <id>first-blog-post</id>
-        <link href="https://hyunmoahn.github.io/en/first-blog-post"/>
+        <link href="https://hmos.dev/en/first-blog-post"/>
         <updated>2019-05-28T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[This is Test. Hello world]]></summary>
         <author>
