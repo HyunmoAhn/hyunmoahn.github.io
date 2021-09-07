@@ -18,6 +18,12 @@ module.exports = {
     locales: ['ko', 'en'],
   },
   themeConfig: {
+    announcementBar: {
+      content: 'This blog is work in progress. Please wait for my work.',
+      backgroundColor: '#f58442',
+      textColor: '#000000',
+      isCloseable: false,
+    },
     colorMode: {
       defaultMode: 'dark',
     },
@@ -27,6 +33,7 @@ module.exports = {
         alt: 'hmos Logo',
         src: 'img/logo.svg',
       },
+      hideOnScroll: true,
       items: [
         { to: '/about', label: 'About', position: 'left' },
         {
