@@ -20,7 +20,7 @@ export interface ExperienceInfo {
 function ProjectCard({ name, description, imageUrl, tech, period }: ProjectInfo) {
   return (
     <div className={`${style.cardWrapper} col col--4  margin-bottom--md`}>
-      <div className="card">
+      <div className={`card ${style.card}`}>
         <div className={`card__image ${style.cardImageWrapper}`}>
           <img className={style.cardImage} src={imageUrl} alt="projects" title={name} />
         </div>
