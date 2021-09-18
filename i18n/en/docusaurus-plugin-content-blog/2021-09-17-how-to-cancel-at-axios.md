@@ -7,12 +7,8 @@ keywords:
   - javascript
   - HTTP
   - cancel
-  - abort
-authors:
-  name: Hyunmo Ahn
-  title: Front End Engineer @ Line Financial+
-  url: https://github.com/HyunmoAhn
-  image_url: https://github.com/HyunmoAhn.png
+  - abort 
+authors: HyunmoAhn
 tags: [axios, library, how-to-work, javascript, web]
 ---
 

@@ -92,6 +92,8 @@ module.exports = {
       {
         docs: false,
         blog: {
+          blogTitle: 'hmos.dev',
+          blogDescription: 'Write article associated with Front-end development',
           path: './blog',
           routeBasePath: '/',
           showReadingTime: true,
