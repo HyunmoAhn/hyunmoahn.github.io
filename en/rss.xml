@@ -4,15 +4,15 @@
         <title>hmos.dev Blog</title>
         <link>https://hmos.dev/en/</link>
         <description>hmos.dev Blog</description>
-        <lastBuildDate>Tue, 28 May 2019 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Fri, 17 Sep 2021 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <item>
-            <title><![CDATA[First Blog Post]]></title>
-            <link>https://hmos.dev/en/first-blog-post</link>
-            <guid>first-blog-post</guid>
-            <pubDate>Tue, 28 May 2019 00:00:00 GMT</pubDate>
-            <description><![CDATA[This is Test. Hello world]]></description>
+            <title><![CDATA[How to cancel at axios]]></title>
+            <link>https://hmos.dev/en/how-to-cancel-at-axios</link>
+            <guid>how-to-cancel-at-axios</guid>
+            <pubDate>Fri, 17 Sep 2021 00:00:00 GMT</pubDate>
+            <description><![CDATA[The article that how to use cancel logic on axios request.]]></description>
         </item>
     </channel>
 </rss>
