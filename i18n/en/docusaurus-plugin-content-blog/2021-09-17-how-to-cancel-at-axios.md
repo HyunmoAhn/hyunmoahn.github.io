@@ -1,6 +1,13 @@
 ---
 slug: how-to-cancel-at-axios
 title: How to cancel at axios
+description: The article that how to use cancel logic on axios request.
+keywords: 
+  - axios
+  - javascript
+  - HTTP
+  - cancel
+  - abort
 authors:
   name: Hyunmo Ahn
   title: Front End Engineer @ Line Financial+
@@ -18,6 +25,7 @@ We will investigate that how to work about axios cancel logic.
 - The usage about [Axios](https://github.com/axios/axios) library
 :::
 
+<!--truncate-->
 
 ## Usage
 Before to know that how to work about cancel, We will check that how to use axios cancel.
