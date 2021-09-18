@@ -186,7 +186,7 @@ A1. axios는 HTTP 요청마다 cancelToken을 받고, cancelToken의 promise를 
 
 ## Recap
 axios는 호출시 HTTP요청 뿐 아니라 cancel과 관련되어 있는 promise를 발생시켜 경쟁상태를 형성한다. 이 과정에서 사용되는 cancel promise는 여러 axios 요청에서 사용 될 수 있다. <br/>
-canel과 관련된 promise는 [cancelToken](https://github.com/axios/axios/blob/v0.21.1/lib/cancel/CancelToken.js)을 만들 때 같이 생성되며 cancelToken에는 cancel promise를 resolve 시키는 함수 `cancel`도 같이 제공한다.<br/>
+cancel과 관련된 promise는 [cancelToken](https://github.com/axios/axios/blob/v0.21.1/lib/cancel/CancelToken.js)을 만들 때 같이 생성되며 cancelToken에는 cancel promise를 resolve 시키는 함수 `cancel`도 같이 제공한다.<br/>
 `cancelToken.cancel`이 호출되면 cancel promise는 resolve되고 이는 HTTP 요청과 경쟁상태를 형성하고 있기 때문에 cancel된 `cancelToken`을 사용하고 있는 모든 axios 요청은 abort되고 reject로 반환된다.
 
 ## Appendix
