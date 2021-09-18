@@ -23,12 +23,12 @@ module.exports = {
       { name: 'og:title', content: 'hmos.dev' },
       { name: 'og:description', content: 'Front-end Developer Blog' },
     ],
-    announcementBar: {
-      content: 'This blog is work in progress. Please wait for my work.',
-      backgroundColor: '#f58442',
-      textColor: '#000000',
-      isCloseable: false,
-    },
+    // announcementBar: {
+    //   content: 'This blog is work in progress. Please wait for my work.',
+    //   backgroundColor: '#f58442',
+    //   textColor: '#000000',
+    //   isCloseable: false,
+    // },
     colorMode: {
       defaultMode: 'dark',
     },
@@ -92,6 +92,8 @@ module.exports = {
       {
         docs: false,
         blog: {
+          blogTitle: 'hmos.dev',
+          blogDescription: 'Write article associated with Front-end development',
           path: './blog',
           routeBasePath: '/',
           showReadingTime: true,
