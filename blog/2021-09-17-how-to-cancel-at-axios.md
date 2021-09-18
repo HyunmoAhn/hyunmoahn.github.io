@@ -19,7 +19,7 @@ tags: [axios, library, how-to-work, javascript, web]
 
 
 ## Usage
-Cancel이 어떻게 동작하는지 알아보기 이전에, axios에서 cancel을 어떻게 사용하라고 가이드하고 있는지 알아본다.
+Cancel이 어떻게 동작하는지 알아보기 이전에, axios에서 cancel을 사용하는 방법을 확인합니다.
 
 ### Simple Usage
 ```tsx
@@ -76,7 +76,7 @@ axios
 
 정답은 `/url/first` 에서 cancel한 시점에 `/url/second` 요청도 cancel이 된다는 점이다. `/url/first` 요청과 `/url/second` 요청이 서로 다른 스코프에 있더라도 마찬가지이다. 
 
-**`/url/first`에서 cancel 한 것이 어떻게 `/url/second`에도 영향을 끼치고 있을까에 대한 호기심에 이 글은 출발한다.**
+**`/url/first` axios 에서 cancel 한 것이 어떻게 `/url/second` axios 에도 영향을 끼치고 있을까에 대한 호기심에 이 글은 출발한다.**
 
 :::caution Question
 Q1. 하나의 axios요청에서 cancelToken이 cancel되었는데 어떻게 다른 axios request가 같이 취소가 될까?
@@ -93,7 +93,7 @@ axios.Cancel = require('./cancel/Cancel');
 axios.CancelToken = require('./cancel/CancelToken');
 axios.isCancel = require('./cancel/isCancel');
 ```
-axios cancel을 위해서 선행되었던 작업은 CancelToken을 만드는 것 이었다. 따라서 [axios.CancelToken](https://github.com/axios/axios/blob/v0.21.1/lib/cancel/CancelToken.js) 을 먼저 살펴본다. `CancelToken.source`를 사용해서 토큰을 생성했으므로, 해당 함수 동작부터 확인해본다. 
+axios cancel을 위해서 선행되었던 작업은 CancelToken을 만드는 것 이었다. `CancelToken.source`를 사용해서 토큰을 생성했으므로, [axios.CancelToken](https://github.com/axios/axios/blob/v0.21.1/lib/cancel/CancelToken.js) 을 먼저 살펴본다.
 ```tsx
 // https://github.com/axios/axios/blob/v0.21.1/lib/cancel/CancelToken.js
 CancelToken.source = function source() {

@@ -40,11 +40,11 @@ axios
 // Create Cancel
 source.cancel('message');
 ```
-If you want to cancel in axios, we need to make `CancelToken`<br/>
-Each time axios is requested, cancel Token is delibered and the axios is canceled through `source.cancel`.
+If you want to cancel in axios, we need to make `CancelToken`. <br/>
+Each time axios is requested, `cancelToken` is injected and the axios is canceled through `source.cancel`.
 
 ### Advanced Usage
-If we request multiple axios request same time, what kind of logic does cancel show?
+If we request multiple axios same time, what action would cancel show?
 ```tsx
 import axios from 'axios';
 
@@ -76,7 +76,7 @@ Then how will the response of `/url/second` be handled?
 
 The answer is that at the time of cancel in `/url/first`, the request for `/url/second` also becomes cancel.
 
-**This article starts with curiosity about how cancel in `/url/first` affects `/url/second`?** 
+**This article starts with curiosity about how cancel in `/url/first` axios affects `/url/second` axios?** 
 
 :::caution Question
 Q1. If cancelToken is canceled in one axios request, why others axios request are also canceled?
@@ -93,7 +93,7 @@ axios.Cancel = require('./cancel/Cancel');
 axios.CancelToken = require('./cancel/CancelToken');
 axios.isCancel = require('./cancel/isCancel');
 ```
-To work that preceded the axios cancel was to create `CancelToken`.
+The preceding work to cancel axios was that create `CancelToken`.
 So, We will watch [axios.CancelToken](https://github.com/axios/axios/blob/v0.21.1/lib/cancel/CancelToken.js) first. Because we created token to use `CancelToken.source`. 
 ```tsx
 // https://github.com/axios/axios/blob/v0.21.1/lib/cancel/CancelToken.js
@@ -108,7 +108,7 @@ CancelToken.source = function source() {
   };
 };
 ```
-`source` is simple. It returns the object that have `token` and `cancel` and create `CancelToken` internally.
+`source` is simple. It returns the object that has `token` and `cancel` and creates `CancelToken` internally.
 
 ```tsx
 // https://github.com/axios/axios/blob/v0.21.1/lib/cancel/CancelToken.js
@@ -126,19 +126,19 @@ function CancelToken(executor) {
 }
 ```
 To watch about [CancelToken](https://github.com/axios/axios/blob/v0.21.1/lib/cancel/CancelToken.js), It seems complicated about structure. It has two roles.
-1. Create promise in `CancelToken`. We can't know how to use this promise yet.
+1. Creates promise in `CancelToken`. We can't know how to use this promise yet.
 2. Assigns `function cancel` to cancel in `CancelToken.source` scope. Through this, cancel is connected to the outside of the scope.
 
-CancelToken is made two function that promise and cancel function and when `cancel` is called `promise` is resolved. 
+`CancelToken` make two function that promise and cancel function and when `cancel` is called `promise` is resolved. 
 `cancel` is expanded to `CancelToken.source` scope by `executor` and it will be method to use outside.
 
 #### Recap about CancelToken
-- CancelToken is made by `CancelToken.source`, will create promise and cancel function.
+- CancelToken is made by `CancelToken.source`, it will create promise and cancel function.
 - The generated `cancel` here is transferred as a `CancelToken.source` return value and used as an external usable function. We can't know the purpose of promise yet.
 
 ### Where do use CancelToken.promise?
 
-axios use `adapter` in HTTP request internally and `adapter` has code that associated with `CancelToken.promise`.
+axios uses `adapter` in HTTP request internally and `adapter` has code that associated with `CancelToken.promise`.
 
 Among them, look at the code on the [xhr](https://github.com/axios/axios/blob/master/lib/adapters/xhr.js) side.
 
@@ -179,7 +179,7 @@ if (config.cancelToken) {
 If `promise` of cancelToken is resolved, `xhr` request is aborted and `axios` request is end with reject.
 In this time, error object is [cancel](https://github.com/axios/axios/blob/v0.21.1/lib/cancel/Cancel.js) Object.
 
-cancelToken is injected when axios is called, multiple axios request can use same `cancelToken`. So we can answer the first question we had. 
+`cancelToken` is injected when axios is called, multiple axios request can use same `cancelToken`. So we can answer the first question we had. 
 
 :::tip Question & Answer
 > Q1. If cancelToken is canceled in one axios request, why others axios request are also canceled?
