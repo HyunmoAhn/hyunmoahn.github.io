@@ -41,6 +41,7 @@ module.exports = {
       hideOnScroll: true,
       items: [
         { to: '/about', label: 'About', position: 'left' },
+        { to: '/tags', label: 'Tags', position: 'left' },
         {
           type: 'localeDropdown',
           position: 'right',
