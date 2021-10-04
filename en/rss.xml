@@ -4,9 +4,16 @@
         <title>hmos.dev Blog</title>
         <link>https://hmos.dev/en/</link>
         <description>hmos.dev Blog</description>
-        <lastBuildDate>Fri, 17 Sep 2021 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Sat, 02 Oct 2021 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
+        <item>
+            <title><![CDATA[how to time travel debugging at redux-devtools]]></title>
+            <link>https://hmos.dev/en/how-to-time-travel-debugging-at-redux-devtools</link>
+            <guid>how-to-time-travel-debugging-at-redux-devtools</guid>
+            <pubDate>Sat, 02 Oct 2021 00:00:00 GMT</pubDate>
+            <description><![CDATA[We will check how to time travel debugging at redux-devtools.]]></description>
+        </item>
         <item>
             <title><![CDATA[How to cancel at axios]]></title>
             <link>https://hmos.dev/en/how-to-cancel-at-axios</link>
