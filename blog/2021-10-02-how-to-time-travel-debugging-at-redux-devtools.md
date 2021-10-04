@@ -60,7 +60,7 @@ redux-devtools를 chrome extension으로 적용하는 방법은 다음과 같다
 또한, [redux-toolkit](https://github.com/reduxjs/redux-toolkit)을 사용한다면 devTools 옵션의 [default값이 true](https://github.com/reduxjs/redux-toolkit/blob/v1.6.1/packages/toolkit/src/configureStore.ts#L63)이므로 이런 설정을 신경쓰지 않았던 개발자도 있을 것이다.
 redux-toolkit도 내부적으로는 위와 같은 redux-devtools 설정 코드를 주입시켜주고 있다. ([code](https://github.com/reduxjs/redux-toolkit/blob/v1.6.1/packages/toolkit/src/devtoolsExtension.ts#L184))
 
-아무래도 chrome extension에서 `window.__REDUX_DEVTOOLS_EXTENSION__`를 주입시켜주는 것이 아닌가 추측해보지만 chrome extension 내부 로직을 확인하기 전에 다른 `redux-devtools` 적용방법을 찾아보자.
+아무래도 chrome extension에서 `window.__REDUX_DEVTOOLS_EXTENSION__`를 주입시켜주는 것이 아닌가 추측해보지만 우리는 chrome extension 코드를 확인하지 않고 다른 `redux-devtools` 적용방법을 찾아본다.
 
 ### 수동 적용
 `redux-devtools` 문서를 찾아보다보면 `browser extension`을 사용하지 않고 수동으로 적용할 수 있는 [문서](https://github.com/reduxjs/redux-devtools/blob/main/docs/Walkthrough.md#manual-integration)가 있다.
@@ -349,7 +349,7 @@ export default function instrument(monitorReducer, options) {
 }
 ```
 이전 과정을 통해서 우리는 `unliftStore`의 쓰임은 `getState`나 `dispatch`와 같은 메소드를 새롭게 정의해서 app에서 사용할 때 쓰이게 하는 역할이라는 것을 이해할 수 있었다. <br />
-다음으로 살펴볼 것은 `liftedStore`와 `liftReducer` 인데 `createStore`는 redux에서 제공하는 것이므로 `liftReducer`만 확인 된다면
+다음으로 살펴볼 것은 `liftedStore`와 `liftReducer` 인데 `liftedStore`에서 사용하는 `createStore`는 redux에서 제공하는 것이므로 `liftReducer`만 확인 된다면
 `redux-devtools`의 타임머신 디버깅의 비밀을 알 수 있을 것이다.
 
 [liftReducer](https://github.com/reduxjs/redux-devtools/blob/v3.6.0/packages/redux-devtools-instrument/src/instrument.js#L258-L666)는 `lift`라는 용어에 걸맞게 devtools에서 사용하는 reducer를 의미한다.
