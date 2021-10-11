@@ -15,7 +15,7 @@ tags: [redux, redux-devtools, time-travel, library, how-to-work, javascript, web
 [redux](https://redux.js.org/)를 이용해서 웹 어플리케이션 개발을 진행해 본 사람이라면 [redux-devtools](https://github.com/zalmoxisus/redux-devtools-extension)를 이용해서 time-travel 디버깅을 사용해본 경험이 있을 것이다.
 
 `redux-devtools`가 어떤 것인지 헷갈리시는 분이 있다면 아래 영상을 참고하기 바란다.
-<iframe width="560" height="315" src="https://www.youtube.com/embed/VbPgAf3FUU8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe style={{ width: "100%", height: "100%" }} src="https://www.youtube.com/embed/VbPgAf3FUU8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 만약 `redux-devtools`를 사용해 본 경험이 없다면 이번 article을 이해하기 어려울 수 있다.
 
