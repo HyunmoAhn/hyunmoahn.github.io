@@ -15,7 +15,7 @@ tags: [redux, redux-devtools, time-travel, library, how-to-work, javascript, web
 If you used [redux](https://redux.js.org/) in web application devlopment, you may have experience to use time-travel debugging with [redux-devtools](https://github.com/zalmoxisus/redux-devtools-extension).
 
 If you have confused about what `redux-devtools` is, please see below video.
-<iframe width="560" height="315" src="https://www.youtube.com/embed/VbPgAf3FUU8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe style={{ width: "100%", height: "100%" }} src="https://www.youtube.com/embed/VbPgAf3FUU8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 If you don't have any experience about `redux-devtools`, I think it may be difficult to understand this article.
 
