@@ -8,6 +8,9 @@ keywords:
   - immer
   - immutable
   - javascript
+  - deep-dive
+  - how-to-work
+  - web
 authors: HyunmoAhn
 tags: [redux, redux-toolkit, immer, library, how-to-work, deep-dive, javascript, web, immutable]
 ---
@@ -125,7 +128,7 @@ redux의 style guide에서는 [redux-toolkit을 사용하는 것을 권장](http
 
 왜 immutable data를 사용해야하는가는 [redux의 FAQ항목](https://ko.redux.js.org/style-guide/style-guide#use-immer-for-writing-immutable-updates)을 참고하는 것이 좋다. <br/>
 내용을 간략하게 설명하자면, 다음과 같다. <br/>
-javascript는 primitive한 타입의 변수(number, string, etc)를 제외하면 모두 mutable한 속성을 가진다. 
+javascript에서는 primitive한 타입의 변수(number, string, etc)를 제외하면 모두 mutable한 속성을 가진다. 
 non-primitive한 타입은 object, array와 같은 것들이 있다. 
 non-primitive한 타입의 변수는 변경되어도 변수의 reference가 바뀌지 않는다. 따라서 object 내부가 변경되더라도 reference가 변경되지 않는 것이다.
 
@@ -153,7 +156,7 @@ console.log(nonPrimitive)
 [redux](https://redux-saga.js.org/)에서는 shallow equality checking을 사용하고 있다. shallow equality checking은 데이터가 동일한지 비교할 때, 
 데이터 내부가 변경되었는지를 확인하는 것이 아니라 데이터의 reference가 변경되었는지만 체크를 하고 동일하면 변경되지 않았다고 판단하는 것이다.
 
-만약 deep equlity checking을 사용하면 모든 객체를 하나씩 비교해야하기 때문에 성능상 손해를 보게된다. 
+만약 deep equality checking을 사용하면 모든 객체를 하나씩 비교해야하기 때문에 성능상 손해를 보게된다. 
 그래서 object값을 변경할 때 reference도 변경되는 것을 보장하는 immutable data를 사용하게 되었고 어떤 변경이더라도 객체가 immutable함을 보장해주는 immer를 사용하게 되는 것이다.
 
 만약 따로 immer를 의식적으로 사용한 적이 없더라도, redux를 사용하는데 redux-toolkit을 사용하고 있다면
@@ -198,7 +201,7 @@ const nextState = produce(baseState, draft => {
 immer를 사용하지 않으면 복사 → 업데이트 과정을 진행하고, 이 과정에서 mutable하게 변경되진 않는지 확인해야하는 반면, 
 immer의 `produce` 를 사용하면 어떤 방식으로 사용하더라도 data가 immutable하다는 것을 보장 할 수 있다.
 
-만약 immer를 직접 사용해보지 않고, [redux-toolkit](https://redux-toolkit.js.org/)을 사용해서 redux를 사용하였다면 immer를 이미 사용하고 있는 것이다.
+만약 immer를 직접 사용해 본 적 없고, [redux-toolkit](https://redux-toolkit.js.org/)을 사용해서 redux를 사용하였다면 immer를 이미 사용하고 있는 것이다.
 잘 모르겠다면 redux-toolkit에서 state를 mutation하는 [방법에 대한 문서](https://redux-toolkit.js.org/api/createReducer#direct-state-mutation)를 읽어보자.
 
 ## deep-dive 전 immer에 대해서
