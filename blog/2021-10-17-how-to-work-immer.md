@@ -17,9 +17,9 @@ tags: [redux, redux-toolkit, immer, library, how-to-work, deep-dive, javascript,
 ## 무엇이 궁금할까?
 
 :::tip Question
-Q1. `immer`는 mutable하게 객체를 변경하는 것을 어떻게 immutable한 방식으로 바꾸어주고 있을까? 
+Q1. `immer`는 객체 mutable하게 바꾸는 방식을 어떻게 immutable한 방식으로 바꾸어주고 있을까? 
 :::
-immer는 mutable하게 변경하는 built-in method들을 사용하더라도 immutable하게 데이터를 반환해주는 기능을 한다. 이 기능이 내부적으로 어떤 방식으로 이루어지는지 알아본다.
+immer는 mutable하게 변경하는 객체 built-in method를 사용하더라도 immutable하게 데이터를 반환해주는 기능을 한다. 이 기능이 내부적으로 어떤 방식으로 이루어지는지 알아본다.
 
 아래 코드 예시는 [immer 공식 문서](https://immerjs.github.io/immer/#a-quick-example-for-comparison)에 존재하는 basic example을 가져온 것이다.
 ```tsx
@@ -67,16 +67,18 @@ Q2. `immer`는 어떻게 structural sharing을 사용하는걸까?
 :::
 
 객체를 immutable하게 업데이트 한다는 것은 기존 객체를 새로운 객체로 복사한다는 것이다. 즉, 복사에 비용이 발생한다. 
-immer는 객체를 복사할 때, 변경되지 않은 reference는 재사용하는 structural sharing을 사용해서 객체를 복사한다. 
+immer는 객체를 복사할 때, 변경되지 않은 reference는 재사용하는 structural sharing 방식을 사용해서 객체를 복사한다. 
 immer에서는 어떤방식을 사용해서 structural sharing을 사용하고 있는지 알아본다.
 
 :::tip Question
 Q3. immer에서는 produce함수 내에서 draft를 직접 업데이트하는 방식이 아니라 return을 통해서 데이터를 업데이트하는 경우가 있는데, 이런 경우에 로직이 다른지?
 :::
 
-immer를 사용할 때, 위에서 제시한 mutable한 객체 변경 방식이 아닌, 새로운 객체를 리턴하는 경우가 있으며 이는 immer와는 무관하게 immutable하게 객체를 반환해주는 방식과 동일하다.
-immer에서는 이러한 방식을 [공식적으로 허용](https://immerjs.github.io/immer/return)하고 있고 redux에서 immer를 사용하고 있다면 무의식적으로 새로운 객체를 
-return해주는 방식을 사용하는 경우도 있을 것이다. 이러한 방식 차이는 immer에서 어떤 로직차이가 있는지 알아본다. 
+immer를 사용할 때, 위에서 제시한 mutable한 객체 변경 방식이 아닌, 새로운 객체를 리턴하는 경우가 있다.
+이는 immer와는 무관하게 immutable하게 Javascript에서 객체를 반환해주는 방식과 동일하다.
+immer에서는 이러한 방식을 [공식적으로 허용](https://immerjs.github.io/immer/return)하고 있고 
+두 방식, mutable하게 객체를 변경하는 방식과 immutable하게 객체를 변경시키는 방식 모두 혼용해서 쓰는 개발자도 많을 것 이다. 
+이러한 방식 차이는 immer에서 어떤 로직차이를 발생시키는지 알아본다. 
 
 ```tsx
 // mutable method
@@ -109,23 +111,23 @@ const nextState = produce(baseState, (draft) => {
 
 ***immer를 왜 사용하는지 잘 이해하고 있다면 지루한 이야기가 될 수 있다. 알고 있다면 [다음 챕터로 넘어가자](#사용법).***
 
-[immer](https://immerjs.github.io/immer/)란 무엇인가? immer의 소개 문구를 가져와보자.
+[immer](https://immerjs.github.io/immer/)란 무엇인가? immer 공식 문서에서의 소개 문구를 가져와보자.
 
 > `Immer` (German for: always) is a tiny package that allows you to work with immutable state in a more convenient way.
 
-immer는 javascript에서 편리하게 data를 immutable하게 관리하게 해주는 라이브러리이다.
+immer는 javascript에서 data가 immutable하게 업데이트 되는 것을 보장해주는 라이브러리이다.
 
-그렇다면 어디서 쓰이고 있을까? <br/>
+그렇다면 immer는 어디서 쓰이고 있을까? <br/>
 redux의 style guide에서는 [redux-toolkit을 사용하는 것을 권장](https://ko.redux.js.org/style-guide/style-guide#use-redux-toolkit-for-writing-redux-logic)하고 있고 immutable data 관리를 위해서는
-[immer를 사용하는 것이 좋다고 권장](https://ko.redux.js.org/style-guide/style-guide#use-immer-for-writing-immutable-updates)하고 있다. 물론 redux-toolkit에는 immer를 사용하고 있으므로 redux-toolkit을 
-사용하고 있다면 이미 immer를 사용하여 redux를 활용하고 있는 것이다.
+[immer를 사용하는 것이 좋다고 권장](https://ko.redux.js.org/style-guide/style-guide#use-immer-for-writing-immutable-updates)하고 있다. 
+물론 [redux-toolkit](https://redux-toolkit.js.org/)에는 immer를 사용하고 있으므로 redux-toolkit을 
+사용하고 있다면 이미 redux에 immer를 사용하고 있는 것이다.
 
-왜 immutable data를 사용해야하는가는 [redux의 FAQ항목](https://ko.redux.js.org/style-guide/style-guide#use-immer-for-writing-immutable-updates)을 참고하는 것이 좋다.
-
+왜 immutable data를 사용해야하는가는 [redux의 FAQ항목](https://ko.redux.js.org/style-guide/style-guide#use-immer-for-writing-immutable-updates)을 참고하는 것이 좋다. <br/>
 내용을 간략하게 설명하자면, 다음과 같다. <br/>
 javascript는 primitive한 타입의 변수(number, string, etc)를 제외하면 모두 mutable한 속성을 가진다. 
-non-privmitive한 타입은 object, array와 같은 것들이 있다. 
-이것들을 변경한다면 변수의 reference가 바뀌지 않는다. 따라서 object내부가 변경되더라도 reference가 변경되지 않는 것이다.
+non-primitive한 타입은 object, array와 같은 것들이 있다. 
+non-primitive한 타입의 변수는 변경되어도 변수의 reference가 바뀌지 않는다. 따라서 object 내부가 변경되더라도 reference가 변경되지 않는 것이다.
 
 ```tsx
 let primitive = 5;
@@ -152,11 +154,10 @@ console.log(nonPrimitive)
 데이터 내부가 변경되었는지를 확인하는 것이 아니라 데이터의 reference가 변경되었는지만 체크를 하고 동일하면 변경되지 않았다고 판단하는 것이다.
 
 만약 deep equlity checking을 사용하면 모든 객체를 하나씩 비교해야하기 때문에 성능상 손해를 보게된다. 
-따라서 성능을 이유로 object값이 변경이 되었다면 reference가 변경됨을 보장하는 immutable data를 사용해야하는 것이다.
+그래서 object값을 변경할 때 reference도 변경되는 것을 보장하는 immutable data를 사용하게 되었고 어떤 변경이더라도 객체가 immutable함을 보장해주는 immer를 사용하게 되는 것이다.
 
-redux의 shallow equlity checking을 위해서 immutable data를 사용해야하며 immutable data를 사용하는데 도움을 주는 것이 immer 라이브러리 인 것이다.
-
-만약 redux를 사용하는데 redux-toolkit을 사용하고 있다면, 이미 immer를 사용하고 있다고 보면 된다.
+만약 따로 immer를 의식적으로 사용한 적이 없더라도, redux를 사용하는데 redux-toolkit을 사용하고 있다면
+이미 immer를 사용하고 있는 것이다.
 
 ## 사용법
 immer의 내부를 확인하기 전에 immer를 어떻게 사용하는지 한번 확인해보자.
@@ -234,7 +235,7 @@ const immer = new Immer();
 export const produce = immer.produce;
 export default produce;
 ```
-produce함수는 `Immer` 클래스의 메소드 함수이며, `Immer` class 안을 살펴보자.
+produce함수는 `Immer` 클래스의 메소드 함수이다. `Immer` class 안을 살펴보자.
 
 produce함수에서 curring 함수 대응과 여러 예외 케이스를 제외하면 다음과 같이 축소된다.
 
@@ -253,14 +254,14 @@ export class Immer {
   }
 }
 ```
-`produce` 함수가 생각보다 간단하니, 여기서 알 수 있는 순서를 짚고 넘어가자.
+`produce` 함수가 생각보다 간단하니, 여기서 produce 함수 로직의 순서를 짚고 넘어가자.
 1. `produce` 함수는 기존 객체(`base`)와 객체를 어떻게 변경시킬지 결정하는 함수(`recipe`)를 인자로 받는다.
 2. `scope`를 생성한다.
 3. `proxy`를 생성한다.
 4. `proxy`를 이용해서 `recipe`를 실행시킨다.
 5. `processResult`를 이용해서 업데이트 된 최종 객체를 리턴한다.
 
-여기서 의문을 가져야하는 점은 mutalbe하게 변경시키는 로직이 `recipe`에 포함되어 있고 `recipe`는 단순히 호출될 뿐이다. 
+여기서 의문을 가져야하는 점은 mutalbe하게 변경시키는 로직이 `recipe`에 포함되어 있고 `recipe`는 단순히 호출될 뿐이라는 것이다. 
 하지만 `recipe` 내부의 mutable한 변경로직은 대상 객체를 직접 변경하지 않고 immutable을 보장시켜준다.
 
 비밀은 `proxy`에 있을 것 같다. 실제로 `proxy`를 만들 때 [new Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)를
@@ -291,7 +292,8 @@ function createScope(
 ### proxy
 immer의 핵심이 되는 `proxy`에 대해서 확인해보자.
 
-immer에서는 Object 뿐 아니라 Array, Map, Set 그리고 Proxy를 쓰지 못하는 경우(ES5)까지 대응하므로 Object만으로 한정해서 본다면 로직이 조금 간단해진다.
+immer에서는 Object 뿐 아니라 Array, Map, Set 그리고 Proxy를 쓰지 못하는 경우(ES5)까지 대응하므로 코드가 복잡해보이는데,
+Object만으로 한정해서 본다면 로직이 조금 간단해진다.
 
 ```tsx
 // https://github.com/immerjs/immer/blob/v9.0.6/src/core/immerClass.ts#L212-L229
@@ -306,6 +308,7 @@ export function createProxy(immer, value, parent) {
 proxy를 어떻게 만드는지는 `createProxyProxy` 함수를 한번 더 들어가야 확인할 수 있겠지만, 
 여기서 주목할 점은 `scope.drafts_` 에 생성한 proxy를 넣어둔다는 것이다. 맨 처음 만든 proxy가 root proxy이기 때문에 
 나중에 rootProxy를 획득할 때 `scope.drafts_[0]`를 참조할 예정이다.
+
 
 ```tsx
 // https://github.com/immerjs/immer/blob/v9.0.6/src/core/proxy.ts#L50-L95
@@ -334,13 +337,22 @@ export function createProxyProxy(base, parent) {
 `createProxyProxy`에서는 immer 동작에 사용할 여러 메타 데이터들과 새 `Proxy`객체를 생성한다.
 immer에서 쓰이는 메타데이터는 다음과 같이 정리된다.
 - `base_`: 기존 data. produce에서 첫번째 인자로 들어왔으며 변경되기 이전 원본 데이터를 여기에 저장한다.
-- `copy_`: 업데이트 된 data. 원본 데이터와 `recipe`를 이용해서 업데이트한 데이터를 여기에 저장한다. 아직은 아무 데이터도 저장되어 있지 않다.
+- `copy_`: 업데이트 된 data. 원본 데이터와 `recipe`를 이용해서 업데이트 된 데이터를 여기에 저장한다. 아직은 아무 데이터도 저장되어 있지 않다.
 - `draft_`: `draft_` 는 여기서 생성되는 `Proxy` 객체를 저장한다. 앞으로의 로직에서 `draft_.base_`나 `draft_.copy_`와 같은 방법으로 데이터를 참조하게 된다.
-- `modified_`: 객체가 변경되었는지 여부를 저장한다. 기본 값은 객체가 변경되지 않았으므로 false 이다.
-- `finalized_`: proxy가 업데이트가 완료되어 return 될 준비가 되었는지를 저장한다. 기본 값은 객체가 준비 중이므로 fasle 이다. 
+- `modified_`: 객체가 변경되었는지 여부를 저장한다. 기본 값은 객체가 변경되지 않았으므로 `false` 이다.
+- `finalized_`: proxy가 업데이트가 완료되어 return 될 준비가 되었는지를 저장한다. 기본 값은 객체가 준비 중이므로 `false` 이다. 
 - `parent_`: 객체는 multi depth로 구성될 수 있다. 만약 객체가 트리 형태로 구성된다면 부모 객체를 이 곳에 저장하게 된다. root proxy에서는 부모가 없다.
 
 주요 메타데이터들은 위에서 정리한 정도이다. 메타 데이터의 기본 값을 설정하고 `Proxy.revocable`과 `traps`를 이용해서 Proxy 객체를 생성한다. Proxy에 대해서는 다음 챕터에서 알아보자.
+
+:::info 용어 정리
+### proxy? Proxy?
+앞으로 immer에서 meta 데이터를 포함해서 `new Proxy` 객체를 포함하는 변수 `proxy`를 언급하기도 하고,
+용어 그대로 Javascript에서 object에 대한 여러 기본 동작을 제어하기 위한 객체 `Proxy`를 언급하기도 할 예정이다.
+공교롭게도 두 용어가 "프록시" 로 동일한 용어이기 때문에 이 글에서는 다음과 같이 `p` 대, 소문자 유무로 구분해서 사용할 예정이다.
+- `proxy`: immer에서 생성한 메타 데이터와 `new Proxy`로 생성한 draft를 포함하고 있는 객체.
+- `Proxy`: javascript에서 제공하는 built-in 객체. Object의 여러 기본 동작을 제어하기 위한 객체로 쓰인다.
+:::
 
 ### new Proxy
 ***이번 챕터에서는 [new Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)가
@@ -379,7 +391,7 @@ console.log(proxy.a); // 20
 console.log(proxy.b); // {}
 ```
 `proxy.a`에 할당할 때 일반 객체의 set을 사용하는게 아니라 `Proxy` 객체를 만들때 등록했던 `handler.set`의 로직을 따르게 된다. 
-set하는 value가 10이기 때문에 proxy.a 에는 10이 아닌 20이 저장된다. value가 number가 아닐때의 동작에서 쓰이는 `Reflect` 는 기존 로직을 따르게 할 때 사용한다.
+set하는 value가 10이기 때문에 `proxy.a` 에는 10이 아닌 20이 저장된다. value가 number가 아닐때의 동작에서 쓰이는 `Reflect` 는 기존 로직을 따르게 할 때 사용한다.
 
 자, 만약에 `proxy.b` 객체에 추가로 값을 할당하면 어떻게 될까? `handler.set`이 사용되어 40이 할당될까? 아니면 그대로 20이 할당될까?
 ```tsx
@@ -440,6 +452,7 @@ export function latest(state) {
   return state.copy_ || state.base_
 }
 ```
+state는 produce에서 생성한 proxy 객체이다. proxy 객체는 meta data와 `new Proxy`로 생성한 객체를 가지고 있다.
 `latest`는 `copy_` 혹은 `base_` 객체를 가져오는데, 현재 proxy가 가지고 있는 데이터를 가져오는데 쓰이는 것을 알 수 있다.
 `copy_`는 변경된 최신 객체이고, `base_`는 원본 객체이므로 `copy_`를 먼저 가져오는 것을 우선시하고 있다.
 
@@ -455,11 +468,11 @@ export function peek(draft, prop) {
 `peek`는 객체에서 특정 key에 대한 값을 가져오는 역할을 한다. 즉, draft에서 prop를 key로 가지는 값을 가져오기 위해 사용하는 것이다.
 여기서는 3가지 경우가 존재한다.
 1. draft가 Proxy객체가 아니라 일반 객체인 경우 <br/>
-  - 이 경우는 `draft[DRAFT_STATE]`가 `undefined` 이기 때문에 draft[prop] 를 참조해서 바로 리턴한다.
+    - 이 경우는 `draft[DRAFT_STATE]`가 `undefined` 이기 때문에 draft[prop] 를 참조해서 바로 리턴한다.
 2. draft가 Proxy 객체이고 copy_ 를 갖고 있을 경우
-  - `copy_.[prop]`를 리턴한다.
+    - `copy_.[prop]`를 리턴한다.
 3. draft가 Proxy 객체이고 copy_ 를 갖고 있지 않은 경우
-  - `base_.[prop]`를 리턴한다.
+    - `base_.[prop]`를 리턴한다.
 
 즉, 여러 경우에 대해서 object(혹은, proxy)에서 key에 맞는 값을 구하기 위한 유틸 함수 인 것이다.
 :::
@@ -631,17 +644,18 @@ set(state, prop, value) {
 불필요한 연산을 줄이려는 노력으로 보인다.
 
 자 이제 set의 로직을 요약하면 다음과 같다.
-1. `modified_`가 false라면 자신의 copy_를 base_에서 복사해주고 자신 포함 부모부터 루트까지의 `modified_`를 true로 만들어준다.
-2. modified 여부와 관계없이 state.copy_에 변경할 값을 할당해준다.
+1. `modified_`가 false라면 자신의 `copy_`를 `base_`에서 복사해주고 자신 포함 부모부터 루트까지의 `modified_`를 true로 만들어준다.
+2. modified 여부와 관계없이 `state.copy_`에 변경할 값을 할당해준다.
 
 ### Recap of Proxy
 immer에서 Proxy객체가 하는 역할을 정리해보자.
 - 데이터를 참조할때 객체라면 Proxy 객체를 생성해준다. 객체에서 여러번 multi depth로 참조를 했을때  get은 순차적으로 진행되기 때문에 root 객체부터 target 객체까지 통하는 모든 객체가 proxy로 생성되게 된다. 덕분에 multi depth로 객체를 참조하였을때도 root와 동일한 Proxy 로직을 사용할 수 있게 된다.
-- 데이터를 할당할때에는 base_를 copy_로 얕은 복사를 하고 copy_ 객체에 변경되는 값을 업데이트한다. 이때, 변경된 적 없는 객체를 변경하는 것이라면 해당 객체부터 부모 객체를 거쳐 root 객체까지 modified를 모두 true로 설정한다.
+- 데이터를 할당할때에는 `base_`를 `copy_`로 얕은 복사를 하고 `copy_` 객체에 변경되는 값을 업데이트한다. 이때, 변경된 적 없는 객체를 변경하는 것이라면 해당 객체부터 부모 객체를 거쳐 root 객체까지 modified를 모두 true로 설정한다.
 
 ## finalize
-`recipe` 함수를 통해서 데이터를 모두 변경하였다면 이제 finalize 과정을 진행한다. base_와 copy_들을 적절하게 합쳐주는 과정인 것이다.
-다시 produce 코드를 보자면 다음과 같은데, 여기서 `return processResult(result, scope)` 에 대한 로직을 확인하는 것이다.
+`recipe` 함수를 통해서 데이터를 모두 변경하였다면 이제 finalize 과정을 진행한다. `base_`와 `copy_`들을 적절하게 합쳐주는 과정인 것이다.
+다시 produce 코드를 보자면 다음과 같다. <br/>
+여기서 `return processResult(result, scope)` 에 대한 로직을 확인하는 것이다.
 
 ```tsx
 // https://github.com/immerjs/immer/blob/v9.0.6/src/core/immerClass.ts#L66-L122
@@ -739,7 +753,7 @@ Q1. `immer`는 mutable하게 객체를 변경하는 것을 어떻게 immutable�
 :::
 
 A1. `immer`는 `new Proxy`를 사용하여 get과 set 로직을 intercept하기 때문에 객체를 mutable하게 변경하더라도 객체가 직접적으로 변경되지 않는다.
-set로직에서 `base_`를 두고 `copy_`로 shallow copy하여 `copy_` 객체에 업데이트를 진행한다.
+set로직에서 `base_`를 변경하지 않고 `copy_`로 shallow copy하여 `copy_` 객체에 업데이트를 진행한다.
 
 모든 업데이트가 끝나면 값을 리턴할때 객체가 변경되었는지를 판단해서 `copy_`혹은 `base_`를 리턴함으로써 객체를 immutable하게 업데이트 할 수 있다.
 
@@ -747,7 +761,7 @@ set로직에서 `base_`를 두고 `copy_`로 shallow copy하여 `copy_` 객체�
 Q2. `immer`는 어떤 방식으로 structural sharing을 사용하는가?
 :::
 
-A2. `immer는` 객체의 변경여부에 따라서 `modified_`값을 관리합니다. `modified_`가 true라면 객체가 업데이트 되었다는 것이다. 
+A2. `immer는` 객체의 변경여부에 따라서 `modified_`값을 관리한다. `modified_`가 true라면 객체가 업데이트 되었다는 것이다. 
 `modified_` 값을 보고 true라면 `copy_`라는 새로운 객체를 리턴하여 새로운 reference를 사용하고, 
 `modifed_`가 false라면 `base_` 객체, 기존 객체를 반환함으로써 기존 reference를 사용한다. 
 따라서 변경된 여부에 대한 boolean을 관리하고 그 여부에 따라 기존 것을 사용하거나 새로운 것을 사용해서 structural sharing을 사용하고 있다.
@@ -765,7 +779,7 @@ return을 하지 않은 경우는 `produce` 내부에서 객체를 직접 변경
 스킵하고 `finalize` 과정으로 넘어온다. 이는 immer의 대부분의 로직을 사용하지 않고 결과를 리턴한다는 의미이다.
 
 두 방법 모두 객체를 immutable하게 관리하여 업데이트한다. 그리고 두 방식 모두 변경된 객체만 reference가 바뀌는 structural sharing을 사용하고 있다.
-물론 두번째 방법, 업데이트 된 객체를 리턴하는 방식을 사용한다면 불필요하게 업데이트 되지 않게 주의는 해야할 것이다. 결과적으로 이야기하면 어느쪽이든 동일하다.
+물론 두번째 방법, 업데이트 된 객체를 리턴하는 방식을 사용한다면 불필요하게 객체를 새로 만들지 않게 주의는 필요하다. 결과적으로 이야기하면 어느쪽이든 동일하다.
 차이점을 고르자면 어떤 방식으로 객체를 변경하느냐에 대한 것일 뿐이다. 그렇다면 선택의 영역이다. 
 mutable하게 변경하는 방식을 선택하느냐, immutable하게 변경하는 방식을 선택하느냐를 고민하면 된다. 
 
