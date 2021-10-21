@@ -498,6 +498,8 @@ export const objecTraps = {
       prepareCopy(state);
       return state.copy_[prop] = createProxy(state.scope_.immer_, value, state)
     }
+    
+    return value
   }
 }
 ```
@@ -525,22 +527,25 @@ if (value === peek(state.base_, prop)) {
   prepareCopy(state);
   return state.copy_[prop] = createProxy(state.scope_.immer_, value, state)
 }
+
+return value
 ```
-마지막 로직은 proxy로 변환이 필요한 경우의 분기이다. 이전 분기에서 `draftable` 을 체크하였기 때문에 value는 모두 object 같은 mutable한 타입 일 수 밖에없는데, 
-여기서 추가로 체크하고 있는 분기는 proxy를 이전에 만들었는지 여부를 판단하고 있다. 
-객체를 매번 참조할때마다 proxy를 생성하는 것이 아니라 한번 생성하였다면 다음 참조시에는 이를 재사용하므로 불필요한 연산을 줄이지 않기 위한 방법이다.
-어떻게 비교를 하고 있는지 알아보자.
+이제는 proxy 객체를 만들때의 로직이다. `prepareCopy` 를 호출하고 `copy_`에 자식 proxy를 생성한다. 
+`prepareCopy`는 `state.base_`를 `state.copy_`로 shallow copy를 하는 함수이다.
+`state.copy_`를 복사해서 만들고, `state.copy_[props]`에 새로운 proxy를 생성하여 저장한다.
+이때부터 `base_`와 `copy_`가 가지고 있는 값들이 바뀌게 된다. 
+get에서부터 proxy를 생성해서 저장 해주면서 multi depth Object를 참조했을때 proxy 객체를 참조할 수 있게 된다.
 
-`value === peek(state.base_, prop)`는 즉, `(state.copy_ || state.base_)[props] === state.base_[props]` 와 동일한 로직이다.
-우리는 아직 `state.copy_`가 할당되는 부분을 알지 못했으므로 최초의 시점에는 항상 true가 설정된다고 볼 수 있다. 
+자 그렇다면, 한번 get으로 proxy를 만든 객체를 다시 참조하면 다시 proxy 객체를 만들까? 당연한 말이지만 한번 proxy를 만든 객체라면 기존에 만들어 둔 것을 재사용한다.
+재사용할 수 있게끔 검사를 하는 로직이  `value === peek(state.base_, prop)` 의 분기이다.
 
-condition의 내부로 들어가면, `prepareCopy` 를 호출한다. `prepareCopy`는 `state.base_`를 `state.copy_`로 shallow copy를 하는 함수이다.
-`state.copy_`를 할당하고, `state.copy_[props]`에 value를 이용해 새로운 proxy를 생성하여 저장한다. 
-이러한 방식을 통해서 multi depth Object를 참조했을때 proxy 객체를 참조할 수 있게 된 것이다.
+##### 이미 생성한 proxy의 재사용 (`value === peek(state.base_, prop)`)
 
-get에서 하는 동작은 여기까지인데, `state.copy_`를 활용하는 부분을 확인했으므로 다시 `value === peek(state.base_, prop)` 조건문을 살펴보자.
-`state.copy_`가 존재한다면 `state.copy_[props]`와 `state.base_[props]`를 비교하고 `state.copy_[props]`는 일반 객체가 아닌 proxy 객체가 저장되어 있으므로
-이 두 값의 `===` 체크는 일치하지 않는다. 따라서 한번 참조한 객체를 다시 참조하는 경우 proxy를 다시 만들지 않고 `state.copy_[props]` 에 저장되어 있는 proxy를 재사용함으로써 불필요한 연산을 최소화한다.
+`peek(state.base_, prop)`는 `base_`의 prop를 의미하고, `value`는 `copy_` 혹은 `base_`의 prop를 의미한다. 
+`copy_`가 생성되기 전, 즉 get을 한 적이 없다면 항상 `base_`와 `base_`를 비교하므로 항상 true이고 proxy를 만드는 로직을 항상 실행 할 것이다.
+하지만, get을 한 적이 있고 `copy_`가 만들어진 상태라면 `copy_` 와 `base_`를 비교하고 이전 get로직에서 `copy_[prop]`에 proxy를 할당하여 
+이미 `base_`와 값이 달라졌기 때문에 proxy를 만드는 로직을 스킵하고 그대로 `state.copy_`를 리턴하게 되는 것이다.
+이러한 방식을 사용해서 get에서 불필요하게 proxy를 생성하는 것을 방지하고 있다.
 
 코드로 한줄씩 설명하니 복잡한데, proxy의 get동작에서 하는 일을 요약해보자.
 
@@ -603,10 +608,17 @@ set(state, prop, value) {
 }
 ```
 set을 진행하고 `modified`가 false 상태라면 변경 로직을 진행한다. edge로직을 제외하고 기본로직만 본다면 `prepareCopy`와 `markChanged` 함수를 실행한다.
-이전에 get을 진행할 때 `prepareCopy`를 사용하는 걸 보았었는데, 그때의 `prepareCopy`와 지금의 `prepareCopy`는 목적이 다르다.
-get의 `prepareCopy`는 참조하는 객체의 부모객체를 copy하는 동작을 하고, set의 `prepareCopy`는 참조하는 객체 본인를 copy하는 동작을 한다.
-따라서, get과 set에서 모두 `base_` 로부터 `copy_`를 복사하는 과정을 거친다. get에서의 `copy_`는 자식 객체의 proxy를 저장하기 위해서 `copy_`를 
-생성하는 목적이고, set에서의 `copy_`는 데이터를 업데이트하기 위해서 생성한다는 의미가 있다.
+
+:::info
+#### get에서의 `prepareCopy`와 set에서의 `prepareCopy`
+
+이전에 get을 진행할 때 `prepareCopy`를 사용하는 걸 보았다. get할때 copy를 준비하고 set할때도 copy를 진행하는걸까?
+
+자세히보면 get의 `prepareCopy`와 set의 `prepareCopy`는 목적이 다르다.
+get의 `prepareCopy`는 참조할 객체의 부모객체를 copy하는 동작을 하고, set의 `prepareCopy`는 참조하는 객체 본인를 copy하는 동작을 한다.
+예를들어, 만약 `proxy.a.b = { ... }`로 객체를 변경한다면 `proxy.a` 까지는 get에서 `prepareCopy`를 통해 `copy_`를 만들고, 
+`proxy.a.b`는 set에서 `prepareCopy`를 통해 `copy_`를 만든다는 점이다.
+:::
 
 `markChanged`의 코드는 다음과 같다.
 ```tsx
