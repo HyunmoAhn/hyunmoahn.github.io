@@ -30,7 +30,7 @@ How does `redux-devtools` make these things possible?
 
 In this article, we will check below three things.
 - How to **log** the actions and reducer called in `redux-devtools`.
-- How to **jump** to a point where specific aciton is dispatched in `redux-devtools`.
+- How to **jump** to a point where specific action is dispatched in `redux-devtools`.
 - How to **skip** a specific action as if it did not work in `redux-devtools`
 
 :::info PREREQUISITES
@@ -62,13 +62,13 @@ We know that `redux-devtools` use `enhancer` of `redux store`, but we can't knwo
 And, if you used [redux-toolkit](https://github.com/reduxjs/redux-toolkit), you might not have cared about devtools because devtools options is [set true at default value](https://github.com/reduxjs/redux-toolkit/blob/v1.6.1/packages/toolkit/src/configureStore.ts#L63).
 `redux-toolkit` also inject same setting code internally.([code](https://github.com/reduxjs/redux-toolkit/blob/v1.6.1/packages/toolkit/src/devtoolsExtension.ts#L184))
 
-I guess `window.__REDUX_DEVTOOLS_EXTENSION__` is injected from chrome extension. But we don't read chrome extension code, we will find another usage about `redux-devtools`.
+I guess `window.__REDUX_DEVTOOLS_EXTENSION__` is injected from Chrome extension. But we don't read Chrome extension code, we will find another usage about `redux-devtools`.
 
 ### Manual usage
-If we look for `redux-devtools` document, we can find document that manully apply redux-devtools without using `browser extension`.   
+If we look for `redux-devtools` document, we can find document that manually apply redux-devtools without using `browser extension`.   
 
 In short about that document, add below dependency and create `createDevTools` and add it at store enhancer.
-- install dependecny
+- install dependency
 ```shell
 npm install --save-dev @redux-devtools/core
 npm install --save-dev @redux-devtools/log-monitor
@@ -97,10 +97,10 @@ export default DevTools;
 ```
 
 we will create `DevTools` component using `createDevTools` interface in `redux-devtools/core`.
-This `DevTools` component have a two roles.
+This `DevTools` component have two roles.
 First is a devtools component to show inner web application. By manual usage, it is possible to use a way that can be operated by displaying devtools on web application rather than by browser extension.
 `DevTools` is a component that displayed in web application.
-Second is the intrument method that is served in `DevTools`. 
+Second is the instrument method that is served in `DevTools`. 
 This method return enhancer to use redux store. As it will follow, connect web application and redux-devtools through these two.
 
 - Inject enhancer in store & Render `DevTools`
@@ -141,7 +141,7 @@ Now, we can figure out what to check to see the contents of redux-devtools.<br/>
 `redux-devtools` is connected to web applications in the form of component and redux store enhancer, and we can check the inside of `@redux-devtools/core`.
 
 In here, We will check only `@redux-devtools/core` in this article 
-because  `DockMonitor` or `LogMonitor` is an additional function to display redux-devtools inside of web applictions.
+because  `DockMonitor` or `LogMonitor` is an additional function to display redux-devtools inside of web applications.
 
 ### Recap about devtools connection with web application
 The link between `redux-devtools` and `web application` was able to get hints through a [manual usage])(https://github.com/reduxjs/redux-devtools/blob/main/docs/Walkthrough.md#manual-integration) rather than a usage using browser extension. 
@@ -197,7 +197,7 @@ const exampleEnhancer = (createStore) => (reducer, initialState, enhancer) => {
 }
 ```
 `enhnacer` get `createStore` parameter and return function that return store.  
-Above code is a example of redux document, It have a role that make `monitorReducer` and replace existing reducer.
+Above code is an example of redux document, It has a role that make `monitorReducer` and replace existing reducer.
 
 `enhancer` mutate reducer or state in this method. `redux-devtools` also use the redux enhancer features to implement logging, rollback and skip features.
 
@@ -262,7 +262,7 @@ export function unliftStore(liftedStore, liftReducer, options) {
 }
 ```
 `unliftStore` has several methods such as dispatch, getState, replaceReducer and the method names are familiar for us.  
-Because these is served method by redux.
+Because this is served method by redux.
 In other word, `unliftStore` doesn't use `createStore` but it returns store of redux.
 Because `unliftStore` is used for redux store enhancer and the return value of redux store,
 It may be natural that the return value of `unliftStore` is the same as the redux store
@@ -293,7 +293,7 @@ function unliftState(liftedState) {
 ```
 `getState` calls `unliftState` and `unliftState` returns state.
 If we think means of `lift` and `unlift`, `unliftState` means state used on app.
-So, `getState` returns `unliftState`(app's redux state) from state of `liftStore`(devtools's store). 
+So, `getState` returns `unliftState`(app's redux state) from state of `liftStore`(devtools store). 
 
 Inside of `unliftState`, it extract state using `computedStates` and `currentStateIndex` from `liftedState`.
 In other words, we can expect when data is saved, `liftState` saves all app state in `computedStates` and saves index of state in `currentStateIndex`.  
@@ -327,7 +327,7 @@ function liftAction(action, trace, traceLimit, toExcludeFromTrace) {
 }
 ```
 The action from parameter of `dispatch` is the action object defined in app because the method of `unliftStore` will be use directly in app. It is not exception about `dispatch`.
-So, `liftedStore`(devtools's store) transfer action from app to use dispatch, but action is not transmitted directly, it is converted by `liftAction` and it will change action of app to action of devtools.   
+So, `liftedStore`(devtools store) transfer action from app to use dispatch, but action is not transmitted directly, it is converted by `liftAction` and it will change action of app to action of devtools.   
 Let's see inside of `liftAction`.
 [ActionCreators.performAction](https://github.com/reduxjs/redux-devtools/blob/v3.6.0/packages/redux-devtools-instrument/src/instrument.js#L38-L97) is an action object having an action type as `PERFORM_ACTION`. 
 So, all actions that dispatched in app, are converted to `PERFORM_ACTION` and used in `liftedStore`.
@@ -416,7 +416,7 @@ What mentioned in `unliftState`
 So `computedStates` save data of app's state and `currentStateIndex` save index about current state index.
 
 When looking at other predictable states, `actionId` seems to store action data on id and `stagedActionIds` or `skippedActionIds` seems that save actionId about action status like `staged` or `skipped`.
-`isLocked` or `isPaused` is option about devtools. First of all, let's just organize the contents below and move on.
+`isLocked` or `isPaused` is option about devtools. First, let's just organize the contents below and move on.
 
 #### recap about initialState
 - devtools saves byId and id forms about action data to [normalized](https://redux.js.org/usage/structuring-reducers/normalizing-state-shape) form.   
@@ -477,25 +477,25 @@ we don't know how to use these yet, so let's move on.
 :::tip TIP
 we don't know how to work about `stagedActionIds` and `minInvalidatedStateIndex`. However, to explain the role in advance to make it easier to understand, it is as follows. 
 - `stagedActionIds`
-  - It is array that ids of the action that should be apply in devtools are saved.
+  - It is array that ids of the action that should be applied in devtools are saved.
   - In other words, it save valid action list and when `PERFORM_ACTION` is dispatched, `stagedActionIds` always add it because new action is added.
 - `minInvalidatedStateIndex`
   - In short, `minInvalidatedStateIndex` means the index value of the action that must be recalculated.
   - In `PERFORM_ACTION`, `minInvalidatedStateIndex` is  `stagedActionIdex.length - 1`. In other words, `stagedActionIndex` point last index of actions and it means that last action need to recalculate.  
 :::
 
-We checked how to implement when action is dispatched, we don't know how to calculated nextState yet.
+We checked how to implement when action is dispatched, we don't know how to calculate nextState yet.
 Obviously, it saved action info and saved action id here and there but, we can't expect that info calculate nextState.
 Let's show next logic of switch.
 
 ### Recap about logic of PERFORM_ACTION
 - `PERFORM_ACTION` brings all the data of the action generated in the app as it is.
-- all actions that dispatched from app are converted to `PERFORM_ACTION`. So it are performed through a `PERFORM_ACTION` reducer logic.  
+- all actions that dispatched from app are converted to `PERFORM_ACTION`. So it is performed through a `PERFORM_ACTION` reducer logic.  
 - In reducer, it increases `currentStateIndex`, save action like byId and ids form and save `minInvalidatedStateIndex`. 
 - The logic to calculate `nextState` is not come yet.
 - We don't know means that `stagedActionIds` and `minInvalidatedStateIndex`, but if we know it in advance, it's as follows.
   - `stagedActionIds`: A array that saved ids that need to apply actions in devtools.
-  - `minInvalidatedStateIndex`: A index of action to calculate state. Later, it calculate use this value.
+  - `minInvalidatedStateIndex`: A index of action to calculate state. Later, it calculates use this value.
 
 ## recomputeStates
 After switch logic, `computedState` logic is come. It seems that update state using `recomputeStates`, Let's look at.
@@ -598,7 +598,7 @@ function computeWithTryCatch(reducer, action, state) {
 In other words, It calculates next state using previous state, current action and reducer.
 This calculated value is entered entry and this entry is injected the last of `nextComputedStates`. 
 
-When `PERFORM_ACTION` action is dispatched, for loop always work once and calculated state newly is contained `nextComputedStates` array. It will be assign to `computedStates`. 
+When `PERFORM_ACTION` action is dispatched, for loop always work once and calculated state newly is contained `nextComputedStates` array. It will be assigned to `computedStates`. 
 The `computedStates` changed here is transmitted to state of app.
 
 ### Recap about recomputeStates
@@ -625,7 +625,7 @@ Here, the calculated state is added to the last array of `computedStates`.
 
 - get state from app to `getState`
 
-`store.getState` to get state from app is same with `dispatch`. It also use [getState](#getstate) of [unliftStore](#unliftstore) 
+`store.getState` to get state from app is same with `dispatch`. It also uses [getState](#getstate) of [unliftStore](#unliftstore) 
 `getState` calculate state to using `computedStates` and `currentStateIndex` in `liftedState`.
 
 If only `PERFORM_ACTION` was dispatched, `currentStateIndex` would have increased by 1 and the return value of `getState` would have brought the state in the last index of `computedStates`. 
@@ -780,11 +780,11 @@ A brief summary of the core of `redux-devtools` is as follows.
 - `redux-devtools` is connected to the redux store of the app through a redux store enhancer.
 - In order not to affect the app while utilizing various functions of `redux-devtools`, two stores, `unliftStore` and `liftStore` are managed. 
 - All actions generated in the app are converted into `liftAction` having a `PERFORM_ACTION` type and transmitted to `liftReducer`.
-- `liftReducer` stores data on all actions occuring in the app and state on the action.
+- `liftReducer` stores data on all actions occurring in the app and state on the action.
 - The redux state used in the app is data obtained from the `getState` of `unliftStore` to the state suitable for the current action. 
 - Various functions used in `devtools` use a method of changing action and state stored through `liftReducer` and delivering the state suitable for the desired time to the app.
 
-Some of the readers of this article may be curious about functions other than `jump` and `skip` of `redux-devtools`.
+Some readers of this article may be curious about functions other than `jump` and `skip` of `redux-devtools`.
 However, there is a limit to explaining everything in `redux-devtools`, and I have not checked logic for all functions either.
 If you have understood through this article how `redux-devtools` is operating and how it is implementing its main functions (jump, skip),
 I think you can solve your curiosity by looking at the [@redux-devtools/core](https://github.com/reduxjs/redux-devtools/blob/v3.6.0/packages/redux-devtools/src/index.js) code
