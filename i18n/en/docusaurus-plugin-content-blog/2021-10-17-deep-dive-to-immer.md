@@ -1,6 +1,6 @@
 ---
 slug: deep-dive-to-immer
-title: deep dive to immer
+title: Deep dive to immer
 description: immer, usually used by redux, help us to update mutable object like using immutably. How can it do this? Let's deep dive to immer. 
 keywords:
   - redux
@@ -207,37 +207,40 @@ const nextState = produce(baseState, draft => {
 If we don't use `immer`, we need to do copy → update process and need to check if object is changed mutably or not. 
 But, if we use `produce` of `immer`, it can be ensured that data is immutable no matter how we use it.
 
-If you have been never used an `immer` yourself and used the `redux` using the [redux-toolkit](https://redux-toolkit.js.org/),
+If you have never been used an `immer` yourself and used the `redux` using the [redux-toolkit](https://redux-toolkit.js.org/),
 you are already using the `immer`.
 If you're not sure, [read this document](https://redux-toolkit.js.org/api/createReducer#direct-state-mutation) on how to mutate the state in the redux-toolkit
 
 ## About immer before deep-dive 
-먼저 immer의 원리를 이야기 해볼 예정이다. 
-여기서 설명하는 내용은 [immer의 문서](https://immerjs.github.io/immer/#how-immer-works)와 문서의 FAQ에 링크되어 있는 
-[blog 글](https://medium.com/hackernoon/introducing-immer-immutability-the-easy-way-9d73d8f71cb3#3bff) 을 참고하면 더 쉽게 이해할 수 있을 것이다.
+First, I will talk about the principle of `immer`.
+The contents described here will be easier to understand by referring to the article of the [document of immer](https://immerjs.github.io/immer/#how-immer-works)
+and [the blog article](https://medium.com/hackernoon/introducing-immer-immutability-the-easy-way-9d73d8f71cb3#3bff) linked to the FAQ of documents. 
 
 ### immer doesn't update original data
-immer는 객체를 직접 변경하지 않고 original data(`base_`)를 그대로 두고, copy data(`copy_`)를 생성하고  변경하는 동작을 진행한다. 
-이런 원리를 이용해서 기존 데이터를 변경하지 않은 채 변경된 데이터를 리턴한다.
+When update data, `immer` doesn't update original data(`base_`). 
+But it create copy data(`copy_`) using `base_` and update `copy_` instead of updating original data.
+Using this principle, the updated data is returned without changing the original data.
 
 ### immer record if object is updated or not
-immer는 객체를 변경할 때 modified flag를 `true`로 설정한다. 
-만약 객체 트리의 깊숙한 곳이 변경되었다면 변경된 자신을 포함하여 root 트리까지 modified flag를 변경하여 root에서도 객체 트리의 끝까지 순회할 수 있도록 조정한다.
+`immer` set `modified_` flag to `true` when update object.
+If deep part of object tree is modified, `immer` update `modified_` flag from deep part to root tree. 
+Then `immer` can traverse root to lear tree. 
 
-객체 변경과정을 마친 뒤에는 modified flag를 확인하여 변경된 객체들만 copy data(`copy_`)를 사용하고 
-modified 되지 않았다면 original data(`base_`)를 사용해서 기존 reference를 재사용함으로써 structural share를 사용한다.
+After completing the object update process, `immer` check the `modified_` flag. 
+If object is modified, use copy data(`copy_`). 
+If it is not modified, the structural share is used by reusing the existing reference using original data(`base_`).
 
 ### Recap
-즉, 정리하자면 다음과 같이 3줄로 정리된다.
+In short, It is summarized in three lines.
 
-- original data와 copy data 2가지 객체를 관리하여 원본을 보존하고 copy data만 변경한다.
-- 변경한 객체는 modified flag를 켜서 root tree에서 leaf tree까지 순회할 수 있도록 한다.
-- 변경이 완료된 뒤 modifed flag를 이용해서 새 객체와 기존 객체를 합성하는 과정을 진행한다.
+- Manage two type of object, `original data` and `copy data`, preserve original data and update copy data only.
+- The changed object can be traversed from the root tree to the leaf tree by turning on the modified flag.
+- After the update is completed, the process of combining the new and existing objects using the modified flag is performed.
 
 
 ## Deep dive to immer
-자, immer로 deep dive 해보자. <br/>
-immer 로직을 확인해보려면 usage에서 사용했던 `produce` 함수를 먼저 살펴봐야한다.
+Let's deep dive to immer. <br/>
+To check logic of `immer`, we need to checking `produce` function used in usage first.
 
 ```tsx
 // https://github.com/immerjs/immer/blob/v9.0.6/src/immer.ts#L23-L45
@@ -245,10 +248,9 @@ const immer = new Immer();
 export const produce = immer.produce;
 export default produce;
 ```
-produce함수는 `Immer` 클래스의 메소드 함수이다. `Immer` class 안을 살펴보자.
+`produce` function is method function of `Immer` class. Let's see inner `Immer` class.
 
-produce함수에서 curring 함수 대응과 여러 예외 케이스를 제외하면 다음과 같이 축소된다.
-
+Excluding the curring function handling and several exception cases in the `produce` function, it is reduced as follows.
 ```tsx
 // https://github.com/immerjs/immer/blob/v9.0.6/src/core/immerClass.ts#L66-L122
 export class Immer {
@@ -264,24 +266,24 @@ export class Immer {
   }
 }
 ```
-`produce` 함수가 생각보다 간단하니, 여기서 produce 함수 로직의 순서를 짚고 넘어가자.
-1. `produce` 함수는 기존 객체(`base`)와 객체를 어떻게 변경시킬지 결정하는 함수(`recipe`)를 인자로 받는다.
-2. `scope`를 생성한다.
-3. `proxy`를 생성한다.
-4. `proxy`를 이용해서 `recipe`를 실행시킨다.
-5. `processResult`를 이용해서 업데이트 된 최종 객체를 리턴한다.
+Since the `produce` function is simpler than excepted, let's move on to the order of the `produce` function logic.
+1. `produce` function receives parameters that existing object(`base`) and the function that determines how to update the object(`recipe`).
+2. Create `scope`.
+3. Create `proxy`.
+4. Run `recipe` using `proxy`.
+5. Return the final object updated using `processResult`.
 
-여기서 의문을 가져야하는 점은 mutalbe하게 변경시키는 로직이 `recipe`에 포함되어 있고 `recipe`는 단순히 호출될 뿐이라는 것이다. 
-하지만 `recipe` 내부의 mutable한 변경로직은 대상 객체를 직접 변경하지 않고 immutable을 보장시켜준다.
+What should be questioned here is that the logic of mutable updating is included `recipe` and `recipe` function is just called only.
+But the logic of mutable updating inner `recipe` does immutable update without updating target object directly.
 
-비밀은 `proxy`에 있을 것 같다. 실제로 `proxy`를 만들 때 [new Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)를
-사용하고 있고, 이 `new Proxy`가 immer의 주요 로직에 key point로 작용한다.
+The secret may be `proxy`. In fact, when creating a proxy, it uses a [new Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy),
+which acts as a key point for the main logic of the `immer`.
 
-차근차근 하나씩 살펴보자.
+Let's take a look one by one.
 
 ### scope
-scope는 immer 전역에서 사용할 정보들을 저장하는 객체이다. immer의 기본동작에는 크게 쓰이지 않으므로 어떤 데이터를 저장하고 있는지만 훑고 넘어가자.
-
+`scope` is an object that stores information to be used throughout the immer. 
+It is not used much in the basic logic of the `immer`.
 ```tsx
 // https://github.com/immerjs/immer/blob/v9.0.6/src/core/scope.ts#L33-L46
 function createScope(
@@ -297,13 +299,14 @@ function createScope(
   }
 }   
 ```
-`drafts_`는 나중에 만드는 `proxy` 를 생성할 때 하나씩 담기는 배열이고 `immer_`는 immer 클래스를 담는 공간이다.
+`drafts_` is an array that is contained one by one when creating a `proxy` that is made later 
+and `immer_` is a space that contains an immer class.
 
 ### proxy
-immer의 핵심이 되는 `proxy`에 대해서 확인해보자.
+Let's check `proxy`, which is the core of the `immer`.
 
-immer에서는 Object 뿐 아니라 Array, Map, Set 그리고 Proxy를 쓰지 못하는 경우(ES5)까지 대응하므로 코드가 복잡해보이는데,
-Object만으로 한정해서 본다면 로직이 조금 간단해진다.
+`immer` responds not only to objects but also to cases where Array, Map, Set and proxy can't be used(ES5), 
+so the code seems complicated, but if we look at it only with objects, logic becomes a little simpler.
 
 ```tsx
 // https://github.com/immerjs/immer/blob/v9.0.6/src/core/immerClass.ts#L212-L229
@@ -315,10 +318,9 @@ export function createProxy(immer, value, parent) {
   return draft;
 }
 ```
-proxy를 어떻게 만드는지는 `createProxyProxy` 함수를 한번 더 들어가야 확인할 수 있겠지만, 
-여기서 주목할 점은 `scope.drafts_` 에 생성한 proxy를 넣어둔다는 것이다. 맨 처음 만든 proxy가 root proxy이기 때문에 
-나중에 rootProxy를 획득할 때 `scope.drafts_[0]`를 참조할 예정이다.
-
+To know how to create `proxy`, we need to check `createProxyProxy` function.
+The focus point here is that the generated proxy is put in `scope.drafts_`.
+The `proxy` first created is root proxy. So `immer` will use `scope.drafts_[0]` when get `rootProxy` later.
 
 ```tsx
 // https://github.com/immerjs/immer/blob/v9.0.6/src/core/proxy.ts#L50-L95
@@ -344,41 +346,43 @@ export function createProxyProxy(base, parent) {
   return proxy;
 } 
 ```
-`createProxyProxy`에서는 immer 동작에 사용할 여러 메타 데이터들과 새 `Proxy`객체를 생성한다.
-immer에서 쓰이는 메타데이터는 다음과 같이 정리된다.
-- `base_`: 기존 data. produce에서 첫번째 인자로 들어왔으며 변경되기 이전 원본 데이터를 여기에 저장한다.
-- `copy_`: 업데이트 된 data. 원본 데이터와 `recipe`를 이용해서 업데이트 된 데이터를 여기에 저장한다. 아직은 아무 데이터도 저장되어 있지 않다.
-- `draft_`: `draft_` 는 여기서 생성되는 `Proxy` 객체를 저장한다. 앞으로의 로직에서 `draft_.base_`나 `draft_.copy_`와 같은 방법으로 데이터를 참조하게 된다.
-- `modified_`: 객체가 변경되었는지 여부를 저장한다. 기본 값은 객체가 변경되지 않았으므로 `false` 이다.
-- `finalized_`: proxy가 업데이트가 완료되어 return 될 준비가 되었는지를 저장한다. 기본 값은 객체가 준비 중이므로 `false` 이다. 
-- `parent_`: 객체는 multi depth로 구성될 수 있다. 만약 객체가 트리 형태로 구성된다면 부모 객체를 이 곳에 저장하게 된다. root proxy에서는 부모가 없다.
+In `createProxyProxy`, various metadata and new `Proxy` objects are created to be used for immer operation.
+The metadata used in the immer is summarized as follows.
+- `base_`: Existing data. It came in as the first parameter in `produce` and the original data before it is changed is stored here.
+- `copy_`: Updated data. Updated data is saved here using original data and `recipe`. It doesn't have any data yet.
+- `draft_`: `draft_` save `Proxy` object that will create here. In the future logic, data is referred to in the same way as `draft_.base` or `draft_.copy`.
+- `modified_`: It stores whether the object has been changed. Default value is `false` because object is not updated.
+- `finalized_`: It stores whether the proxy complete to update and ready to be returned. Default value is `false` because the object is being prepared. 
+- `parent_`: Object can be multi depth. If object composed tree form, parent tree is saved here. This is empty in root proxy.
 
-주요 메타데이터들은 위에서 정리한 정도이다. 메타 데이터의 기본 값을 설정하고 `Proxy.revocable`과 `traps`를 이용해서 Proxy 객체를 생성한다. Proxy에 대해서는 다음 챕터에서 알아보자.
+The main metadata is summarized above. 
+The default value of metadata is set here and `Proxy` object is created by `Proxy.revocable` and `traps`.
+Let's see about Proxy in next chapter. 
 
-:::info 용어 정리
+:::info Terms
 ### proxy? Proxy?
-앞으로 immer에서 meta 데이터를 포함해서 `new Proxy` 객체를 포함하는 변수 `proxy`를 언급하기도 하고,
-용어 그대로 Javascript에서 object에 대한 여러 기본 동작을 제어하기 위한 객체 `Proxy`를 언급하기도 할 예정이다.
-공교롭게도 두 용어가 "프록시" 로 동일한 용어이기 때문에 이 글에서는 다음과 같이 `p` 대, 소문자 유무로 구분해서 사용할 예정이다.
-- `proxy`: immer에서 생성한 메타 데이터와 `new Proxy`로 생성한 draft를 포함하고 있는 객체.
-- `Proxy`: javascript에서 제공하는 built-in 객체. Object의 여러 기본 동작을 제어하기 위한 객체로 쓰인다.
+From now on, I will mention the variable `proxy` that includes the `new Proxy` object, including metadata,
+and also will mention the object `Proxy` to control various basic actions against objects in javascript as the terms implies.
+Coincidentally, since the two terms are the same term as "proxy", in this article, the two will be divided into 'p' as follows. 
+- `proxy`: The object containing metadata generated by `immer` and `draft` generated by `new Proxy`.
+- `Proxy`: built-in object served by javascript. It is used as an object to control various basic traps of an object.
 :::
 
 ### new Proxy
-***이번 챕터에서는 [new Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)가
-어떤 것인지 알아보는 시간을 가질 것이다. Proxy에 대해 익숙하다면 [다음 챕터로 넘어가도 무관하다](#traps-of-immer).***
+***In this chapter, we have a time to know what is the [new Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
+If you are familiar with `Proxy`, it doesn't matter if you [move on to the next chapter](#traps-of-immer)***
 
-우리는 이전 챕터에서 `Proxy.revocable` 을 이용해서 Proxy 객체를 만들었다.
+We created `Proxy` object using `Proxy.revocable` in previous chapter.
 
-[MDN 문서](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)에서 Proxy에 대해 정의한 내용은 다음과 같다.
+The definition of Proxy in [MDN docs](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) is following.
 
 > The Proxy object enables you to create a proxy for another object, which can intercept and redefine fundamental operations for that object.
 
-Proxy 객체는 object의 기능, set과 get과 같은 기능들을 intercept하거나 redefine을 하는 새로운 객체를 생성한다.
-immer에서는 원본 객체로 Proxy 객체를 만들어 원본 객체를 get, set할 때 직접적으로 객체를 변경하는 것이 아니라 다른 방식으로 업데이트를 하게끔 로직을 
-intercept하는데 Proxy를 사용하고 있다.
+`Proxy` object create new Object that intercept or redefine feature of object like set or get.
+`Immer` uses `Proxy` to intercept logic to update the original object in a different way, rather than directly updating the object
+when getting and setting the original object by creating a `Proxy` object with the original object.
 
-예를들어서 Object가 있고 set을 할때 설정한 값을 2배로 만들고 싶다면 다음과 같이 사용하면 된다.
+For example, if you have an object and want to dobule the value you set when you set it, you can use it as follows.
 
 ```tsx
 const origin = {};
@@ -400,21 +404,25 @@ proxy.b = {};
 console.log(proxy.a); // 20
 console.log(proxy.b); // {}
 ```
-`proxy.a`에 할당할 때 일반 객체의 set을 사용하는게 아니라 `Proxy` 객체를 만들때 등록했던 `handler.set`의 로직을 따르게 된다. 
-set하는 value가 10이기 때문에 `proxy.a` 에는 10이 아닌 20이 저장된다. value가 number가 아닐때의 동작에서 쓰이는 `Reflect` 는 기존 로직을 따르게 할 때 사용한다.
+When assign to `proxy.a`, the normal set of objects is not used, but the logic of `handle.set` registered when creating the `Proxy` object is used. 
+Because the value to set is 10, `proxy.a` is saved 20 not 10.
+`Reflect`, which is used in the operation when the value is not the number, is used to follow the existing logic. 
 
-자, 만약에 `proxy.b` 객체에 추가로 값을 할당하면 어떻게 될까? `handler.set`이 사용되어 40이 할당될까? 아니면 그대로 20이 할당될까?
+Now, what if an additional value is allocated to the object `proxy.b`?
+Will 40 be assigned? Or will 20 be assigned?
 ```tsx
 proxy.b.c = 20
 
 console.log(proxy.b.c) // 20? 40?
 ```
-정답은 20이다. 그 이유는 `proxy`는 Proxy 객체이지만, `proxy.b`는 Proxy 객체가 아니라 일반 객체이기 때문이다. 
-따라서 `handler.set`을 사용하지 않고 일반 객체의 set을 사용하여 그대로 20을 할당하고 있는 것이다.
+The answer is 20. The reason is that `proxy` is a Proxy object, but `proxy.b` is not a Proxy object but a plain object.
+Therefore, 20 is allocated as it is using a set of plain object without using `handle.set`.
 
-이러한 동작은 immer에서 critical하게 작용된다. 객체를 변경하는 과정에서 몇 depth가 되는 자식 객체를 바로 변경하는 케이스가 많을 것이기 때문이다. 
+This action acts critically in the `immer`.
+This is because there will be many cases in which child objects 
+that become several depth are immediately changed in the process of updating the object. 
 
-따라서 다음과 같은 방법으로 이를 대응한다.
+Therefore, it responds in the following ways.
 ```tsx
 const origin = {};
 const handler = {
@@ -445,14 +453,16 @@ proxy.b.c.d = 20;
 console.log(proxy.b.c); // Proxy {}
 console.log(proxy.b.c.d); // 40
 ```
-Proxy를 만들때 set뿐 아니라 get에서도 커스텀 로직을 추가한다. Proxy 객체에서 값을 가져올 때 일반 객체를 가져온다면 Proxy 객체를 만들어서 가져오게끔 하는 것이다.
-이렇게 되면, `proxy` 객체도 Proxy 객체이고, `proxy.b`도 `handler.get`을 사용해서 일반객체가 아닌 Proxy객체를 반환한다. 
-따라서 `proxy.b.c`에 20을 할당한다면, `proxy.b`는 Proxy 객체이고 `handle.set` 로직을 사용하여 `proxy.b.c`에는 20이 아닌 40이 할당되게 되는 것이다.
+When create Proxy, we add custom logic not only get but also set. 
+When getting a value from a Proxy object, if it is normal object, it create and get a proxy object. 
+In this case, the Proxy object is also a Proxy object, and `proxy.b` also returns the Proxy object, not the general object, using `handler.get`.
+Therefore, if 20 is assigned to `proxy.b.c`, 40 is allocated in `proxy.b.c` not 20 because `proxy.b` is Proxy object. 
 
-이러한 get과 set의 동작을 이용해서 immer에서는 get에서는 깊숙한 객체를 참조할때에도 proxy를 참조할 수 있게끔, 
-set에서는 객체를 직접 변경하지 않고 base_와 copy_를 이용하는 로직을 사용하고 있다. 다음 챕터에서 어떻게 구현되어 있는지 알아보자.
+Using these actions of get and set, `Immer` uses logic using `base_` and `copy_` without directly updating the object 
+in the set so that even when referring to deep objects in get, Proxy can be referenced.
+Let's find out how it is implemented in the next chapter.
 
-:::tip `latest`와 `peek`에 대해서
+:::tip About `latest` and `peek`
 앞으로의 immer코드에서 immer에서 쓰이는 유틸 함수인 `latest`와 `peek`에 대해서 많이 확인하게 될 것 이다.
 이 유틸 함수가 어떤 동작을 하는지 궁금하다면 살펴보자.
 - latest

@@ -210,7 +210,7 @@ immer의 `produce` 를 사용하면 어떤 방식으로 사용하더라도 data�
 [blog 글](https://medium.com/hackernoon/introducing-immer-immutability-the-easy-way-9d73d8f71cb3#3bff) 을 참고하면 더 쉽게 이해할 수 있을 것이다.
 
 ### immer는 원래 객체를 변경시키지 않는다.
-immer는 객체를 직접 변경하지 않고 original data(`base_`)를 그대로 두고, copy data(`copy_`)를 생성하고  변경하는 동작을 진행한다. 
+immer는 객체를 직접 변경하지 않고 original data(`base_`)를 그대로 두고, copy data(`copy_`)를 생성하고 변경하는 동작을 진행한다. 
 이런 원리를 이용해서 기존 데이터를 변경하지 않은 채 변경된 데이터를 리턴한다.
 
 ### immer는 객체가 변경되었는지를 기록한다.
@@ -264,7 +264,7 @@ export class Immer {
 4. `proxy`를 이용해서 `recipe`를 실행시킨다.
 5. `processResult`를 이용해서 업데이트 된 최종 객체를 리턴한다.
 
-여기서 의문을 가져야하는 점은 mutalbe하게 변경시키는 로직이 `recipe`에 포함되어 있고 `recipe`는 단순히 호출될 뿐이라는 것이다. 
+여기서 의문을 가져야하는 점은 mutable하게 변경시키는 로직이 `recipe`에 포함되어 있고 `recipe`는 단순히 호출될 뿐이라는 것이다. 
 하지만 `recipe` 내부의 mutable한 변경로직은 대상 객체를 직접 변경하지 않고 immutable을 보장시켜준다.
 
 비밀은 `proxy`에 있을 것 같다. 실제로 `proxy`를 만들 때 [new Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)를
@@ -440,10 +440,10 @@ console.log(proxy.b.c.d); // 40
 ```
 Proxy를 만들때 set뿐 아니라 get에서도 커스텀 로직을 추가한다. Proxy 객체에서 값을 가져올 때 일반 객체를 가져온다면 Proxy 객체를 만들어서 가져오게끔 하는 것이다.
 이렇게 되면, `proxy` 객체도 Proxy 객체이고, `proxy.b`도 `handler.get`을 사용해서 일반객체가 아닌 Proxy객체를 반환한다. 
-따라서 `proxy.b.c`에 20을 할당한다면, `proxy.b`는 Proxy 객체이고 `handle.set` 로직을 사용하여 `proxy.b.c`에는 20이 아닌 40이 할당되게 되는 것이다.
+따라서 `proxy.b.c`에 20을 할당한다면, `proxy.b`는 Proxy 객체이므로 `handle.set` 로직을 사용하여 `proxy.b.c`에는 20이 아닌 40이 할당되게 되는 것이다.
 
-이러한 get과 set의 동작을 이용해서 immer에서는 get에서는 깊숙한 객체를 참조할때에도 proxy를 참조할 수 있게끔, 
-set에서는 객체를 직접 변경하지 않고 base_와 copy_를 이용하는 로직을 사용하고 있다. 다음 챕터에서 어떻게 구현되어 있는지 알아보자.
+이러한 get과 set의 동작을 이용해서 immer에서는 get에서는 깊숙한 객체를 참조할때에도 Proxy를 참조할 수 있게끔, 
+set에서는 객체를 직접 변경하지 않고 `base_`와 `copy_`를 이용하는 로직을 사용하고 있다. 다음 챕터에서 어떻게 구현되어 있는지 알아보자.
 
 :::tip `latest`와 `peek`에 대해서
 앞으로의 immer코드에서 immer에서 쓰이는 유틸 함수인 `latest`와 `peek`에 대해서 많이 확인하게 될 것 이다.
