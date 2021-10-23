@@ -1,7 +1,7 @@
 ---
 slug: deep-dive-to-immer
 title: Deep dive to immer
-description: immer, usually used by redux, help us to update mutable object like using immutably. How can it do this? Let's deep dive to immer. 
+description: immer, usually used by redux, help us to update mutable object like using immutably. How can it do this? Lets deep dive to immer. 
 keywords:
   - redux
   - redux-toolkit
