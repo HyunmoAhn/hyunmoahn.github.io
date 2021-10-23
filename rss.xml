@@ -4,9 +4,16 @@
         <title>hmos.dev Blog</title>
         <link>https://hmos.dev/</link>
         <description>hmos.dev Blog</description>
-        <lastBuildDate>Sat, 02 Oct 2021 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Sat, 23 Oct 2021 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
+        <item>
+            <title><![CDATA[immer 내부 살펴보기]]></title>
+            <link>https://hmos.dev/deep-dive-to-immer</link>
+            <guid>deep-dive-to-immer</guid>
+            <pubDate>Sat, 23 Oct 2021 00:00:00 GMT</pubDate>
+            <description><![CDATA[redux에서 주로 사용되는 immer는 mutable한 객체 업데이트를 immutable하게 사용하는 것 처럼 도와준다. 어떻게 이런 로직이 가능한걸까?]]></description>
+        </item>
         <item>
             <title><![CDATA[redux-devtools의 time-travel-debugging 톺아보기]]></title>
             <link>https://hmos.dev/how-to-time-travel-debugging-at-redux-devtools</link>

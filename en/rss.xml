@@ -4,9 +4,16 @@
         <title>hmos.dev Blog</title>
         <link>https://hmos.dev/en/</link>
         <description>hmos.dev Blog</description>
-        <lastBuildDate>Sat, 02 Oct 2021 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Sat, 23 Oct 2021 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
+        <item>
+            <title><![CDATA[Deep dive to immer]]></title>
+            <link>https://hmos.dev/en/deep-dive-to-immer</link>
+            <guid>deep-dive-to-immer</guid>
+            <pubDate>Sat, 23 Oct 2021 00:00:00 GMT</pubDate>
+            <description><![CDATA[immer, usually used by redux, help us to update mutable object like using immutably. How can it do this? Lets deep dive to immer.]]></description>
+        </item>
         <item>
             <title><![CDATA[how to time travel debugging at redux-devtools]]></title>
             <link>https://hmos.dev/en/how-to-time-travel-debugging-at-redux-devtools</link>

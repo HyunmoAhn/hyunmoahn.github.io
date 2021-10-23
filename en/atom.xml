@@ -2,11 +2,22 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://hmos.dev/en/</id>
     <title>hmos.dev Blog</title>
-    <updated>2021-10-02T00:00:00.000Z</updated>
+    <updated>2021-10-23T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://hmos.dev/en/"/>
     <subtitle>hmos.dev Blog</subtitle>
     <icon>https://hmos.dev/en/favicon/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[Deep dive to immer]]></title>
+        <id>deep-dive-to-immer</id>
+        <link href="https://hmos.dev/en/deep-dive-to-immer"/>
+        <updated>2021-10-23T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[immer, usually used by redux, help us to update mutable object like using immutably. How can it do this? Lets deep dive to immer.]]></summary>
+        <author>
+            <name>Hyunmo Ahn</name>
+            <uri>https://github.com/HyunmoAhn</uri>
+        </author>
+    </entry>
     <entry>
         <title type="html"><![CDATA[how to time travel debugging at redux-devtools]]></title>
         <id>how-to-time-travel-debugging-at-redux-devtools</id>

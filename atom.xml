@@ -2,11 +2,22 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://hmos.dev/</id>
     <title>hmos.dev Blog</title>
-    <updated>2021-10-02T00:00:00.000Z</updated>
+    <updated>2021-10-23T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://hmos.dev/"/>
     <subtitle>hmos.dev Blog</subtitle>
     <icon>https://hmos.dev/favicon/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[immer 내부 살펴보기]]></title>
+        <id>deep-dive-to-immer</id>
+        <link href="https://hmos.dev/deep-dive-to-immer"/>
+        <updated>2021-10-23T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[redux에서 주로 사용되는 immer는 mutable한 객체 업데이트를 immutable하게 사용하는 것 처럼 도와준다. 어떻게 이런 로직이 가능한걸까?]]></summary>
+        <author>
+            <name>Hyunmo Ahn</name>
+            <uri>https://github.com/HyunmoAhn</uri>
+        </author>
+    </entry>
     <entry>
         <title type="html"><![CDATA[redux-devtools의 time-travel-debugging 톺아보기]]></title>
         <id>how-to-time-travel-debugging-at-redux-devtools</id>
