@@ -463,8 +463,8 @@ in the set so that even when referring to deep objects in get, Proxy can be refe
 Let's find out how it is implemented in the next chapter.
 
 :::tip About `latest` and `peek`
-앞으로의 immer코드에서 immer에서 쓰이는 유틸 함수인 `latest`와 `peek`에 대해서 많이 확인하게 될 것 이다.
-이 유틸 함수가 어떤 동작을 하는지 궁금하다면 살펴보자.
+From now on, we may be meet a lot about `latest` and `peek`, which are the util functions used in the `immer` code.
+If you're curious about what this function does, let's take a look.
 - latest
 ```tsx
 // https://github.com/immerjs/immer/blob/master/src/utils/common.ts#L160-L162
@@ -472,9 +472,9 @@ export function latest(state) {
   return state.copy_ || state.base_
 }
 ```
-state는 produce에서 생성한 proxy 객체이다. proxy 객체는 meta data와 `new Proxy`로 생성한 객체를 가지고 있다.
-`latest`는 `copy_` 혹은 `base_` 객체를 가져오는데, 현재 proxy가 가지고 있는 데이터를 가져오는데 쓰이는 것을 알 수 있다.
-`copy_`는 변경된 최신 객체이고, `base_`는 원본 객체이므로 `copy_`를 먼저 가져오는 것을 우선시하고 있다.
+`state` is proxy object created in `produce`. proxy object has metadata and object that is created by `new Proxy`. 
+`latest` brings in a `copy_` or `base_` object, and it can be seen that it is currently used to bring data held by proxy.
+`copy_` is the latest object updated and `base_` is original object so the priority is to bring `copy_` first.
 
 - peek
 ```tsx
@@ -485,16 +485,16 @@ export function peek(draft, prop) {
   return source[prop]
 }
 ```
-`peek`는 객체에서 특정 key에 대한 값을 가져오는 역할을 한다. 즉, draft에서 prop를 key로 가지는 값을 가져오기 위해 사용하는 것이다.
-여기서는 3가지 경우가 존재한다.
-1. draft가 Proxy객체가 아니라 일반 객체인 경우 <br/>
-    - 이 경우는 `draft[DRAFT_STATE]`가 `undefined` 이기 때문에 draft[prop] 를 참조해서 바로 리턴한다.
-2. draft가 Proxy 객체이고 copy_ 를 갖고 있을 경우
-    - `copy_.[prop]`를 리턴한다.
-3. draft가 Proxy 객체이고 copy_ 를 갖고 있지 않은 경우
-    - `base_.[prop]`를 리턴한다.
+`peek` has role to bring value of specific key in object. In other word, It is used to bring key matched prop in draft.
+There are three cases here.
+1. When draft is plain object not Proxy object.
+    - In this case, It return immediately with reference to `draft[prop]` because `draft[DRAFT_STATE]` is `undefined`.
+2. When draft is Proxy object and has `copy_`
+   - Returns `copy_.[prop]`.
+3. When draft is PRoxy object and doesn't have `copy_`
+    - Returns `base_.[prop]`.
 
-즉, 여러 경우에 대해서 object(혹은, proxy)에서 key에 맞는 값을 구하기 위한 유틸 함수 인 것이다.
+In other word, it is util function to get value to match key from object(or proxy) for several case.  
 :::
 
 ### Traps of immer
@@ -502,7 +502,7 @@ immer의 `Proxy`에서 사용되는 get은 multi depth의 객체를 참조했을
 set은 원본 객체를 변경하려 할 때 이를 막고 `base_`, `copy_`, `modified_`와 같은 메타 데이터를 제어하도록 하는 역할을 가지고 있다.
 
 #### Get
-get 로직의 목적은 deep한 tree에 접근하여 set을 하더라도 proxy객체를 사용할 수 있도록 만들어주는 것이다.
+The purpose of logic of get is that create proxy object to use it even if we access deep tree directly. 
 ```tsx
 // https://github.com/immerjs/immer/blob/master/src/core/proxy.ts#L101-L124
 export const objecTraps = {
@@ -528,8 +528,8 @@ export const objecTraps = {
 if (prop === DRAFT_STATE) return state;
 ```
 
-가장 먼저 보이는 DRAFT_STATE 비교 로직은 immer에서 draft를 바로 획득하기위한 hole같은 동작으로 보인다. 
-`peek` 와 같은 유틸함수에서 proxy객체에서 `draft[DRAFT_STATE]`를 호출해서 proxy 그 자체를 가져오는 것을 확인 할 수 있다.
+This first `DRAFT_STATE` condition logic seems hole logic to get draft from `immer` immediately. 
+We can check that it brings proxy by calling `draft[DRAFT_STATE]` in utils function like `peek`.
 
 ```tsx
 const source = latest(state);
@@ -537,10 +537,10 @@ const value = source[prop];
     
 if (state.finalized_ || !isDraftable(value)) return value  
 ```
-다음 로직은, proxy 객체를 만들 필요가 없는 경우에 대한 분기이다.
-state가 `finalized` 상태, 즉 데이터가 모두 업데이트 되어 return할 준비가 된 상태라면 proxy로 변경할 필요가 없고,
-value가 `isDraftable`, 즉 mutable한 속성을 가지는 object나 array 같은 타입이 아닌 경우는 proxy로 만들 이유가 없으므로 그대로 리턴을 한다.
-
+Next logic is condition when we don't need to create proxy object.
+The `state` is `finalized` status, that is, the data is all updated and ready to return. 
+Or the `value` is `isDraftable`, that is, if it is not a type such as object or array with mutable,
+there is no reason to make it a proxy, so it returns as it is.
 
 ```tsx
 if (value === peek(state.base_, prop)) {
@@ -550,31 +550,38 @@ if (value === peek(state.base_, prop)) {
 
 return value
 ```
-이제는 proxy 객체를 만들때의 로직이다. `prepareCopy` 를 호출하고 `copy_`에 자식 proxy를 생성한다. 
-`prepareCopy`는 `state.base_`를 `state.copy_`로 shallow copy를 하는 함수이다.
-`state.copy_`를 복사해서 만들고, `state.copy_[props]`에 새로운 proxy를 생성하여 저장한다.
-이때부터 `base_`와 `copy_`가 가지고 있는 값들이 바뀌게 된다. 
-get에서부터 proxy를 생성해서 저장 해주면서 multi depth Object를 참조했을때 proxy 객체를 참조할 수 있게 된다.
+Now, This is logic when creates proxy object. 
+It calls `prepareCopy` and create child proxy in `copy_`.
+`prepareCopy` is the function that do shallow copy from `state.base_` to `state.copy_`.
+It creates `state.copy_` by coping and saves new proxy in `state.copy_[prop]`.
+Since then, The values of `base_` and `copy_` is not same. 
 
-자 그렇다면, 한번 get으로 proxy를 만든 객체를 다시 참조하면 다시 proxy 객체를 만들까? 당연한 말이지만 한번 proxy를 만든 객체라면 기존에 만들어 둔 것을 재사용한다.
-재사용할 수 있게끔 검사를 하는 로직이  `value === peek(state.base_, prop)` 의 분기이다.
+Through these logics, even if we refer to the deep tree, it is implemented so that we can get proxy object if it is an object.
+
+So, if we refer back to the object that we have created proxy with get, should we create proxy object again?
+Of course, once an object that has created a proxy, it reused what has been made.
+The logic that checks for reuse is condition of `value === peek(state.base_, prop)`.
 
 ##### reuse of already created proxy (`value === peek(state.base_, prop)`)
 
-`peek(state.base_, prop)`는 `base_`의 prop를 의미하고, `value`는 `copy_` 혹은 `base_`의 prop를 의미한다. 
-`copy_`가 생성되기 전, 즉 get을 한 적이 없다면 항상 `base_`와 `base_`를 비교하므로 항상 true이고 proxy를 만드는 로직을 항상 실행 할 것이다.
-하지만, get을 한 적이 있고 `copy_`가 만들어진 상태라면 `copy_` 와 `base_`를 비교하고 이전 get로직에서 `copy_[prop]`에 proxy를 할당하여 
-이미 `base_`와 값이 달라졌기 때문에 proxy를 만드는 로직을 스킵하고 그대로 `state.copy_`를 리턴하게 되는 것이다.
-이러한 방식을 사용해서 get에서 불필요하게 proxy를 생성하는 것을 방지하고 있다.
+`peek(state.base_, prop)` means `prop` of `base_` and `value` means `prop` of `copy_` or `base_`.
+Before `copy_` is created, that is, if we have never done `get`, it always compares `base_` and `base_`
+so it is always `true` and always run logic to create proxy.
+However, if we have done `get` and `copy_` is created, it compares `copy_` and `base_`.
+Since the previous get logic allocates proxy to `copy_[prop]` and `copy_` is already different from `base_`, 
+the logic of creating `proxy` is skipped and the `state.copy_` is returned as it is.
 
-코드로 한줄씩 설명하니 복잡한데, proxy의 get동작에서 하는 일을 요약해보자.
+To use this way, `immer` prevent unnecessary to create `proxy` in `get`. 
 
-1. 객체에서 참조하는 값이 object가 아닌 경우 그대로 값을 리턴한다.
-2. 객체에서 참조하는 값이 object일 경우 proxy를 만들어서 리턴한다.
-3. 만약 한번 참조한 적이 있는 object라면 이전에 만들어둔 proxy를 재사용한다.
+It is complicated to explain one line at a time by code, 
+but summarize what we do in the `get` logic of proxy.
+
+1. If the referred value from object is not object, it just return it is.
+2. If the referred value from object is object, create and return proxy.
+3. If it is an object that has been referenced once, reuse the previously created proxy.
 
 #### Set
-set 로직의 목적은 객체를 변경하고 객체가 변경되었다는 `modified_` flag를 설정하는 목적을 가진다.
+The purpose of set logic is to update an object and set a `modified_` flag that the object is updated.
 
 ```tsx
 // https://github.com/immerjs/immer/blob/master/src/core/proxy.ts#L131-L173
@@ -597,7 +604,7 @@ export const objectTraps = {
   }
 } 
 ```
-set에서 사용하는 주요 로직을 축약하면 위와 같다.
+The abbreviation of the main logic used in the set is as above.
 ```tsx
 set() {
   ...
@@ -607,10 +614,13 @@ set() {
   return;  
 }
 ```
-`modified_` 여부에 관계없이 진행하는 로직을 보면 set을 할 때 original data(`base_`)를 변경하지 않고 `copy_`만을 변경시키는 것을 확인 할 수 있다.
-이 과정에서 새로운 값이 `copy_` 저장되어 있는 값과 reference가 같다면 업데이트를 진행하지 않는 불필요한 업데이트는 방지하고 있는 것도 확인 할 수 있다.
+Looking at the logic that proceeds regardless of whether it is `modified_`, 
+it can be seen that only `copy_` is changed without changing the original data(`base_`) when setting.
 
-만약, 업데이트 될 객체가 변경된 이력이 없다면 `modified_`가 false일 텐데, set 로직에서 `modified_` flag가 변경된다. 
+In this process, we can see that if new value has the same reference as the value stored in `copy_`, 
+it doesn't do update. As a result, it can also be confirmed that unnecessary updates are being prevented.
+
+If object to be updated has no changed history, `modified_` would be false, but the `modified_` flag is changed in set logic.
 ```tsx
 set(state, prop, value) {
   if (!state.modified_) {
@@ -627,20 +637,25 @@ set(state, prop, value) {
   ...
 }
 ```
-set을 진행하고 `modified`가 false 상태라면 변경 로직을 진행한다. edge로직을 제외하고 기본로직만 본다면 `prepareCopy`와 `markChanged` 함수를 실행한다.
-
+If `modified_` is false when proceeding with the set, the change logic is performed.
+Except for edge logic, if we look at basic logic, it perform the functions `prepareCopy` and `markChanged`. 
+ 
 :::info
 #### `prepareCopy` from get and `prepareCopy` from set
 
-이전에 get을 진행할 때 `prepareCopy`를 사용하는 걸 보았다. get할때 copy를 준비하고 set할때도 copy를 진행하는걸까?
+Previously, we saw the use of `prepareCopy` when proceeding with get.
+Does it do copy when we get and copy when we set?
 
-자세히보면 get의 `prepareCopy`와 set의 `prepareCopy`는 목적이 다르다.
-get의 `prepareCopy`는 참조할 객체의 부모객체를 copy하는 동작을 하고, set의 `prepareCopy`는 참조하는 객체 본인를 copy하는 동작을 한다.
-예를들어, 만약 `proxy.a.b = { ... }`로 객체를 변경한다면 `proxy.a` 까지는 get에서 `prepareCopy`를 통해 `copy_`를 만들고, 
-`proxy.a.b`는 set에서 `prepareCopy`를 통해 `copy_`를 만든다는 점이다.
+If we look closely, `prepareCopy` of get and `prepareCopy` of set have different purposes.
+
+`prepareCopy` of `get` do that copy parent object about referred object 
+and `prepareCopy` of `set`do that copy itself about referred object.
+
+For example, if the object is changed to `proxy.a.b = { ... }`, `copy_` is made through `prepareCopy` from get to `proxy.a`
+and `proxy.a.b` makes `copy_` through `prepareCopy` in the set.
 :::
 
-`markChanged`의 코드는 다음과 같다.
+The code of `markChanged` is as follows.
 ```tsx
 // https://github.com/immerjs/immer/blob/v9.0.6/src/core/proxy.ts#L266-L273
 export function markChanged(state: ImmerState) {
@@ -652,10 +667,10 @@ export function markChanged(state: ImmerState) {
   }
 }
 ```
-본인의 `modified_`를 변경하는 것과 더불어 부모객체의 `modified_`를 통해 root proxy까지의 `modified_`를 변경한다.
-이렇게 root proxy까지 변경함으로써 root부터 leaf까지 어떤 객체가 변경되었는지를 찾아 갈 수 있다.
+In addition to changing one's `modified_`, the `modified_` to the root proxy through the `modified_` of the parent object is changed.
+By changing the root proxy in this way, it is possible to find which object has been changed from root to leaf.
 
-추가로 중간에 빠뜨렸던 `modified` 변경시의 edge case를 확인해보자.
+In addition, let's check the edge case when changing `modified_` that was missed in the middle.
 ```tsx
 set(state, prop, value) {
   if (!state.modified_) {
@@ -671,23 +686,30 @@ set(state, prop, value) {
   }
   ...
 ```
-변경 될 값(value)과 저장되어 있는 값(current)이 같고, `base_[prop]`가 값이 있다면 변경 할 필요가 없다고 판단하고 
-`modified_`를 true로 만드는 과정을 중단하고 업데이트를 진행하지 않는다. 같은 값을 할당했을때 modified_를 변경하지 않음으로써 
-불필요한 연산을 줄이려는 노력으로 보인다.
+If the value to be changed is the same as the stored value and the value `base_[props]` exist,
+it is determined that there is no need to change it. 
+The process of updating `modified_` true is stopped and updates are not performed.
+It seems to be an effort to reduce unnecessary cost by not changing `modified_` when the same value is allocated.
 
-자 이제 set의 로직을 요약하면 다음과 같다.
-1. `modified_`가 false라면 자신의 `copy_`를 `base_`에서 복사해주고 자신 포함 부모부터 루트까지의 `modified_`를 true로 만들어준다.
-2. modified 여부와 관계없이 `state.copy_`에 변경할 값을 할당해준다.
+Now, the logic of the set is summarized as follows.
+1. If `modified_` is false, copies from `base_` to `copy_` itself and updates `modified_` from parents to root including oneself true.
+2. Regardless of whether it is modified or not, it allocates a value to be changed to `state.copy_`. 
 
 ### Recap of Proxy
-immer에서 Proxy객체가 하는 역할을 정리해보자.
-- 데이터를 참조할때 객체라면 Proxy 객체를 생성해준다. 객체에서 여러번 multi depth로 참조를 했을때  get은 순차적으로 진행되기 때문에 root 객체부터 target 객체까지 통하는 모든 객체가 proxy로 생성되게 된다. 덕분에 multi depth로 객체를 참조하였을때도 root와 동일한 Proxy 로직을 사용할 수 있게 된다.
-- 데이터를 할당할때에는 `base_`를 `copy_`로 얕은 복사를 하고 `copy_` 객체에 변경되는 값을 업데이트한다. 이때, 변경된 적 없는 객체를 변경하는 것이라면 해당 객체부터 부모 객체를 거쳐 root 객체까지 modified를 모두 true로 설정한다.
+Let's summarize the role of proxy objects in the immer.
+- When referring to data, if it is an object, it creates a proxy object. 
+When referred to multiple depth in an object several times, get proceeds sequentially, 
+so all objects from root object to target object are generated as proxy.
+Thanks to this, when referring to objects in multi depth, the same proxy logic as the root can be used.
+- When allocating data, `base_` is shallowly copied to `copy_` and a value is updated to the object `copy_` is updated.
+In this case, if an object that has not been updated is updated, all modifications from the object to the root object through the parent object are set to true. 
 
 ## finalize
-`recipe` 함수를 통해서 데이터를 모두 변경하였다면 이제 finalize 과정을 진행한다. `base_`와 `copy_`들을 적절하게 합쳐주는 과정인 것이다.
-다시 produce 코드를 보자면 다음과 같다. <br/>
-여기서 `return processResult(result, scope)` 에 대한 로직을 확인하는 것이다.
+If all data have been updated through the `recipe` function, the finalization process is now performed.
+It is a process of appropriately combining `base_` and `copy_`.
+
+Looking at the product code again, it is as follows. <br/>
+Here, the logic for `processResult(result, scope)` is confirmed.
 
 ```tsx
 // https://github.com/immerjs/immer/blob/v9.0.6/src/core/immerClass.ts#L66-L122
@@ -718,12 +740,13 @@ export function processResult(result, scope) {
   }
 }
 ```
-`finalize`과정은 크게 두가지로 나뉜다. `recipe`에서 return을 하는 경우와 아닌 경우이다.
-이 두가지의 차이는 `finalize` 함수로 넣어주는 변수에 있다. `recipe`가 return을 하고 있다면 result값을 기준으로 finalize를 진행하고,
-`recipe`가 return을 하지 않으면 root proxy를 기준으로 finalize를 진행한다.
+The `finalize` process is largely divided into two. This is the case of returning in `recipe` or not.
+The difference between these two lies in the variable that is put as a function of `finalize`.
+If `recipe` is returning, `finalize` do based on the result value.
+If `recipe` is not returning, `finalize` do based on the root proxy.
 
 ### using finalize with root proxy
-`recipe`가 return을 하지 않는다면 자동으로 root proxy를 사용해서 finalize를 진행한다.
+If `recipe` is not returning, `finalize` is automatically performed using root proxy.
 ```tsx
 // https://github.com/immerjs/immer/blob/v9.0.6/src/core/finalize.ts#L57-L110
 function finalize(rootScope, value, path) {
@@ -742,14 +765,16 @@ function finalize(rootScope, value, path) {
   return state.copy_;
 }
 ```
-여기서 value는 root proxy를 의미한다. 만약 root proxy가 `modified_`를 false로 갖고있다면 내부 객체는 한번도 변경된 적이 없다는 의미이다. 
-따라서 `state.base_`를 그대로 리턴한다. 변경된 적이 있어서 `modified_`가 true라면  `finalized_`를 확인한다. finalize를 여러번 하는 것을 방지하기 위함이며,
-finalized 로직을 들어가면 `finalized_`를 true로 변경하고 로직을 진행한다. proxy를 사용하지 않는 ES5 모드라면 여러 로직들이 진행되지만 proxy모드라면
-`state.copy_`를 그대로 사용한다. `each`를 포함한 `finalizeProperty`는 root proxy 내부에 있는 자식 객체들을 모두 `finalize`하기 위한 동작이다. 
-모든 자식 객체의 finalize를 완료하였다면 `state.copy_`를 리턴함으로써 immer로직이 종료된다.
+In here, value means root proxy. If root proxy has `modified_` as false, it means that the internal object has never been changed.
+Therefore, It returns `state.base_` as it is.
+It `modified_` is true because it has been changed, `finalized` is checked. To prevent the finalized logic from being performed several times,
+when the finalized logic is entered, the `finalized_` is changed to true and the logic proceeds.
+In ES5 mode that does not use proxy, several logics proceed, but in proxy mode, `state.copy_` is used as it is.
+`finalizeProperty` including `each` is an operation to `finalize` all child objects inside the root proxy.
+If the finalization of all child objects is completed, the `immer` logic ends by returning `state.copy_`.
 
 ### using finalize with return of recipe
-`recipe`가 return 값을 가지고 있다면 return 값을 사용하여 finalize를 진행한다. 물론 return 값은 plain object이다.
+If `recipe` has a return value, `finalize` is performed using the return value. Of course, the return value is a plane object.
 ```tsx
 // https://github.com/immerjs/immer/blob/v9.0.6/src/core/finalize.ts#L57-L110
 function finalize(rootScope, value, path) {
@@ -762,61 +787,79 @@ function finalize(rootScope, value, path) {
   ...
 }
 ```
-plain object인 value에서 `value[DRAFT_STATE]`를 참조한다면 undefined일 수 밖에 없다. 따라서 `if (!state)` 로직으로 진행된다.
-root proxy를 사용하는 finalize와 동일하게 `finalizeProperty`를 통해서 자식 객체들을 모두 finalize 과정을 진행한 뒤 value를 리턴한다.
+If `immer` refers `value[DRAFT_STATE]` in value of plain object, It has to be undefined.
+Therefore, it proceeds to the logic of `if (!state)`.
+In the same way as `finalize` using root proxy, all child objects are finalized through `finalizeProperty` and then the value is returned.
 
-이때, 자식 객체 모두 proxy객체가 아닌 plain object라고 생각할 수 있는데 `recipe` 내부에서 접근하는 객체의 경우 모두 Proxy의 get 동작에 의해서 
-proxy로 변경되어 리턴되기 때문에 root는 proxy가 아니더라도 자식 객체는 proxy일 수도 있다. 따라서 자식 객체까지 모두 finalize 를 진행해주어야한다.
-
-
+In this time, all child objects may be considered to be plain objects, not proxy objects,
+but since all objects approaching inside `recipe` are changed to proxy and returned by proxy's get operation,
+the child object may be proxy even if the root is not proxy. 
+Therefore, it is necessary to proceed with finalize all child objects.
 
 ## Recap
-- immer는 baseState 객체와 recipe 콜백함수를 받아서 recipe 내부 mutable한 로직들을 모두 수행하는데, 기존 객체는 변경하지 않고 업데이트 된 새로운 객체를 반환하는 것이다.
-- immer는 baseState를 받으면 우선 baseState의 일반객체를 이용해서 Proxy객체로 만들어서 관리한다.
-- Proxy객체는 여러 값을 갖고있지만 `base_`와 `copy_`두 객체를 내부적으로 관리하며 `base_`는 original data, `copy_`는 updated data로써 관리한다.
-- 앞에서 만든 Proxy 객체로 recipe 콜백 함수 로직을 실행하는데, 여기서 mutable한 로직을 mutable하지 않게 수행하는 방법은 Proxy의 set과 get 등 객체 기본 동작들을 intercept하기 때문이다.
-- Proxy의 get에서는 만나는 객체를 모두 Proxy로 리턴하여 객체 깊숙한 곳을 참조하더라도 Proxy를 생성할 수 있도록 만든다.
-- Proxy의 set에서는 Proxy객체 내부에서 관리하고 있는 `modified_` flag를 보고 변경 여부를 관리하며 `base_`객체가 아닌 `copy_`객체를 업데이트한다.
-- immer에서 Proxy의 set, get을 활용해서 recipe 로직을 모두 수행하고나면 Proxy객체의 정보를 이용해서 변경된 객체는 업데이트 된 객체(`copy_`)를 사용하고 변경되지 않은 객체는 기존 객체(`base_`)를 사용함으로써 structuring share를 사용하여 새로운 객체를 만들어서 리턴한다.
+- `immer` receives the `baseState` object and the `recipe` callback function and performs both the mutable logic inside the `recipe`, 
+which returns the updated new object without changing the existing object.
+- When receive `baseState`, first `immer` creates `Proxy` object using `baseState` and manages it.
+- Although the proxy object has several data, but main data are `base_` and `copy_`. 
+It is managed that `base_` is original data and `copy_` is updated data.  
+- The `recipe` callback function logic is executed with the previously created proxy object, 
+where the method of not performing mutable logic is because it intercepts basic object actions such as proxy's set and get.
+- In the get of `Proxy`, all the objects it meets are returned to `Proxy` so that it can create `Proxy` even if we refer to the depth of the object.
+- In the set of `Proxy`, the `modified_` flag managed inside the proxy object is viewed to manage whether to change or not,
+and the `copy_` object, not the `base_` object, is updated.
+- After performing both proxy logic using set and get of proxy in the `immer`, 
+the changed object uses the information of the proxy object to use the updated object(`copy_`) 
+and the unchanged object uses the original object(`base_`) to create and return a new object.
 
 ## Answer the question
 :::tip Question
-Q1. `immer`는 mutable하게 객체를 변경하는 것을 어떻게 immutable한 방식으로 바꾸어주고 있을까?
+Q1. How does `immer` change the mutable update way to immutable update way?
 :::
 
-A1. `immer`는 `new Proxy`를 사용하여 get과 set 로직을 intercept하기 때문에 객체를 mutable하게 변경하더라도 객체가 직접적으로 변경되지 않는다.
-set로직에서 `base_`를 변경하지 않고 `copy_`로 shallow copy하여 `copy_` 객체에 업데이트를 진행한다.
+A1. Because `immer` is intercepting get and set logic to using `new Proxy`,
+Object is not mutated directly even if update object mutably.
+In the logic of set, the `copy_` is copied from `base_` and `immer` updates `copy_` without changing `base_`. 
 
-모든 업데이트가 끝나면 값을 리턴할때 객체가 변경되었는지를 판단해서 `copy_`혹은 `base_`를 리턴함으로써 객체를 immutable하게 업데이트 할 수 있다.
+After all updates are completed, it is possible to immutably update the object 
+by determining whether the object has been changed and returning `copy_` or `base_`.
 
 :::tip Question
-Q2. `immer`는 어떤 방식으로 structural sharing을 사용하는가?
+Q2. How does `immer` use `structural sharing`?
 :::
 
-A2. `immer는` 객체의 변경여부에 따라서 `modified_`값을 관리한다. `modified_`가 true라면 객체가 업데이트 되었다는 것이다. 
-`modified_` 값을 보고 true라면 `copy_`라는 새로운 객체를 리턴하여 새로운 reference를 사용하고, 
-`modifed_`가 false라면 `base_` 객체, 기존 객체를 반환함으로써 기존 reference를 사용한다. 
-따라서 변경된 여부에 대한 boolean을 관리하고 그 여부에 따라 기존 것을 사용하거나 새로운 것을 사용해서 structural sharing을 사용하고 있다.
+A2. `immer` manages the value of `modified_` according to whether the object is changed.
+If `modified_` is true, it means that object is updated.
+If `modified_` is true, return a new object called `copy_` to use a new reference,
+If `modified_` is false, `base_` object, original object, is returned with previous reference.  
+Therefore, boolean is managed whether it has been changed or not,
+and structural sharing is used to use the existing one or the new one depending on whether it has been changed.
 
 :::tip Question
-Q3. `immer`에서는 `produce`함수 내에서 객체를 직접 업데이트하는 방식이 아니라 return을 통해서 데이터를 업데이트하는 경우가 있는데, 이런 경우에 immer의 로직에 차이가 있을까?
+Q3. `immer` sometimes updates data through return rather than mutable updating the draft within `produce` function,
+in which case the logic is different?
 :::
 
-`produce` 함수 내에서 return을 하는지 아닌지 여부는 immer의 finalize, 업데이트 된 객체를 준비하는 과정에서 차이가 난다.
-return을 하지 않은 경우는 `produce` 내부에서 객체를 직접 변경했다는 의미이고 그렇다면 immer에서 구현하는 Proxy로직인 get, set을 이용하여
-객체를 업데이트 했다는 것이다. 그렇다면 이 글에서 알아보았던 `base_`, `copy_`, `modified_` 등 여러 변수와 로직들을 이용해서 객체 업데이트를 진행한다.
+Whether to return within the `produce` function differs in the `finalize` of the `immer`, in the process of preparing the updated object.
+If return is not made, it means that the object has been directly changed inside `produce`, 
+and if so, using the proxy logic get, set implemented by immer, it is that the object has been updated.
+Then, Object updates are carried out using various variables and logics such as `base_`, `copy_` and `modified_` as discussed in this article.
 
-하지만, return을 한다면 어떻게 될까? `produce`에서 return 값이 존재한다면 immer에서 준비한 Proxy get, set 등 로직을 사용하지 않고 
-결과값을 그대로 리턴하고 있다는 의미이다. 따라서 root proxy를 형성하고 get을 통해서 객체를 업데이트하고 set으로 `modified_`를 변경하는 등 로직을 모두
-스킵하고 `finalize` 과정으로 넘어온다. 이는 immer의 대부분의 로직을 사용하지 않고 결과를 리턴한다는 의미이다.
+However, what would happen if I returned?
+If there is a return value in `produce`, it means that the result value is returned as it is without using logic such as proxy get and set prepared by `immer`.
+Therefore, it skips all logic and moves on to the `finalize` process, such as forming a root proxy, updating objects through get, and changing `modified_` to set.
+This means returning results without using most of the `immer`'s logic.
 
-두 방법 모두 객체를 immutable하게 관리하여 업데이트한다. 그리고 두 방식 모두 변경된 객체만 reference가 바뀌는 structural sharing을 사용하고 있다.
-물론 두번째 방법, 업데이트 된 객체를 리턴하는 방식을 사용한다면 불필요하게 객체를 새로 만들지 않게 주의는 필요하다. 결과적으로 이야기하면 어느쪽이든 동일하다.
-차이점을 고르자면 어떤 방식으로 객체를 변경하느냐에 대한 것일 뿐이다. 그렇다면 선택의 영역이다. 
-mutable하게 변경하는 방식을 선택하느냐, immutable하게 변경하는 방식을 선택하느냐를 고민하면 된다. 
+Both methods manage objects immutably and update them. 
+And both methods use structural sharing in which only the changed object changes its reference.
+Of course, if you use the second method, the method of returning the updated object,
+you need to be careful not to create a new object unnecessarily.
+As a result, either side is the same.
+To choose the difference, it is only about hot to change the object. If so, it is an area of choice.
+You can think about whether to choose a method of changing it to be mutable or immutable.
 
-물론, 주관적인 의견을 이야기하자면 어떤 객체를 어떻게 업데이트 하고자하는지 목적에 따라서 업데이트하는 방식이 달라진다고 생각한다. 
-따라서 immutable하게 변경하는 방식의 장단점, mutable하게 변경하는 방식의 장단점을 각각 이해하고, 상황에 맞게 혼용해서 사용을 하면 될 것이라고 생각한다.
+Of course, speaking of my opinion, I think the way we update an object depends on the purpose of how we want to update it.
+Therefore, I think we can understand the advantages and disadvantages of changing to immutable and the advantages and disadvantages of changing to mutable,
+and mix them according to the situation.
 
 ## Reference
 - [immer official docs](https://immerjs.github.io/immer/)

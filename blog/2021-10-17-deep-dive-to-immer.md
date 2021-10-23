@@ -472,9 +472,9 @@ export function peek(draft, prop) {
 여기서는 3가지 경우가 존재한다.
 1. draft가 Proxy객체가 아니라 일반 객체인 경우 <br/>
     - 이 경우는 `draft[DRAFT_STATE]`가 `undefined` 이기 때문에 draft[prop] 를 참조해서 바로 리턴한다.
-2. draft가 Proxy 객체이고 copy_ 를 갖고 있을 경우
+2. draft가 Proxy 객체이고 `copy_` 를 갖고 있을 경우
     - `copy_.[prop]`를 리턴한다.
-3. draft가 Proxy 객체이고 copy_ 를 갖고 있지 않은 경우
+3. draft가 Proxy 객체이고 `copy_` 를 갖고 있지 않은 경우
     - `base_.[prop]`를 리턴한다.
 
 즉, 여러 경우에 대해서 object(혹은, proxy)에서 key에 맞는 값을 구하기 위한 유틸 함수 인 것이다.
@@ -535,19 +535,21 @@ return value
 ```
 이제는 proxy 객체를 만들때의 로직이다. `prepareCopy` 를 호출하고 `copy_`에 자식 proxy를 생성한다. 
 `prepareCopy`는 `state.base_`를 `state.copy_`로 shallow copy를 하는 함수이다.
-`state.copy_`를 복사해서 만들고, `state.copy_[props]`에 새로운 proxy를 생성하여 저장한다.
-이때부터 `base_`와 `copy_`가 가지고 있는 값들이 바뀌게 된다. 
-get에서부터 proxy를 생성해서 저장 해주면서 multi depth Object를 참조했을때 proxy 객체를 참조할 수 있게 된다.
+`state.copy_`를 복사해서 만들고, `state.copy_[prop]`에 새로운 proxy를 생성하여 저장한다.
+이때부터 `base_`와 `copy_`가 가지고 있는 값들이 같지 않게 된다. 
 
-자 그렇다면, 한번 get으로 proxy를 만든 객체를 다시 참조하면 다시 proxy 객체를 만들까? 당연한 말이지만 한번 proxy를 만든 객체라면 기존에 만들어 둔 것을 재사용한다.
+이러한 로직을 통해서 deep tree를 참조하더라도 객체인 경우 proxy를 가져올 수 있도록 구현해놓았다.
+
+자 그렇다면, 한번 get으로 proxy를 만든 객체를 다시 참조하면 다시 proxy 객체를 만들까? 
+당연한 말이지만 한번 proxy를 만든 객체라면 기존에 만들어 둔 것을 재사용한다.
 재사용할 수 있게끔 검사를 하는 로직이  `value === peek(state.base_, prop)` 의 분기이다.
 
 ##### 이미 생성한 proxy의 재사용 (`value === peek(state.base_, prop)`)
 
 `peek(state.base_, prop)`는 `base_`의 prop를 의미하고, `value`는 `copy_` 혹은 `base_`의 prop를 의미한다. 
 `copy_`가 생성되기 전, 즉 get을 한 적이 없다면 항상 `base_`와 `base_`를 비교하므로 항상 true이고 proxy를 만드는 로직을 항상 실행 할 것이다.
-하지만, get을 한 적이 있고 `copy_`가 만들어진 상태라면 `copy_` 와 `base_`를 비교하고 이전 get로직에서 `copy_[prop]`에 proxy를 할당하여 
-이미 `base_`와 값이 달라졌기 때문에 proxy를 만드는 로직을 스킵하고 그대로 `state.copy_`를 리턴하게 되는 것이다.
+하지만, get을 한 적이 있고 `copy_`가 만들어진 상태라면 `copy_` 와 `base_`를 비교한다.
+이전 get로직에서 `copy_[prop]`에 proxy를 할당하여 이미 `base_`와 값이 달라졌기 때문에 proxy를 만드는 로직을 스킵하고 그대로 `state.copy_`를 리턴한다.
 이러한 방식을 사용해서 get에서 불필요하게 proxy를 생성하는 것을 방지하고 있다.
 
 코드로 한줄씩 설명하니 복잡한데, proxy의 get동작에서 하는 일을 요약해보자.
@@ -591,7 +593,7 @@ set() {
 }
 ```
 `modified_` 여부에 관계없이 진행하는 로직을 보면 set을 할 때 original data(`base_`)를 변경하지 않고 `copy_`만을 변경시키는 것을 확인 할 수 있다.
-이 과정에서 새로운 값이 `copy_` 저장되어 있는 값과 reference가 같다면 업데이트를 진행하지 않는 불필요한 업데이트는 방지하고 있는 것도 확인 할 수 있다.
+이 과정에서 새로운 값이 `copy_`에 저장되어 있는 값과 reference가 같다면 업데이트를 진행하지 않는다. 이로써 불필요한 업데이트는 방지하고 있는 것도 확인 할 수 있다.
 
 만약, 업데이트 될 객체가 변경된 이력이 없다면 `modified_`가 false일 텐데, set 로직에서 `modified_` flag가 변경된다. 
 ```tsx
@@ -610,17 +612,17 @@ set(state, prop, value) {
   ...
 }
 ```
-set을 진행하고 `modified`가 false 상태라면 변경 로직을 진행한다. edge로직을 제외하고 기본로직만 본다면 `prepareCopy`와 `markChanged` 함수를 실행한다.
+set을 진행할 때 `modified`가 false 상태라면 변경 로직을 진행한다. edge로직을 제외하고 기본로직만 본다면 `prepareCopy`와 `markChanged` 함수를 실행한다.
 
 :::info
 #### get에서의 `prepareCopy`와 set에서의 `prepareCopy`
 
-이전에 get을 진행할 때 `prepareCopy`를 사용하는 걸 보았다. get할때 copy를 준비하고 set할때도 copy를 진행하는걸까?
+이전에 get을 진행할 때 `prepareCopy`를 사용하는 걸 보았다. get할때 copy를 진행하고 set할때도 copy를 진행하는걸까?
 
 자세히보면 get의 `prepareCopy`와 set의 `prepareCopy`는 목적이 다르다.
 get의 `prepareCopy`는 참조할 객체의 부모객체를 copy하는 동작을 하고, set의 `prepareCopy`는 참조하는 객체 본인를 copy하는 동작을 한다.
 예를들어, 만약 `proxy.a.b = { ... }`로 객체를 변경한다면 `proxy.a` 까지는 get에서 `prepareCopy`를 통해 `copy_`를 만들고, 
-`proxy.a.b`는 set에서 `prepareCopy`를 통해 `copy_`를 만든다는 점이다.
+`proxy.a.b`는 set에서 `prepareCopy`를 통해 `copy_`를 만든다.
 :::
 
 `markChanged`의 코드는 다음과 같다.
@@ -755,10 +757,10 @@ proxy로 변경되어 리턴되기 때문에 root는 proxy가 아니더라도 �
 
 ## Recap
 - immer는 baseState 객체와 recipe 콜백함수를 받아서 recipe 내부 mutable한 로직들을 모두 수행하는데, 기존 객체는 변경하지 않고 업데이트 된 새로운 객체를 반환하는 것이다.
-- immer는 baseState를 받으면 우선 baseState의 일반객체를 이용해서 Proxy객체로 만들어서 관리한다.
-- Proxy객체는 여러 값을 갖고있지만 `base_`와 `copy_`두 객체를 내부적으로 관리하며 `base_`는 original data, `copy_`는 updated data로써 관리한다.
+- immer는 baseState를 받으면 우선 baseState를 Proxy객체로 만들어서 관리한다.
+- proxy 객체는 여러 값을 갖고있지만 `base_`와 `copy_`두 객체를 내부적으로 관리하며 `base_`는 original data, `copy_`는 updated data로써 관리한다.
 - 앞에서 만든 Proxy 객체로 recipe 콜백 함수 로직을 실행하는데, 여기서 mutable한 로직을 mutable하지 않게 수행하는 방법은 Proxy의 set과 get 등 객체 기본 동작들을 intercept하기 때문이다.
-- Proxy의 get에서는 만나는 객체를 모두 Proxy로 리턴하여 객체 깊숙한 곳을 참조하더라도 Proxy를 생성할 수 있도록 만든다.
+- proxy의 get에서는 만나는 객체를 모두 Proxy로 리턴하여 객체 깊숙한 곳을 참조하더라도 Proxy를 생성할 수 있도록 만든다.
 - Proxy의 set에서는 Proxy객체 내부에서 관리하고 있는 `modified_` flag를 보고 변경 여부를 관리하며 `base_`객체가 아닌 `copy_`객체를 업데이트한다.
 - immer에서 Proxy의 set, get을 활용해서 recipe 로직을 모두 수행하고나면 Proxy객체의 정보를 이용해서 변경된 객체는 업데이트 된 객체(`copy_`)를 사용하고 변경되지 않은 객체는 기존 객체(`base_`)를 사용함으로써 structuring share를 사용하여 새로운 객체를 만들어서 리턴한다.
 
@@ -776,7 +778,7 @@ set로직에서 `base_`를 변경하지 않고 `copy_`로 shallow copy하여 `co
 Q2. `immer`는 어떤 방식으로 structural sharing을 사용하는가?
 :::
 
-A2. `immer는` 객체의 변경여부에 따라서 `modified_`값을 관리한다. `modified_`가 true라면 객체가 업데이트 되었다는 것이다. 
+A2. `immer`는 객체의 변경여부에 따라서 `modified_`값을 관리한다. `modified_`가 true라면 객체가 업데이트 되었다는 것이다. 
 `modified_` 값을 보고 true라면 `copy_`라는 새로운 객체를 리턴하여 새로운 reference를 사용하고, 
 `modifed_`가 false라면 `base_` 객체, 기존 객체를 반환함으로써 기존 reference를 사용한다. 
 따라서 변경된 여부에 대한 boolean을 관리하고 그 여부에 따라 기존 것을 사용하거나 새로운 것을 사용해서 structural sharing을 사용하고 있다.
