@@ -13,13 +13,14 @@ module.exports = {
   organizationName: 'HyunmoAhn', // Usually your GitHub org/user name.
   projectName: 'hyunmoahn.github.io', // Usually your repo name.
   trailingSlash: false,
+
   i18n: {
     defaultLocale: 'ko',
     locales: ['ko', 'en'],
   },
   themeConfig: {
     image: 'img/dark-room-computer.jpeg',
-    metadatas: [
+    metadata: [
       { name: 'og:title', content: 'hmos.dev' },
       { name: 'og:description', content: 'Front-end Developer Blog' },
     ],
@@ -80,12 +81,6 @@ module.exports = {
       theme: lightCodeTheme,
       darkTheme: darkCodeTheme,
     },
-    googleAnalytics: {
-      trackingID: 'UA-206743648-1',
-    },
-    gtag: {
-      trackingID: 'G-MFNE9LTQG8',
-    },
   },
   presets: [
     [
@@ -101,6 +96,12 @@ module.exports = {
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
+        },
+        googleAnalytics: {
+          trackingID: 'UA-206743648-1',
+        },
+        gtag: {
+          trackingID: 'G-MFNE9LTQG8',
         },
       },
     ],
