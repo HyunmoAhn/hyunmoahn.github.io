@@ -1,6 +1,6 @@
 ---
 slug: how-to-use-oas-generator-in-front-end
-title: Front-end에서 OAS generator를 어떻게 쓰면 좋을까?
+title: How to use OAS generator in Front-end environment?
 description: OAS generator
 keywords:
   - OAS
@@ -13,55 +13,57 @@ authors: HyunmoAhn
 tags: [OAS, OAS-generator, typescript, typescript-axios, how-to-use, web]
 ---
 
-최근 프로젝트에 OAS-generator를 도입해서 사용하고 있다. 사용하기로 결정할 때 고민이나 확인이 필요한 점이 많았고,
-적용 이후 좋은 점도 많은 것 같아서 OAS-Generator 사용 경험에 대해 글을 쓰려한다.
+I am using OAS-generator in project recently.
+When deciding to use it, there were many things that required consideration and confirmation.
+And, I'm going to write about my experience using OAS-generator because it seems to have a lot of good things after using.
 
-아마 OAS Generator가 무엇인지 궁금한 분들, 알고는 있지만 도입에 고민이 되시는 분들,
-이미 사용하고 있지만 잘 사용하고 있는지 망설여지는 분들이 이 글을 읽고 좋은 모티브나 경험을 배워갔으면 좋겠다.
+Perhaps those who are curious about what OAS-generator is, those who know but are worried about using it,
+and those who are already using it but are hesitant to use it well,
+I hope that you will learn good motifs and experiences by reading this article.
 
-이 글에서 말하고 있는 건 다음과 같다.
-- OAS-generator 가 어떤 것인지.
-- OAS-generator 를 사용했을 때의 장단점.
-- OAS-generator 를 어떻게 사용해야하는지.
-  - 설정
-  - 커스텀 템플릿
-- 최적화
+What this article says is as follows.
+- What is the OAS-generator.
+- The pros and cons of using OAS-generator.
+- How to use OAS-generator.
+  - Configuration
+  - Custom Templates
+- Optimization
 
-:::info 사전지식
-- Rest API로 Front-end 개발을 진행해 본 경험 
-- Mustache [문법](https://github.com/janl/mustache.js)을 읽을 수 있는 지식 (Optional)
-  - 글을 이해하는데는 필요없지만 실제로 사용한다면 꼭 알아야한다.
+:::info Pre-required
+- The experience to develop front-end using Rest API
+- Can read the mustache [Grammar](https://github.com/janl/mustache.js)(Optional)
+  - Even if you don't know, there's no problem reading this article. But, you want to use OAS-generator, you should know it.
 :::
 
 <!--truncate-->
 
 
-## OAS Generator, 어떤 것?
-OAS Generator를 알아보기 전에 `OAS`는 어떤 것인지 먼저 알아보자.
+## OAS Generator, What is it?
+Before to know OAS Generator, Let to know what is the `OAS`.
 ### OAS? Open Api Specification
-OAS는 Open Api Specification의 약자이다.
+`OAS` is abbreviation of `Open Api Specification`.
 
 > The OpenAPI Specification (OAS) is a vendor neutral description format for HTTP-based remote APIs.
 
-[OAS에 대한 문서](https://oai.github.io/Documentation/introduction.html) 를 보면 
-OAS는 HTTP 기반 API에 대해서 기계, 사람이 모두 이해할 수 있는 문서를 작성하는 규칙을 명명한 것이라고 한다.
-예를 들어, [swagger 문서](https://petstore.swagger.io/)에서 아래 이미지처럼 링크를 누르면
-[OAS 문서](https://petstore.swagger.io/v2/swagger.json)로 연결된다. Text로 구성되어 있는 [JSON](https://petstore.swagger.io/v2/swagger.json) 혹은 yaml파일이 
-OAS(Open Api Specification)가 되는 것이다.
+If you can see [The document about OAS](https://oai.github.io/Documentation/introduction.html),
+OAS is said to have named a rule for writing documents that both machines and people can understand about HTTP-based APIs.
+For example, when you click that link as shown in the image below in [the swagger document](https://petstore.swagger.io/),
+it connects to [the OAS document](https://petstore.swagger.io/v2/swagger.json).
+The [JSON](https://petstore.swagger.io/v2/swagger.json) or yaml files consisting of text are OAS(Open Api Specification).
 
 ![swagger-to-oas-docs](/assets/oas-generator/swagger.png)
 
 ![swagger-to-oas-docs-oas-result](/assets/oas-generator/oas-json.png)
 
 ### OAS Generator
-OAS가 API의 json/yaml 문서라는 것을 알았다. 그렇다면 OAS Generator는 어떤 것일까?
+We know that OAS is json/yaml document of API. Then, what is the OAS Generator?
 
-- OAS Generator는 OAS yaml 파일로 Source code를 생성하는 도구이다.
-- 즉, API Swagger → OAS text 파일(.yaml) → Source Code(.ts)로 변환한다.
-- Geneartor 종류에 따라 다양한 output(Java, Kotlin, typescript, etc.)을 만들 수 있다.
-- Web Front End 진영에서는 [typescript-axios](https://openapi-generator.tech/docs/generators/typescript-axios)나 [typescript-fetch](https://openapi-generator.tech/docs/generators/typescript-fetch)를 주로 쓰는 것으로 알고 있다.
+- OAS Generator is tool that generate Source code using OAS yaml file.
+- In other words, It translates to this flow. API Swagger → OAS text file(.yaml) → Source Code(.ts).
+- You can generate various output(Java, Kotlin, Typescript, etc.) using various Generator.
+- In Web Front end ecosystem, I understand that [typescript-axios](https://openapi-generator.tech/docs/generators/typescript-axios) or [typescript-fetch](https://openapi-generator.tech/docs/generators/typescript-fetch) is mainly used.
 
-앞으로 설명하겠지만 OAS의 결과물은 다음과 같은 방식으로 자동 생성되고, 이 코드들을 프로젝트 내부에 사용하는 것으로 이점을 얻는다. ([code sandbox](https://codesandbox.io/s/oas-generator-sample-bygm5?file=/src/generate/api.ts:6692-6811))
+As will be described later, OAS results are automatically generated in the following ways and benefit from using these codes inside the project.([code sandbox](https://codesandbox.io/s/oas-generator-sample-bygm5?file=/src/generate/api.ts:6692-6811))
 ```tsx
 // Auto generated codes
 ...
@@ -102,63 +104,69 @@ deletePet: async (petId: number, apiKey?: string, options: AxiosRequestConfig = 
 },
 ...
 ```
-위와 같은 예시는 OAS-generator를 이용해서 생성한 코드의 일부분이다. 각 API에 대해서 path, mehtod, header 등에 대해서 값을 미리 넣어서 생성하고,
-request, response에 대해서 매칭시켜준다.
+The above example are part of generated code using OAS generator.
+It generates codes that are filled path, method, headers and are set request and response about each api.
 
-## 그래서, 뭐가 좋은데?
-### 기존 방법과 차이점
+## So, what's good?
+### The difference from conventional way
 ![compare-with-oas-process](/assets/oas-generator/compare-with-oas-process.png)
 
-우리는 개발을 하면서 API를 연계한다. OAS Generator를 사용하지 않으면 위처럼 "AS-IS"의
-순서로 개발을 진행한다. API 문서를 체크해서 URL, method 등을 확인하고 Request, Response에 대한 type을 정의한다.
-그리곤, axios와 관련 된 함수를 생성해서 프로젝트 내부의 API call 로직에 사용한다.
-이 과정에서 method를 잘못 확인한다거나, Request / Response type을 하나씩 옮겨야한다는 등 실수가 발생 할 수 있고 
-번거로움이 발생하기도 한다. 또한 API 문서가 업데이트된다면 API가 업데이트 되었음을 인지하고, 변경 내용을 따라가서 수정해야하는
-노력도 필요하다.
+We link APIs while developing. If we don't use OAS generator, We will develop following above AS-IS flow.
+We see API documents and check URL and method, etc and define the type of Request and Response.
+Then, we create functions associated with axios and use API call logics.
+In this sequence, we can mistake to check the method incorrectly or can mistype during move the Request/Response type one by one.
+In addition, if API documents are updated, efforts are needed to recognize that the API has been updated and to follow the changes and modify them.
 
-반면에, OAS Generator를 사용한다면, 아래와 같은 "TO-BE" 순서로 진행한다. API docs로부터 yaml파일(OAS spec)을 가져온다.
-보통 yaml파일은 API문서에 따라 자동으로 생성된다. 다음, yaml파일을 이용해서 Axios 함수를 생성하고, request / resposne에 대한
-타입까지 함께 생성된다. 이를 그대로 API call 로직에 사용한다. API 문서가 업데이트 되더라도 OAS Generator를 다시 실행하는 것으로
-이전 API과 다른 점이 git diff로 표시되고 어떤 부분이 변경되었는지, 어떤 부분을 확인해야하는지 쉽게 알 수 있다.
+On the other hand, If we use OAS generator, we will develop following above TO-BE flow.
+First, we bring yaml file(OAS spec) in the API docs. Generally yaml file is auto generated with API docs.
+Next, we generate Axios functions using yaml file. The type of request and response are also generated same time.
+It is used for API call logic as it is.
 
-즉, 개발자가 직접 작성하는 부분을 줄여 반복작업을 줄이고 휴먼에러를 최소화해주는 것이 장점이다.
+Even if API document is updated, running the OAS generator again shows the difference from the previous API as git diff,
+and it is easy to see which part has changed and which part needs to be checked.
 
-### 좋기만 한가요?
-장점을 이야기 했지만 물론 신경 써야할 점~~(단점)~~이 존재한다.
+In other words, the advantage is to reduce repetitive work and minimize human errors by reducing the parts that developers write themselves.
 
-#### 1. API 문서로부터 yaml파일을 추출 할 수 있어야한다.
+### It is just good?
+I talked about advantages, but of course, there are points~~(disadvantages)~~ to pay attention to.
 
-회사 별, 프로젝트 별 API문서를 관리하는 방식은 천차만별이라고 생각한다. 위에 든 예시로는 swagger를 사용하는 것을 전제로 하였고 
-다른 다양한 방법으로 API 문서를 공유하거나 API 문서 없이 개발을 진행 할 수도 있을 것이다. 
-만약, API문서가 yaml파일을 생성하는 것이 불가능하다면 아마도 OAS Generator는 유효하게 쓰일 수 있는 대안이 아닐 수도 있다.
+#### 1. Yaml files should be able to be extracted from API documents.
 
-#### 2. API 문서는 정확해야한다.
+I think there are many ways to manage API documents by company and project.
+The example above is based on the premise of using a swagger.
+In various other ways, API documents may be shared or development may be carried out without API documents.
+If API documents are impossible to generate a yaml file, the OAS generate may not be a valid alternative
 
-OAS Generator는 API 문서를 기반으로 코드를 생성하기 때문에 API 문서가 정확하지 않다면 자동 생성 코드도 정확하지 않게 된다.
-예를 들어서, Request params에 필드들이 모두 optional로 붙어있다면 자동 생성 타입이 모두 optional로 생성되고 
-무분별하게 optional이 남발되는 상황이 발생하여 type check의 이점을 잃어버릴 수 있다.
-또한, 실제 Server는 업데이트 되었지만 API 문서가 업데이트 되지 않은 상황이라면 OAS Generator는
-오히려 프로젝트를 복잡하게 만들어버린다. API 문서를 통해 코드를 생성하는만큼 API 문서는 정확해야한다.
+#### 2. API documents must be accurate.
 
-#### 3. 중복 코드, bundle size 증가.
+Since the OAS Generator generates code based on API documents,
+the auto-generated code becomes inaccurate if the API documents are not accurate.
+For examples, If fields of request parameter are all set optional, all auto generated type are set optional.
+Then, we can lose advantage of type check because optional is overused.
+In addition, if the actual serve has been updated but the API document has not been updated, the OAS generator rather complicates the project.
+API documents should be as accurate as generating code through API documents.
 
-OAS Generator는 API 문서와 template을 이용해서 코드를 자동 생성하는 방식을 사용한다. 
-따라서 template의 특정 패턴이 반복되고 이는 자연스럽게 중복코드를 만든다. 이는 확실한 bundle size의 증가로 이어진다.
-프로젝트 개발이 편해지고, 유지보수가 좋아진다고 한들, 퍼포먼스에 악영향을 준다면 사용이 꺼려질 수 밖에 없다.
-이 글의 말미에도 optimize에 대해서 후술 하겠지만, OAS Generator 적용 전, 후에 대해서 bundle size 비교는 필요한 사항이다.
+#### 3. Duplicated code, The increase bundle size.
 
-#### 4. 초기 설정 비용과 설정의 유지보수
+OAS Generator generate code using template and API documents.
+Therefore, a specific pattern of template is repeated, which naturally creates duplicated code.
+This leads to a definite increase in bundle size.
+Even if project development becomes easier and maintenance improves, it will inevitably be reluctant to use it if it adversely affects performance.
+At the env of this article, we will discuss optimization later, but it is necessary to compare bundle sizes before and after applying OAS Generator.
 
-OAS Generator를 적용하면서 느꼈던 것은 초기 설정 값이 복잡하여 러닝커브가 생각보다 높다는 점이었고,
-프로젝트에 맞게 여러 설정 및 템플릿을 커스텀하게 되었다. 커스텀하는 부분이 있다는 소리는 앞으로의 프로젝트 운영에
-알아야하는 점이 많아진다는 것이므로 문서화나 팀 내부에 충분히 공유를 하는 등 여러 단계들이 필요하다는 점이다.
+#### 4. Initial configuration code and configuration maintenance
 
-특히, 3번에서 서술하였다시피 프로젝트 퍼포먼스를 위해서 Optimization을 진행하였다면 이에 대한 히스토리 공유도 필요할 것이다. 
+What I felt when I applied the OAS Generator was that the initial configuration value was complicated and
+the learning curve was higher than I expected, and I customized several settings and templates for the project.
+The fact that there is a customization part means that there are more things to know about future project maintenances,
+so several steps are needed, such as documentation or sufficient sharing within the team.
+
+In particular, as described in No. 3, if optimization was conducted for project performance,
+it would be necessary to share the history of this.
 
 ### Next
-자, 여기까지가 OAS Generator를 사용하면 어떤 장점, 단점이 있는지 대략적인 설명이 되었으리라 생각한다.
-이제, 어떻게 사용을 할지 알아보는 시간을 가지자.
-
+So far, I think we have outlined the advantages and disadvantages of using the OAS Generator.
+Now, let's take some time to figure out hot to use it.
 
 ## OAS Generator 사용 방법
 서론이 길었다. 이제 OAS Generator를 어떻게 사용하는지 설명한다. Custom Template을 제외한 용도는 대부분 CLI를 사용하고 설정을 수정하는 정도이다.
