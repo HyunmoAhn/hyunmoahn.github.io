@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkhyunmoahn_github_io=self.webpackChunkhyunmoahn_github_io||[]).push([[24],{8626:function(e){e.exports=JSON.parse('{"allTagsPath":"/en/tags","slug":"/en/tags/time-travel","name":"time-travel","count":1,"permalink":"/en/tags/time-travel"}')}}]);

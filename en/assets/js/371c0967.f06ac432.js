@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkhyunmoahn_github_io=self.webpackChunkhyunmoahn_github_io||[]).push([[1033],{2457:function(t){t.exports=JSON.parse('{"allTagsPath":"/en/tags","slug":"/en/tags/redux-toolkit","name":"redux-toolkit","count":1,"permalink":"/en/tags/redux-toolkit"}')}}]);

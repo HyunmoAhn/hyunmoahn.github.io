@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkhyunmoahn_github_io=self.webpackChunkhyunmoahn_github_io||[]).push([[9306],{4628:function(s){s.exports=JSON.parse('{"allTagsPath":"/en/tags","slug":"/en/tags/typescript-axios","name":"typescript-axios","count":1,"permalink":"/en/tags/typescript-axios"}')}}]);
