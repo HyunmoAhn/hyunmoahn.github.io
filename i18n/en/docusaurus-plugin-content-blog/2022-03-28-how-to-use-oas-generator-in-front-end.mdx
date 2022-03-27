@@ -1,0 +1,710 @@
+---
+slug: how-to-use-oas-generator-in-front-end
+title: How to use OAS generator in Front-end environment?
+description: OAS generator
+keywords:
+  - OAS
+  - OAS-generator
+  - typescript
+  - typescript-axios
+  - how-to-use
+  - web
+authors: HyunmoAhn
+tags: [OAS, OAS-generator, typescript, typescript-axios, how-to-use, web]
+---
+
+I am using OAS-generator in project recently.
+When deciding to use it, there were many things that required consideration and confirmation.
+And, I'm going to write about my experience using OAS-generator because it seems to have a lot of good things after using.
+
+Perhaps those who are curious about what OAS-generator is, those who know but are worried about using it,
+and those who are already using it but are hesitant to use it well,
+I hope that you will learn good motifs and experiences by reading this article.
+
+What this article says is as follows.
+- What is the OAS-generator.
+- The pros and cons of using OAS-generator.
+- How to use OAS-generator.
+  - Configuration
+  - Custom Templates
+- Optimization
+
+:::info Pre-required
+- The experience to develop front-end using Rest API
+- Can read the mustache [Grammar](https://github.com/janl/mustache.js)(Optional)
+  - Even if you don't know, there's no problem reading this article. But, you want to use OAS-generator, you should know it.
+:::
+
+<!--truncate-->
+
+
+## OAS Generator, What is it?
+Before to know OAS Generator, Let to know what is the `OAS`.
+### OAS? Open Api Specification
+`OAS` is abbreviation of `Open Api Specification`.
+
+> The OpenAPI Specification (OAS) is a vendor neutral description format for HTTP-based remote APIs.
+
+If you can see [The document about OAS](https://oai.github.io/Documentation/introduction.html),
+OAS is said to have named a rule for writing documents that both machines and people can understand about HTTP-based APIs.
+For example, when you click that link as shown in the image below in [the swagger document](https://petstore.swagger.io/),
+it connects to [the OAS document](https://petstore.swagger.io/v2/swagger.json).
+The [JSON](https://petstore.swagger.io/v2/swagger.json) or yaml files consisting of text are OAS(Open Api Specification).
+
+![swagger-to-oas-docs](/assets/oas-generator/swagger.png)
+
+![swagger-to-oas-docs-oas-result](/assets/oas-generator/oas-json.png)
+
+### OAS Generator
+We know that OAS is json/yaml document of API. Then, what is the OAS Generator?
+
+- OAS Generator is tool that generate Source code using OAS yaml file.
+- In other words, It translates to this flow. API Swagger → OAS text file(.yaml) → Source Code(.ts).
+- You can generate various output(Java, Kotlin, Typescript, etc.) using various Generator.
+- In Web Front end ecosystem, I understand that [typescript-axios](https://openapi-generator.tech/docs/generators/typescript-axios) or [typescript-fetch](https://openapi-generator.tech/docs/generators/typescript-fetch) is mainly used.
+
+As will be described later, OAS results are automatically generated in the following ways and benefit from using these codes inside the project.([code sandbox](https://codesandbox.io/s/oas-generator-sample-bygm5?file=/src/generate/api.ts:6692-6811))
+```tsx
+// Auto generated codes
+...
+deletePet: async (petId: number, apiKey?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+    // verify required parameter 'petId' is not null or undefined
+    assertParamExists('deletePet', 'petId', petId)
+    const localVarPath = `/pet/{petId}`
+        .replace(`{${"petId"}}`, encodeURIComponent(String(petId)));
+    // use dummy base URL string because the URL constructor only accepts absolute URLs.
+    const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+    let baseOptions;
+    if (configuration) {
+        baseOptions = configuration.baseOptions;
+    }
+
+    const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+    const localVarHeaderParameter = {} as any;
+    const localVarQueryParameter = {} as any;
+
+    // authentication petstore_auth required
+    // oauth required
+    await setOAuthToObject(localVarHeaderParameter, "petstore_auth", ["write:pets", "read:pets"], configuration)
+
+    if (apiKey !== undefined && apiKey !== null) {
+        localVarHeaderParameter['api_key'] = String(apiKey);
+    }
+
+
+
+    setSearchParams(localVarUrlObj, localVarQueryParameter);
+    let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+    localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+    return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+    };
+},
+...
+```
+The above example are part of generated code using OAS generator.
+It generates codes that are filled path, method, headers and are set request and response about each api.
+
+## So, what's good?
+### The difference from conventional way
+![compare-with-oas-process](/assets/oas-generator/compare-with-oas-process.png)
+
+We link APIs while developing. If we don't use OAS generator, We will develop following above AS-IS flow.
+We see API documents and check URL and method, etc and define the type of Request and Response.
+Then, we create functions associated with axios and use API call logics.
+In this sequence, we can mistake to check the method incorrectly or can mistype during move the Request/Response type one by one.
+In addition, if API documents are updated, efforts are needed to recognize that the API has been updated and to follow the changes and modify them.
+
+On the other hand, If we use OAS generator, we will develop following above TO-BE flow.
+First, we bring yaml file(OAS spec) in the API docs. Generally yaml file is auto generated with API docs.
+Next, we generate Axios functions using yaml file. The type of request and response are also generated same time.
+It is used for API call logic as it is.
+
+Even if API document is updated, running the OAS generator again shows the difference from the previous API as git diff,
+and it is easy to see which part has changed and which part needs to be checked.
+
+In other words, the advantage is to reduce repetitive work and minimize human errors by reducing the parts that developers write themselves.
+
+### It is just good?
+I talked about advantages, but of course, there are points~~(disadvantages)~~ to pay attention to.
+
+#### 1. Yaml files should be able to be extracted from API documents.
+
+I think there are many ways to manage API documents by company and project.
+The example above is based on the premise of using a swagger.
+In various other ways, API documents may be shared or development may be carried out without API documents.
+If API documents are impossible to generate a yaml file, the OAS generate may not be a valid alternative
+
+#### 2. API documents must be accurate.
+
+Since the OAS Generator generates code based on API documents,
+the auto-generated code becomes inaccurate if the API documents are not accurate.
+For examples, If fields of request parameter are all set optional, all auto generated type are set optional.
+Then, we can lose advantage of type check because optional is overused.
+In addition, if the actual serve has been updated but the API document has not been updated, the OAS generator rather complicates the project.
+API documents should be as accurate as generating code through API documents.
+
+#### 3. Duplicated code, The increase bundle size.
+
+OAS Generator generate code using template and API documents.
+Therefore, a specific pattern of template is repeated, which naturally creates duplicated code.
+This leads to a definite increase in bundle size.
+Even if project development becomes easier and maintenance improves, it will inevitably be reluctant to use it if it adversely affects performance.
+At the env of this article, we will discuss optimization later, but it is necessary to compare bundle sizes before and after applying OAS Generator.
+
+#### 4. Initial configuration code and configuration maintenance
+
+What I felt when I applied the OAS Generator was that the initial configuration value was complicated and
+the learning curve was higher than I expected, and I customized several settings and templates for the project.
+The fact that there is a customization part means that there are more things to know about future project maintenances,
+so several steps are needed, such as documentation or sufficient sharing within the team.
+
+In particular, as described in No. 3, if optimization was conducted for project performance,
+it would be necessary to share the history of this.
+
+### Next
+So far, I think we have outlined the advantages and disadvantages of using the OAS Generator.
+Now, let's take some time to figure out hot to use it.
+
+## Usage of OAS Generator
+The introduction was long. Now I will explain how to use the OAS Generator.
+Except for Custom Template, most of the uses are to modify settings using the CLI.
+
+In the [code sandbox](https://codesandbox.io/s/oas-generator-sample-bygm5), You can check the code shown in the example below.
+### 1. Get the `yaml` file.
+OAS Generator is a way of automatically generating code using a local yaml file.
+In addition, since it is 1:1 correspondence, one code is generated from one yaml file.
+If the API document has multiple yaml files, the flow described now must be executed several times.
+
+![usage-1](/assets/oas-generator/usage-1.png)
+In this example, I get the `petstore.yaml` file.
+
+### 2. generate code using `open-api-generator-cli`.
+Using open-api-generator-cli, specify template, input, and ouput path to generate code.
+```shell
+npm install @openapitools/openapi-generator-cli
+openapi-generator-cli generate -g typescript-axios -i ./src/yaml/petstore.yaml -o ./src/generate
+```
+Like above, add dependency of [openapi-generator-cli](https://github.com/OpenAPITools/openapi-generator-cli)
+and run `openapi-generator-cli`
+- `-g` is the option to set generator, in this case I used `typescript-axios`.
+- `-i` means input. Set yaml file path used generate.
+- `-o` is output path. Set where the code will be generated.
+
+If you run above code, code is generated in the `src/generated` directory.
+![usage-2.png](/assets/oas-generator/usage-2.png)
+
+Inside `api.ts`, an axios util function containing the api request and response types and the type are generated together.
+
+### 3. Use generated code.
+Now, you can use the generated code.
+![usage-3.png](/assets/oas-generator/usage-3.png)
+
+Since it is a code generated based on the typescript, the type check of request and response proceeds successfully.
+When referring to the `data` object, it informs the internal type of `Pet`, id , name, category, etc.
+
+### Next
+A brief summary of how to use it is as follows.
+> Get the `yaml` file -> Run OAS generator cli -> Use generated code
+
+However, as with all tools, it is necessary to customize it for real projects.
+In the [official documents](https://openapi-generator.tech/docs/customization), it serves several customize guides.
+What I used was customizing the template.
+The customization method to be described in the article is mainly about how to customize the template.
+
+## OAS Generator Config
+
+There are also some OAS generator settings.
+Mainly [CLI options](https://openapi-generator.tech/docs/usage#generate) and
+[openapitools.json](https://openapi-generator.tech/docs/generators/typescript-axios) is set.
+
+### The setting of OAS Generator - CLI
+![generator-cli-config.png](/assets/oas-generator/generator-cli-config.png)
+- `-g`: The option to set `generator`. In this case, use `typescript-axios`.
+- `-i`: The target yaml file path.
+- `-o`: The generated output file path.
+- `-c`: The setting file of generator.
+- `-t`: **The custom template file path**
+
+The CLI use the `generate` command,and there are five main options.
+The `-t` option is used to designate custom templates and will be discussed in following articles.
+
+### The setting of OAS Generator - Config file
+```json
+{
+  "$schema": "node_modules/@openapitools/openapi-generator-cli/config.schema.json",
+  "spaces": 2,
+  "generator-cli": {
+    "version": "5.3.1"
+  },
+  "supportsES6": true,
+  "withSeparateModelsAndApi": true,
+  "apiPackage": "api",
+  "modelPackage": "models",
+  "enumPropertyNaming": "original",
+  "enumNameSuffix": "",
+  "useSingleRequestParameter": false
+}
+```
+This configuration file is a file that enters `-c` in the CLI option, and mainly contains the generator configuration values.
+In this example, we use `typescript-axios` and see [here](https://openapi-generator.tech/docs/generators/typescript-axios/) for more options
+
+## OAS Generator Template
+It would be good to use the default settings, but you should need to edit setting for fitting actual project.
+Official documents has [customization guide part](https://openapi-generator.tech/docs/customization).
+[Retrieving Templates](https://openapi-generator.tech/docs/templating#retrieving-templates) was the most directly helpful item.
+In other words, the template registered by default is imported and modified according to the project.
+The way following this article is largely related to the template entering the `-t` option described in the CLI.
+
+### When do you use Custom Template?
+This is method to use when you want to modifiy and use a template that uses the default setting.
+For example, if you want to add a suffix such as `Axios` after the `addPet` or `deletePet` method names as follows,
+you can modify the template.
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs>
+  <TabItem value='before' label='Before using custom template'>
+
+  ```tsx
+  export class PetApi extends BaseAPI {
+    public addPet(body: Pet, options?: AxiosRequestConfig) {
+      return PetApiFp(this.configuration).addPet(body, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    public deletePet(petId: number, apiKey?: string, options?: AxiosRequestConfig) {
+      return PetApiFp(this.configuration).deletePet(petId, apiKey, options).then((request) => request(this.axios, this.basePath));
+    }
+    ...
+  }
+  ```
+
+  </TabItem>
+  <TabItem value='after' label='After using custom template'>
+
+  ```tsx
+  export class PetApi extends BaseAPI {
+    // highlight-next-line
+    public addPetAxios(body: Pet, options?: AxiosRequestConfig) {
+      return PetApiFp(this.configuration).addPet(body, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    // highlight-next-line
+    public deletePetAxios(petId: number, apiKey?: string, options?: AxiosRequestConfig) {
+      return PetApiFp(this.configuration).deletePet(petId, apiKey, options).then((request) => request(this.axios, this.basePath));
+    }
+    ...
+  }
+  ```
+
+  </TabItem>
+</Tabs>
+
+Of course, it is only a simple examples, and it is possible to add parameters or customize other function.
+
+### Flow of Custom Template
+
+![generate-flow.png](/assets/oas-generator/generate-flow.png)
+The previous flow is the flow that generated the Axios function in the yaml file as above.
+If you add a Custom Template here, the flow changes as follows.
+
+![generate-flow-with-custom.png](/assets/oas-generator/generate-flow-with-custom.png)
+The OAS Generator extracts JSON data from the yaml file.
+This JSON data contains a path, a method, and various information about the API.
+These JSON data are injected into the Template and generated as an Axios function.
+
+The custom to be following here is about hot to change the template.
+
+### Get the Template files
+```shell
+openapi-generator-cli author template -g typescript-axios -o ./mustaches
+```
+`openapi-generator` has `author` scripts except `generate` script. <br/>
+When `author` script is run, the following template is created.
+```markdown
+/mustaches
+ㄴ api.mustache
+ㄴ apiinner.mustache
+ㄴ baseApi.mustache
+ㄴ common.mustache
+ㄴ configuration.mustache
+  ...
+```
+
+This is a mustache template used to run OAS Generator with `typescript-axios`.
+If you don't give the `-t` option in the CLI, by default, use the corresponding mustache template located remotely to generate proceed.
+
+In other word, if you modify only the mustache template that you want to modify and delete the remaining unmodified templates,
+you can reduce the management area by following the remote default settings.
+
+### Mustache Template
+We can now modify mustache imported to local.
+This requires a brief understanding of mustache grammar, so if you are not familiar with mustache, check [this article](https://github.com/janl/mustache.js).
+As alone as you can only read variables, Sections, Lists, and Inverted Sections, since you are modifying an already completed template.
+
+For example, if you want to attache a suffix called Axios to the classname created as [the example introduced above](#when-do-you-use-custom-template),
+you can modify it as follows.
+
+<Tabs>
+  <TabItem value='before' label='Before Custom Template'>
+
+```tsx title=apiInner.mustache
+{{^useSingleRequestParameter}}
+  public {{nickname}}({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: AxiosRequestConfig) {
+  return {{classname}}Fp(this.configuration).{{nickname}}({{#allParams}}{{paramName}}, {{/allParams}}options).then((request) => request(this.axios, this.basePath));
+}
+{{/useSingleRequestParameter}}
+```
+
+  </TabItem>
+  <TabItem value='after' label='After Custom Template'>
+
+```tsx title=apiInner.mustache
+{{^useSingleRequestParameter}}
+  // highlight-next-line
+  public {{nickname}}Axios({{#allParams}}{{paramName}}{{^required}}?{{/required}}: {{{dataType}}}, {{/allParams}}options?: AxiosRequestConfig) {
+  return {{classname}}Fp(this.configuration).{{nickname}}({{#allParams}}{{paramName}}, {{/allParams}}options).then((request) => request(this.axios, this.basePath));
+}
+{{/useSingleRequestParameter}}
+```
+
+  </TabItem>
+</Tabs>
+
+![simple-mustache-custom.png](/assets/oas-generator/custom-template-file-structure.png)
+
+Then, leave only the modified template file and delete the remaining unmodified template files.
+Files that are not locally generated are automatically generated using remote templates.
+
+### Check JSON Data
+Now, I have imported the template locally, and I know that I can modify the template.
+However, the question still arises is that you do not know what value is included in the variable `nickname` or `classname` in the template image above.
+
+Now, it's time to check out the JSON Data, which went over from [Flow of Custom Template](#flow-of-custom-template).
+
+To use appropriate data for the template, you need to find out what data is extracted from the yaml file and in what format it is injected into the template.
+```shell
+openapi-generator-cli generate  \ 
+  -g typescript-axios  \
+  -i ./src/yaml/petstore.yaml  \
+  -o ./src/generate  \
+  --global-property=debugModels,debugOperations \
+  > output.txt
+```
+There are many ways to do this, but if you give the CLI option `--global-property=debugModels,debugOperations`,
+What data is extracted from the yaml file is output to the console. Therefore, a method of checking with a text file through `> output.txt` was used.
+
+The extracted contents of `operations` follow the image format as shown below, and `operators` that can be seen in the template,
+It can be seen that data such as `classnames`, `path`, and `httpMethod` are included and used in the mustache template.
+![json-data.png](/assets/oas-generator/json-data.png)
+
+## The example of Custom Template
+As an example of using a Custom Template, I brought up the use of "axios" in the suffix.
+However, it is only a simple example to help understanding, and it can be applied in various ways in actual use.
+I brought the custom example used in the actual project.
+
+Since we can't see the entire code and following example is part of generated code,
+it may not be clearly understood how it is implemented.
+However, I hope you can see the following examples as a possibility and get the idea of using Custom Template.
+
+### Convert from Enum Type to Union Type
+
+`typescript-axios` template is using `Enum` type of typescript when define type. But I don't like to use `Enum` type.
+So, I tried to convert to `Union` type.
+
+<Tabs groupId="enum-to-union">
+  <TabItem value='before' label='Before Custom Template'>
+
+```tsx title=modelGeneric.mustache
+{{#vars}}
+{{#isEnum}}
+  export enum {{enumName}} {
+{{#allowableValues}}
+{{#enumVars}}
+{{{name}}} = {{{value}}}{{^-last}},{{/-last}}
+{{/enumVars}}
+{{/allowableValues}}
+}
+{{/isEnum}}
+{{/vars}}
+```
+
+  </TabItem>
+  <TabItem value='after' label='After Custom Template'>
+
+```tsx title=modelGeneric.mustache
+{{#vars}}
+{{#isEnum}}
+  export type {{enumName}} =
+{{#allowableValues}}
+{{#enumVars}}
+{{{value}}} {{^-last}}|{{/-last}}
+{{/enumVars}}
+{{/allowableValues}}
+{{/isEnum}}
+{{/vars}}
+```
+
+  </TabItem>
+</Tabs>
+
+
+<Tabs groupId="enum-to-union">
+  <TabItem value='before' label='Before Generated Code'>
+
+```tsx
+export enum PetStatusEnum {
+  Available = 'available',
+  Pending = 'pending',
+  Sold = 'sold',
+}
+```
+
+  </TabItem>
+  <TabItem value='after' label='After Generated Code'>
+
+```tsx
+export type PetStatusEnum =
+  'available' |
+  'pending' |
+  'sold'
+```
+
+  </TabItem>
+</Tabs>
+
+### Convert to Snake case variable naming rule to Camel case variable naming rule
+The server used the snake case for the variable naming rule, and the client used the camel case as the variable naming rule.
+Therefore, there were difficulties caused by different variable names used in the OAS document and the actual generated code.
+Use the [lambdas](https://openapi-generator.tech/docs/templating/#mustache-lambdas) provided by the OAS generator.
+Snake case naming variables were collectively converted into camel case naming variables.
+
+<Tabs groupId="snake-to-camel">
+  <TabItem value='before' label='Before Custom Template'>
+
+  ```tsx title=modelGeneric.mustache
+    {{#vars}}
+      '{{baseName}}'{{^required}}?{{/required}}: {{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{#isNullable}} | null{{/isNullable}}{{/isEnum}};
+    {{/vars}}
+  ```
+
+  </TabItem>
+  <TabItem value='after' label='After Custom Template'>
+
+  ```tsx title=modelGeneric.mustache
+    {{#vars}}
+      // highlight-next-line
+      '{{#lambda.camelcase}}{{baseName}}{{/lambda.camelcase}}'{{^required}}?{{/required}}: {{#isEnum}}{{{datatypeWithEnum}}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{#isNullable}} | null{{/isNullable}}{{/isEnum}};
+    {{/vars}}
+  ```
+
+  </TabItem>
+</Tabs>
+
+
+<Tabs groupId="snake-to-camel">
+  <TabItem value='before' label='Before Generated Code'>
+
+```tsx
+export interface User {
+  id: number;
+  username: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  phone: string;
+  user_status: number;
+}
+```
+
+  </TabItem>
+  <TabItem value='after' label='After Generated Code'>
+
+```tsx
+export interface User {
+  id: number;
+  username: string;
+  // highlight-next-line
+  firstName: string;
+  // highlight-next-line
+  lastName: string;
+  email: string;
+  password: string;
+  phone: string;
+  // highlight-next-line
+  userStatus: number;
+}
+```
+
+  </TabItem>
+</Tabs>
+
+### Edit util function in template
+
+I extracted the utility function that commonly used logic in `typescript-axios` and generate code.
+For example, serialize did not need to be used in our project, and `serialize` logic was excluded by modifying it as follows.
+
+<Tabs groupId="custom-util-func">
+  <TabItem value='before' label='Before Custom Template'>
+
+```tsx title=common.mustache
+export const serializeDataIfNeeded = function (value: any, requestOptions: any, configuration?: Configuration) {
+  const nonString = typeof value !== 'string';
+  const needsSerialization = nonString && configuration && configuration.isJsonMime
+    ? configuration.isJsonMime(requestOptions.headers['Content-Type'])
+    : nonString;
+  return needsSerialization
+    ? JSON.stringify(value !== undefined ? value : {})
+    : (value || "");
+}
+```
+
+  </TabItem>
+  <TabItem value='after' label='After Custom Template'>
+
+```tsx title=modelGeneric.mustache
+export const serializeDataIfNeeded = function (value: any, requestOptions: any, configuration?: Configuration) {
+  const nonString = typeof value !== 'string';
+  // highlight-next-line
+  const needsSerialization = false;
+  return needsSerialization
+    ? JSON.stringify(value !== undefined ? value : {})
+    : (value || "");
+}
+```
+
+  </TabItem>
+</Tabs>
+
+
+<Tabs groupId="custom-util-func">
+  <TabItem value='before' label='Before Generated Code'>
+
+```tsx
+export const serializeDataIfNeeded = function (value: any, requestOptions: any, configuration?: Configuration) {
+  const nonString = typeof value !== 'string';
+  const needsSerialization = nonString && configuration && configuration.isJsonMime
+    ? configuration.isJsonMime(requestOptions.headers['Content-Type'])
+    : nonString;
+  return needsSerialization
+    ? JSON.stringify(value !== undefined ? value : {})
+    : (value || "");
+}
+```
+
+  </TabItem>
+  <TabItem value='after' label='After Generated Code'>
+
+```tsx
+export const serializeDataIfNeeded = function (value: any, requestOptions: any, configuration?: Configuration) {
+  const nonString = typeof value !== 'string';
+  // highlight-next-line
+  const needsSerialization = false;
+  return needsSerialization
+    ? JSON.stringify(value !== undefined ? value : {})
+    : (value || "");
+}
+```
+
+  </TabItem>
+</Tabs>
+
+## The story of optimization
+
+We understand pros and cons of OAS Generator, and we know that usage and method to customize.
+If so, the essential story is optimization.
+A good tool has been applied, and it reduces hassle and improves development stability,
+but it can't be easily use if it adversely effects performance.
+
+OAS Generator is largely influenced by bundle size. When using the OAS Generator, the amount of code increases,
+which leads to an increase in bundle size.
+Then user sees the web page late. Therefore, it must be checked.
+
+When I applied it to the project, there were about 10 yarm files in the project, and each yaml file had a single feature.
+As this was gradually applied one by one for each function, the generated code had the following capacity.
+
+![bundle-size-before](/assets/oas-generator/bundle-size-before.png)
+
+When one feature was applied, the generated code had a size of 20KB based on gzip, and 63KB when two features were applied.
+Considering that the total gzip size of the project at that time was around 560KB,
+it was a fatal condition that increased the capacity by 11% of the total.
+Even since it was not applied to all features, it could be expected that the size would increase arithmetically in the future.
+
+### Attempt 1: Reduce total code size.
+The first attempt is to reduce the amount of code. generate, due to the nature of automatic code generation,
+a single line of templates influenced dozens of generated codes.
+This led to an increase in the overall code volume, bundle size.
+Therefore, the required variable's guard logic and the header settings that are not used in our project were removed.
+In addition, for the same common code repeatedly generated by the OAS Generator,
+methods such as moving it inside the project and using it as a common function were used.
+
+![bundle-size-solution-1](/assets/oas-generator/bundle-size-solution-1.png)
+
+This solution reduced the size from 63KB to 34KB to about 53%. The code that you don't use for each project is different,
+so the degree of reduction is different. Please note that removing unnecessary logic from the template was also effective in reducing the bundle size.
+
+### Attempt 2: Tree shaking
+The amount of code has been reduced enough. However, there was still a way to further reduce the bundle size.
+It's tree shaking.
+
+If you use all the APIs in the API document, you don't have to consider tree shaking, but our project didn't
+Therefore, if unused API codes are included in the bundle, it means that unnecessary codes are included, which can be seen as an improvement.
+
+This may vary depending on the bundler and usage environment, but the project I experienced was building using webpack v5,
+and webpack v5 was using variable units instead of file units about tree shaking, so I thought tree shaking was working well, but it wasn't.
+This is because APIs were not created with each variable, but were created in the form of a method under one object, class.
+
+In webpack v5, each variable supports tree shaking, and the unused variable is excluded from the bundle,
+but the key / value present in the object is not.
+
+Therefore, it was changed from a structure in which all API call functions were contained in one existing object
+to a structure in which each API call function was separated into each variable.
+
+This change was also carried out by customizing the template.
+
+<Tabs>
+  <TabItem value='before' label='Before Generated Code'>
+
+```tsx
+export const PetStoreApi {
+  getPet: () => { ... },
+  postPet: () => { ... },
+}
+```
+
+  </TabItem>
+  <TabItem value='after' label='After Generated Code'>
+
+```tsx
+export const petStoreGetPet = () => { ... }
+export const petStorePostPet = () => { ... }
+```
+
+  </TabItem>
+</Tabs>
+
+![bundle-size-tree-shaking](/assets/oas-generator/bundle-size-tree-shaking.png)
+
+After the tree shaking, the size decreased from 34KB to 25KB.
+Although it has not improved significantly in terms of ratio,
+it was possible to guarantee that only the necessary codes were included in future implementations.
+
+### Result
+The bundle-size optimization caused by OAS ends here.
+If you look at the final result, the OAS generated code takes up 25KB, which seems to be quite a lot.
+Comparing the entire project bundle-size was as follows.
+![bundle-size-total](/assets/oas-generator/bundle-size-total.png)
+
+When OAS was not applied at all, the project, which was about 567KB, showed a slight increase of about 572KB after OAS was applied.
+Therefore, it was concluded that even if OAS is applied, size is not a big problem if appropriate optimization and analysis processes are performed.
+
+## Recap
+- The OAS Generator is a tool for converting API documents into development code(.ts).
+- This reduces human errors and reduces resources to work manually, such as creating types.
+- Code is auto generated like this flow. `yaml file -> oas-generator-cli -> generated code`.
+- The OAS Generator can customize and use the code template for the project.
+- If you don't optimize the OAS generator, It can cause a lot of lose to the bundle size, but if you do so, you won't have to worry.
