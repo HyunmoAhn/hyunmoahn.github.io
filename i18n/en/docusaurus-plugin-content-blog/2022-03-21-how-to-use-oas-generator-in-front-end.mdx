@@ -168,67 +168,70 @@ it would be necessary to share the history of this.
 So far, I think we have outlined the advantages and disadvantages of using the OAS Generator.
 Now, let's take some time to figure out hot to use it.
 
-## OAS Generator 사용 방법
-서론이 길었다. 이제 OAS Generator를 어떻게 사용하는지 설명한다. Custom Template을 제외한 용도는 대부분 CLI를 사용하고 설정을 수정하는 정도이다.
+## Usage of OAS Generator
+The introduction was long. Now I will explain how to use the OAS Generator.
+Except for Custom Template, most of the uses are to modify settings using the CLI.
 
-[code sandbox](https://codesandbox.io/s/oas-generator-sample-bygm5)에서 아래 예시로 보여주는 코드를 확인 할 수 있다.
-### 1. yaml 파일을 가져온다.
-OAS Generator는 local에 있는 yaml파일을 이용해서 코드를 자동 생성하는 방식이다.
-또한, 1:1 대응이므로 하나의 yaml파일에서 하나의 code를 생성한다. 만약 API문서가 다수의 yaml파일을 가지고 있다면
-지금 설명하는 플로우를 여러번 실행해야한다.
+In the [code sandbox](https://codesandbox.io/s/oas-generator-sample-bygm5), You can check the code shown in the example below.
+### 1. Get the `yaml` file.
+OAS Generator is a way of automatically generating code using a local yaml file.
+In addition, since it is 1:1 correspondence, one code is generated from one yaml file.
+If the API document has multiple yaml files, the flow described now must be executed several times.
 
 ![usage-1](/assets/oas-generator/usage-1.png)
-위 예시에서는 `petstore.yaml`파일을 가져왔다.
+In this example, I get the `petstore.yaml` file.
 
-### 2. open-api-generator-cli로 code를 generate 한다.
-open-api-generator-cli를 이용해서 template과 input, output path를 지정해서 code를 생성한다.
+### 2. generate code using `open-api-generator-cli`.
+Using open-api-generator-cli, specify template, input, and ouput path to generate code.
 ```shell
 npm install @openapitools/openapi-generator-cli
 openapi-generator-cli generate -g typescript-axios -i ./src/yaml/petstore.yaml -o ./src/generate
 ```
-위와 같이 [openapi-generator-cli](https://github.com/OpenAPITools/openapi-generator-cli)에 대한 의존성을 추가하고,
-`openapi-generator-cli`를 실행한다.
-- `-g`는 generator를 설정하는 옵션이며 여기서는 `typescript-axios`를 사용한다. 
-- `-i`는 input을 의미하며 타겟이 되는 yaml파일 위치를 지정한다.
-- `-o`는 코드를 생성할 위치를 지정한다.
+Like above, add dependency of [openapi-generator-cli](https://github.com/OpenAPITools/openapi-generator-cli)
+and run `openapi-generator-cli`
+- `-g` is the option to set generator, in this case I used `typescript-axios`.
+- `-i` means input. Set yaml file path used generate.
+- `-o` is output path. Set where the code will be generated.
 
-위 코드를 실행하면 아래와 같이 `src/generate` 디렉토리 내부에 코드들이 자동생성된다. 
+If you run above code, code is generated in the `src/generated` directory.
 ![usage-2.png](/assets/oas-generator/usage-2.png)
 
-`api.ts` 내부에는 api request와 response 타입을 포함하고 있는 axios util 함수와, type이 함께 생성된다.
+Inside `api.ts`, an axios util function containing the api request and response types and the type are generated together.
 
-### 3. Generate 된 코드를 사용한다.
-이제는 generate 된 코드를 사용하면 된다.
+### 3. Use generated code.
+Now, you can use the generated code.
 ![usage-3.png](/assets/oas-generator/usage-3.png)
 
-typescript를 기반으로 생성된 코드이기 때문에 request와 response의 타입체크는 성공적으로 진행된다. 
-`data` 객체를 참조했을 때 `Pet` 내부 타입인 id, name, category 등을 알려준다. 
+Since it is a code generated based on the typescript, the type check of request and response proceeds successfully.
+When referring to the `data` object, it informs the internal type of `Pet`, id , name, category, etc.
 
 ### Next
-사용 방법을 간단히 요약하면 다음과 같이 간단하다.
-> yaml파일 준비 -> OAS generator cli 실행 -> 생성된 코드 사용.
+A brief summary of how to use it is as follows.
+> Get the `yaml` file -> Run OAS generator cli -> Use generated code
 
-하지만, 모든 도구들이 그렇듯 실제 프로젝트에 사용하려면 상황에 맞게 커스터마이징 하는 과정이 필요하다.
-[공식 문서](https://openapi-generator.tech/docs/customization)에서는 여러 방법의 커스터마이징 가이드가 있지만,
-내가 사용했던 것은 template을 custom해서 사용하는 방식이었다. 앞으로 서술할 커스터마이징 방식도 template을 커스텀 하는 방법에 대한 내용이 주를 이룬다.
+However, as with all tools, it is necessary to customize it for real projects.
+In the [official documents](https://openapi-generator.tech/docs/customization), it serves several customize guides.
+What I used was customizing the template.
+The customization method to be described in the article is mainly about how to customize the template.
 
 ## OAS Generator Config
 
-OAS generator 설정도 몇가지 있다. 주로 [CLI 옵션](https://openapi-generator.tech/docs/usage#generate)과
-[openapitools.json](https://openapi-generator.tech/docs/generators/typescript-axios) 설정파일의 설정을 조정한다.
+There are also some OAS generator settings.
+Mainly [CLI options](https://openapi-generator.tech/docs/usage#generate) and
+[openapitools.json](https://openapi-generator.tech/docs/generators/typescript-axios) is set.
 
-### OAS Generator 설정 - CLI
+### The setting of OAS Generator - CLI
 ![generator-cli-config.png](/assets/oas-generator/generator-cli-config.png)
-- `-g`: generator를 설정하는 옵션이며 여기서는 `typescript-axios`를 사용한다.
-- `-i`: 대상 yaml 파일 위치
-- `-o`: 생성된 파일 위치 경로
-- `-c`: generator 설정 파일
-- `-t`: **커스텀 template 설정 파일**
+- `-g`: The option to set `generator`. In this case, use `typescript-axios`.
+- `-i`: The target yaml file path.
+- `-o`: The generated output file path.
+- `-c`: The setting file of generator.
+- `-t`: **The custom template file path**
 
-cli는 `generate` 명령어를 사용하며 옵션은 크게 5가지를 사용한다.
-`-t` 옵션은 커스텀 템플릿을 지정할때 쓰이는데 앞으로의 글에서 이야기 할 예정이다.
+The CLI use the `generate` command,and there are five main options.
+The `-t` option is used to designate custom templates and will be discussed in following articles.
 
-### OAS Generator 설정 - Config file
+### The setting of OAS Generator - Config file
 ```json
 {
   "$schema": "node_modules/@openapitools/openapi-generator-cli/config.schema.json",
@@ -245,20 +248,20 @@ cli는 `generate` 명령어를 사용하며 옵션은 크게 5가지를 사용�
   "useSingleRequestParameter": false
 }
 ```
-이 설정 파일은 CLI 옵션에서 `-c`에 들어가는 파일이며, 주로 generator의 설정 값이 들어간다. 
-이 예시에서는 `typescript-axios`를 사용하며 자세한 옵션은 [이쪽]((https://openapi-generator.tech/docs/generators/typescript-axios/)) 을 참고하자.
+This configuration file is a file that enters `-c` in the CLI option, and mainly contains the generator configuration values.
+In this example, we use `typescript-axios` and see [here](https://openapi-generator.tech/docs/generators/typescript-axios/) for more options
 
 ## OAS Generator Template
-범용성을 띄고 만들어진 설정인 기본 설정을 그대로 사용하면 좋겠지만, 실제 프로젝트에 사용한다면 상황에 맞게 
-수정을 해야하는 부분이 존재한다. [문서 Customization 가이드](https://openapi-generator.tech/docs/customization) 항목도 있지만,
-이 중에 가장 직접적으로 도움이 되었던 항목은 [Retrieving Templates](https://openapi-generator.tech/docs/templating#retrieving-templates), 
-즉, 기본으로 등록되어 있는 Template을 가져와서 프로젝트에 맞게 수정해서 사용하는 것이다.
-지금 설명하는 방식은 CLI에서 기재한 `-t` 옵션에 들어가는 템플릿과 크게 연관되어있다.
+It would be good to use the default settings, but you should need to edit setting for fitting actual project.
+Official documents has [customization guide part](https://openapi-generator.tech/docs/customization).
+[Retrieving Templates](https://openapi-generator.tech/docs/templating#retrieving-templates) was the most directly helpful item.
+In other words, the template registered by default is imported and modified according to the project.
+The way following this article is largely related to the template entering the `-t` option described in the CLI.
 
-### Custom Template은 언제 사용할까?
-Custom Template은 기본 설정을 통해서 generate 된 코드를 수정하고 싶을때는 template을 수정하면 된다.
-예를 들면, 아래와 같이 `addPet`이나 `deletePet` 메소드 명 뒤에 `Axios` 같은 suffix를 붙이고 싶다면 
-template을 수정하면 된다.
+### When do you use Custom Template?
+This is method to use when you want to modifiy and use a template that uses the default setting.
+For example, if you want to add a suffix such as `Axios` after the `addPet` or `deletePet` method names as follows,
+you can modify the template.
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -300,26 +303,27 @@ import TabItem from '@theme/TabItem';
   </TabItem>
 </Tabs>
 
-물론 간단한 예시일 뿐이고, parameter를 추가한다거나, 다른 함수를 추가하는 커스텀도 가능하다.
+Of course, it is only a simple examples, and it is possible to add parameters or customize other function.
 
 ### Flow of Custom Template
 
 ![generate-flow.png](/assets/oas-generator/generate-flow.png)
-이전까지 설명한 flow는 위와 같이 yaml파일에서 Axios 함수를 생성하는 플로우이다.
-여기서 Custom Template을 추가한다면 아래와 같은 느낌으로 flow가 변한다.
+The previous flow is the flow that generated the Axios function in the yaml file as above.
+If you add a Custom Template here, the flow changes as follows.
 
 ![generate-flow-with-custom.png](/assets/oas-generator/generate-flow-with-custom.png)
-OAS Generator는 yaml파일에서 JSON 데이터를 추출해낸다. 이 JSON 데이터는 path도 들어있고, method도 들어있고, 
-API에 대한 각종 정보들이 있다. 이 JSON 데이터들이 Template에 주입되고 Axios 함수로 생성된다.
+The OAS Generator extracts JSON data from the yaml file.
+This JSON data contains a path, a method, and various information about the API.
+These JSON data are injected into the Template and generated as an Axios function.
 
-여기서 다룰 커스텀은 Template을 변경하는 방법에 대해서이다.
+The custom to be following here is about hot to change the template.
 
-### Template 파일 가져오기
+### Get the Template files
 ```shell
 openapi-generator-cli author template -g typescript-axios -o ./mustaches
 ```
-`openapi-generator`는 `generate` 스크립트 이외에 `author` 스크립트도 존재한다. <br/>
-`author` 스크립트로 `typescript-axios` 템플릿을 가져온다면 다음과 같은 template이 생성된다.
+`openapi-generator` has `author` scripts except `generate` script. <br/>
+When `author` script is run, the following template is created.
 ```markdown
 /mustaches
 ㄴ api.mustache
@@ -330,20 +334,19 @@ openapi-generator-cli author template -g typescript-axios -o ./mustaches
   ...
 ```
 
-이는, `typescript-axios`로 OAS Generator를 실행할 때 사용하는 mustache template이며 
-CLI에서 `-t` 옵션을 주지 않는다면 기본적으로 원격에 있는 해당 mustache template을 사용하여 generate를
-진행한다.
+This is a mustache template used to run OAS Generator with `typescript-axios`.
+If you don't give the `-t` option in the CLI, by default, use the corresponding mustache template located remotely to generate proceed.
 
-즉, 수정하고 싶은 mustache template만 수정하고 나머지 수정하지 않은 template은 삭제시키면 원격에 있는 기본 설정을
-따라 과정을 진행하므로 관리 영역을 줄일 수 있다.
+In other word, if you modify only the mustache template that you want to modify and delete the remaining unmodified templates,
+you can reduce the management area by following the remote default settings.
 
 ### Mustache Template
-이제 local로 가져온 mustache를 수정할 수 있게 되었다. 이 부분에서는 mustache 문법에 대한 간략한 이해가 필요하므로, 
-mustache에 익숙하지 않다면 [이 글](https://github.com/janl/mustache.js)을 잠시 확인하도록 하자. 
-이미 완성된 template을 수정하는 것이므로 변수, Section, Lists, Inverted Sections 정도만 읽을 수 있으면 된다.
+We can now modify mustache imported to local.
+This requires a brief understanding of mustache grammar, so if you are not familiar with mustache, check [this article](https://github.com/janl/mustache.js).
+As alone as you can only read variables, Sections, Lists, and Inverted Sections, since you are modifying an already completed template.
 
-예를 들어 [위에 소개한 예시](#custom-template은-언제-사용할까)대로 생성된 classname에 Axios라는 suffix를 붙이고 싶다면, 
-아래와 같이 수정하면 된다.
+For example, if you want to attache a suffix called Axios to the classname created as [the example introduced above](#when-do-you-use-custom-template),
+you can modify it as follows.
 
 <Tabs>
   <TabItem value='before' label='Before Custom Template'>
@@ -373,15 +376,16 @@ mustache에 익숙하지 않다면 [이 글](https://github.com/janl/mustache.js
 
 ![simple-mustache-custom.png](/assets/oas-generator/custom-template-file-structure.png)
 
-그런 다음, 수정한 template 파일만 남겨두고 수정하지 않은 나머지 템플릿 파일을 삭제한다. 그러면 자동으로 로컬에 없는 파일은 원격의 기본 설정을 사용하여 generate한다.
+Then, leave only the modified template file and delete the remaining unmodified template files.
+Files that are not locally generated are automatically generated using remote templates.
 
-### JSON Data 확인하기
-자 Template을 로컬로 가져오기도 했고, template을 수정하면 된다는 것도 알았다. 하지만 여전히 생기는 궁금증은 
-위 template 이미지에서 `nickname`이나 `classname`변수에 어떤 값이 들어가는지 모르는 것이다.
+### Check JSON Data
+Now, I have imported the template locally, and I know that I can modify the template.
+However, the question still arises is that you do not know what value is included in the variable `nickname` or `classname` in the template image above.
 
-이제 [Flow of Custom Template](#flow-of-custom-template)에서 넘어갔던, JSON Data에 대해서 확인 해 볼 차례다.
-Template에 적절한 데이터를 사용하려면 yaml파일에서 어떤 데이터가 추출되고, 어떤 형식으로 template에 주입되는지 알아봐야한다. 
+Now, it's time to check out the JSON Data, which went over from [Flow of Custom Template](#flow-of-custom-template).
 
+To use appropriate data for the template, you need to find out what data is extracted from the yaml file and in what format it is injected into the template.
 ```shell
 openapi-generator-cli generate  \ 
   -g typescript-axios  \
@@ -390,23 +394,26 @@ openapi-generator-cli generate  \
   --global-property=debugModels,debugOperations \
   > output.txt
 ```
-여러 방법이 있을 것이라 생각하지만 위와 같이 CLI옵션에서 `--global-property=debugModels,debugOperations`를 주게 되면 
-yaml파일로부터 어떤 데이터가 추출되는지 console에 출력된다. 따라서 `> output.txt` 를 통해서 text파일로 확인하는 방법을 사용했다.
-`operations`에 대해 추출한 내용은 대략적으로 아래와 같은 이미지 형식을 따르며, 템플릿에서 볼 수 있는 `operations`,
-`classname`, `path`, `httpMethod` 등 데이터가 포함되어 mustache template에 사용되는 것을 알 수 있다.
+There are many ways to do this, but if you give the CLI option `--global-property=debugModels,debugOperations`,
+What data is extracted from the yaml file is output to the console. Therefore, a method of checking with a text file through `> output.txt` was used.
+
+The extracted contents of `operations` follow the image format as shown below, and `operators` that can be seen in the template,
+It can be seen that data such as `classnames`, `path`, and `httpMethod` are included and used in the mustache template.
 ![json-data.png](/assets/oas-generator/json-data.png)
 
-## Custom Template 예시
-Custom Template의 사용 예로 postfix로 "axios"를 붙이는 것을 가져왔다. 하지만 이해를 돕기 위한 간단한 예시일 뿐이고, 실제 사용에는 다양한 방법으로
-응용이 가능 할 것이다. 실제 프로젝트에서 사용했던 커스텀 예시를 가져와보았다.
+## The example of Custom Template
+As an example of using a Custom Template, I brought up the use of "axios" in the suffix.
+However, it is only a simple example to help understanding, and it can be applied in various ways in actual use.
+I brought the custom example used in the actual project.
 
-전체 코드를 확인 할 수 없고, Template과 생성 코드의 일부분만 가져왔기 떄문에 명확하게 어떻게 구현되는지 이해되지 않을 수 있다.
-하지만, 아래 예시들을 하나의 가능성으로 보고 Custom Template을 이용하면 다음과 같은 것들을 할 수 있다는 아이디어를 얻어 갔으면 좋겠다.
+Since we can't see the entire code and following example is part of generated code,
+it may not be clearly understood how it is implemented.
+However, I hope you can see the following examples as a possibility and get the idea of using Custom Template.
 
-### Enum Type을 Union Type으로 변환
+### Convert from Enum Type to Union Type
 
-`typescript-axios`템플릿에서는 타입을 정의할 때 typescript의 `Enum`을 사용한다. 하지만 `Enum`은 여러 이유로 사용을 지양하고 있기 때문에
-이를 Union Type으로 바꾸는 것을 시도하였다.
+`typescript-axios` template is using `Enum` type of typescript when define type. But I don't like to use `Enum` type.
+So, I tried to convert to `Union` type.
 
 <Tabs groupId="enum-to-union">
   <TabItem value='before' label='Before Custom Template'>
@@ -469,11 +476,11 @@ export type PetStatusEnum =
   </TabItem>
 </Tabs>
 
-### Snake case 변수 네이밍을 Camel case 변수 네이밍으로 변환
-Server에서는 변수 네이밍 규칙을 snake case를 사용하고 있었고, Client는 camel case를 변수 네이밍 규칙으로 사용하고 있었다.
-그렇기 때문에 OAS 문서와 실제 client에서 사용하는 변수명이 달라서 발생하는 애로사항이 있었다.
-이를, OAS generator에서 제공하는 [lambdas](https://openapi-generator.tech/docs/templating/#mustache-lambdas)를 사용하여
-snake case 네이밍 변수를 camel case 네이밍 변수로 일괄 변환하였다.
+### Convert to Snake case variable naming rule to Camel case variable naming rule
+The server used the snake case for the variable naming rule, and the client used the camel case as the variable naming rule.
+Therefore, there were difficulties caused by different variable names used in the OAS document and the actual generated code.
+Use the [lambdas](https://openapi-generator.tech/docs/templating/#mustache-lambdas) provided by the OAS generator.
+Snake case naming variables were collectively converted into camel case naming variables.
 
 <Tabs groupId="snake-to-camel">
   <TabItem value='before' label='Before Custom Template'>
@@ -536,10 +543,10 @@ export interface User {
   </TabItem>
 </Tabs>
 
-### 템플릿의 유틸 함수 수정
-`typescript-axios`에서 공통으로 사용하는 utility 함수에서 사용하지 않는 기능에 대해서 제외를 하고 코드 생성을 하였다.
-예를 들어, serialize는 프로젝트에서 사용 할 필요가 없었고, 아래와 같이 수정하여 serialize 로직을 제외하였다.
+### Edit util function in template
 
+I extracted the utility function that commonly used logic in `typescript-axios` and generate code.
+For example, serialize did not need to be used in our project, and `serialize` logic was excluded by modifying it as follows.
 
 <Tabs groupId="custom-util-func">
   <TabItem value='before' label='Before Custom Template'>
@@ -606,45 +613,58 @@ export const serializeDataIfNeeded = function (value: any, requestOptions: any, 
   </TabItem>
 </Tabs>
 
-## 최적화 이야기
+## The story of optimization
 
-OAS Generator 장단점도 이해하였고, 사용법과 커스터마이징 방법도 이해를 하였다. 그렇다면 빼놓을 수 없는 이야기는 최적화이다.
-좋은 도구를 적용하였고, 그 도구가 번거로움을 줄여주고 개발 안정성을 높여주지만 성능에 악영향을 준다면 쉽사리 사용할 수 없다.
+We understand pros and cons of OAS Generator, and we know that usage and method to customize.
+If so, the essential story is optimization.
+A good tool has been applied, and it reduces hassle and improves development stability,
+but it can't be easily use if it adversely effects performance.
 
-OAS Generator는 크게 bundle size와 영향이 있다. OAS Generator를 사용하였을 때 코드량이 늘어나고, 그것이 bundle size의 증가로 이어진다면
-유저가 웹 페이지를 늦게 보게된다. 따라서 반드시 체크해야한다.
+OAS Generator is largely influenced by bundle size. When using the OAS Generator, the amount of code increases,
+which leads to an increase in bundle size.
+Then user sees the web page late. Therefore, it must be checked.
 
-내가 프로젝트에 적용했을 때의 이야기를 하자면, 프로젝트에는 10개 정도의 yaml파일이 있었고 각각의 yaml파일이 하나의 기능을 담당하는 상황이었다.
-이를 기능별로 하나씩 점진적으로 적용하다보니 Generated code는 다음과 같은 용량을 가지게 되었다.
+When I applied it to the project, there were about 10 yarm files in the project, and each yaml file had a single feature.
+As this was gradually applied one by one for each function, the generated code had the following capacity.
 
 ![bundle-size-before](/assets/oas-generator/bundle-size-before.png)
 
-기능 1개를 적용했을때 generated code는 gzip 기준으로 20KB의 용량을 가지고 있었고,
-기능 2개까지 적용했을때는 63KB의 용량을 가지고 있었다.
-당시 프로젝트의 전체 gzip 용량이 560KB 정도였다는 것을 감안하면 전체의 11% 정도의 용량을 증가시키는 치명적인 상태였다.
-심지어, 모든 기능에 대해서 적용을 한 것이 아니었기 때문에 앞으로의 용량은 산술적으로 늘어날 것이라 예상 할 수 있었다.
+When one feature was applied, the generated code had a size of 20KB based on gzip, and 63KB when two features were applied.
+Considering that the total gzip size of the project at that time was around 560KB,
+it was a fatal condition that increased the capacity by 11% of the total.
+Even since it was not applied to all features, it could be expected that the size would increase arithmetically in the future.
 
-### 해결 1: 코드의 총량을 줄이자.
-첫번째 시도는 코드의 양을 줄이는 방법이다. generate, 코드를 자동생성하는 특성상 템플릿 한 줄이 수십개의 생성된 코드에 영향을 주었고,
-이것은 전체적인 코드량, bundle size의 증가로 이어졌다. 따라서 required 변수의 가드 로직이나, 프로젝트에서 사용하지 않는 header 설정과 같은 부분을 제거하였고,
-또한, OAS Generator에서 반복 생성하는 동일한 common 코드에 대해서는 자동 생성하지 않고 프로젝트 내부로 옮겨 공통 함수로 사용하는 등 방법을 사용하였다.
+### Attempt 1: Reduce total code size.
+The first attempt is to reduce the amount of code. generate, due to the nature of automatic code generation,
+a single line of templates influenced dozens of generated codes.
+This led to an increase in the overall code volume, bundle size.
+Therefore, the required variable's guard logic and the header settings that are not used in our project were removed.
+In addition, for the same common code repeatedly generated by the OAS Generator,
+methods such as moving it inside the project and using it as a common function were used.
 
 ![bundle-size-solution-1](/assets/oas-generator/bundle-size-solution-1.png)
 
-이런 해결방법으로 63KB에서 34KB로 약 53%의 용량으로 줄일 수 있었다. 프로젝트 별로 사용하지 않을 코드는 다르기 때문에 줄어드는 정도는 다르겠지만,
-template에서 불필요한 로직을 제거하는 것으로도 bundle size를 줄이는 데 효과가 있었다는 점 참고바란다.
+This solution reduced the size from 63KB to 34KB to about 53%. The code that you don't use for each project is different,
+so the degree of reduction is different. Please note that removing unnecessary logic from the template was also effective in reducing the bundle size.
 
-### 해결 2: Tree shaking
-코드 양은 줄일 만큼 줄였다. 하지만 아직 bundle size를 더 줄일 방법이 남아있었다. 바로 tree shaking 이다.
-API 문서에 기재되어있는 모든 API를 쓴다면 굳이 tree shaking을 고려 할 필요가 없겠지만 우리 프로젝트는 그렇지 않았다.
-따라서 사용하지 않는 API 코드도 bundle에 포함된다면 불필요한 코드가 포함이 되고 있는 것이며 이는 개선이 가능한 점이라고 볼 수 있다.
-이는 bundler 및 사용환경에 따라서 다르겠지만 내가 경험했던 프로젝트는 webpack v5를 사용하여 build를 진행하고 있었고, webpack v5는 파일 단위가 아닌,
-변수단위로 [tree shaking](https://webpack.js.org/guides/tree-shaking/)을 진행하고 있어서 tree shaking이 잘 되고 있다고 생각했지만 실상은 아니었다.
-왜냐하면 API들이 각각의 변수로 생성되는 것이 아닌 하나의 객체, class 아래에 method 형태로 생성되고 있었기 때문이다.
+### Attempt 2: Tree shaking
+The amount of code has been reduced enough. However, there was still a way to further reduce the bundle size.
+It's tree shaking.
 
-webpack v5는 각각의 변수는 tree shaking을 지원해서 사용하지 않는 변수는 bundle에서 제외를 하였지만 객체 내에 존재하는 key / value는 그렇지 못했다.
-따라서 기존 객체 하나에 모든 API 호출 함수가 들어있던 구조에서 각 API 호출 함수가 각각의 변수로 분리되어있는 구조로 변경하였다.
-이 변경에도 Template을 Custom 하는 방법으로 진행하였다.
+If you use all the APIs in the API document, you don't have to consider tree shaking, but our project didn't
+Therefore, if unused API codes are included in the bundle, it means that unnecessary codes are included, which can be seen as an improvement.
+
+This may vary depending on the bundler and usage environment, but the project I experienced was building using webpack v5,
+and webpack v5 was using variable units instead of file units about tree shaking, so I thought tree shaking was working well, but it wasn't.
+This is because APIs were not created with each variable, but were created in the form of a method under one object, class.
+
+In webpack v5, each variable supports tree shaking, and the unused variable is excluded from the bundle,
+but the key / value present in the object is not.
+
+Therefore, it was changed from a structure in which all API call functions were contained in one existing object
+to a structure in which each API call function was separated into each variable.
+
+This change was also carried out by customizing the template.
 
 <Tabs>
   <TabItem value='before' label='Before Generated Code'>
@@ -669,20 +689,22 @@ export const petStorePostPet = () => { ... }
 
 ![bundle-size-tree-shaking](/assets/oas-generator/bundle-size-tree-shaking.png)
 
-Tree shaking까지 진행하고 나니 34KB에서 25KB 정도로 용량이 줄었다.
-비율로는 크게 개선되진 않았지만 앞으로의 추가 구현에도 꼭 필요한 코드만 포함 된다는 걸 보장 할 수 있었다.
+After the tree shaking, the size decreased from 34KB to 25KB.
+Although it has not improved significantly in terms of ratio,
+it was possible to guarantee that only the necessary codes were included in future implementations.
 
 ### Result
-OAS로 인한 bundle-size 최적화는 여기까지이다. 마지막 결과만 보자면 OAS Generated code가 25KB를 차지해서 상당히 많은 것 처럼 보이는데,
-전체 프로젝트 bundle-size를 비교해보면 다음과 같았다.
+The bundle-size optimization caused by OAS ends here.
+If you look at the final result, the OAS generated code takes up 25KB, which seems to be quite a lot.
+Comparing the entire project bundle-size was as follows.
 ![bundle-size-total](/assets/oas-generator/bundle-size-total.png)
 
-OAS를 아예 적용하지 않았을때는 567KB 정도하던 프로젝트가 OAS 적용 이후에는 572KB 정도로 미미한 증가를 볼 수 있었다.
-따라서, OAS를 적용하더라도 적절한 최적화 및 분석 과정을 진행한다면 크게 용량은 문제 되지 않는다는 결론을 내렸다.
+When OAS was not applied at all, the project, which was about 567KB, showed a slight increase of about 572KB after OAS was applied.
+Therefore, it was concluded that even if OAS is applied, size is not a big problem if appropriate optimization and analysis processes are performed.
 
 ## Recap
-- OAS Generator는 API 문서를 개발 코드(.ts)로 변환해주는 도구이다.
-- 이를 사용하면 휴먼에러를 줄이고, 타입을 생성하는 등 수동으로 작업해야할 리소스를 줄여준다.
-- `yaml 파일 -> oas-generator-cli -> generated code` 순서로 코드를 자동 생성한다.
-- OAS Generator는 코드 template을 프로젝트에 맞게 커스텀하여 사용할 수 있다.
-- OAS Generator에 대해서 최적화를 진행하지 않으면 bundle size에 큰 손해를 볼 수 있으며, 최적화를 진행하면 걱정이 필요 없을 정도로 개선된다.
+- The OAS Generator is a tool for converting API documents into development code(.ts).
+- This reduces human errors and reduces resources to work manually, such as creating types.
+- Code is auto generated like this flow. `yaml file -> oas-generator-cli -> generated code`.
+- The OAS Generator can customize and use the code template for the project.
+- If you don't optimize the OAS generator, It can cause a lot of lose to the bundle size, but if you do so, you won't have to worry.

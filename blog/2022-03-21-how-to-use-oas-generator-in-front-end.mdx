@@ -215,9 +215,9 @@ OAS generator 설정도 몇가지 있다. 주로 [CLI 옵션](https://openapi-ge
 - `-i`: 대상 yaml 파일 위치
 - `-o`: 생성된 파일 위치 경로
 - `-c`: generator 설정 파일
-- `-t`: **커스텀 template 설정 파일**
+- `-t`: **커스텀 template 설정 파일 경로**
 
-cli는 `generate` 명령어를 사용하며 옵션은 크게 5가지를 사용한다.
+CLI는 `generate` 명령어를 사용하며 옵션은 크게 5가지를 사용한다.
 `-t` 옵션은 커스텀 템플릿을 지정할때 쓰이는데 앞으로의 글에서 이야기 할 예정이다.
 
 ### OAS Generator 설정 - Config file
@@ -248,7 +248,7 @@ cli는 `generate` 명령어를 사용하며 옵션은 크게 5가지를 사용�
 지금 설명하는 방식은 CLI에서 기재한 `-t` 옵션에 들어가는 템플릿과 크게 연관되어있다.
 
 ### Custom Template은 언제 사용할까?
-Custom Template은 기본 설정을 통해서 generate 된 코드를 수정하고 싶을때는 template을 수정하면 된다.
+기본 설정을 사용하는 Template을 사용하지 않고, 이를 수정해서 사용하고 싶을 떄 사용하는 방법이다.
 예를 들면, 아래와 같이 `addPet`이나 `deletePet` 메소드 명 뒤에 `Axios` 같은 suffix를 붙이고 싶다면 
 template을 수정하면 된다.
 
@@ -322,7 +322,7 @@ openapi-generator-cli author template -g typescript-axios -o ./mustaches
   ...
 ```
 
-이는, `typescript-axios`로 OAS Generator를 실행할 때 사용하는 mustache template이며 
+이는 `typescript-axios`로 OAS Generator를 실행할 때 사용하는 mustache template이며
 CLI에서 `-t` 옵션을 주지 않는다면 기본적으로 원격에 있는 해당 mustache template을 사용하여 generate를
 진행한다.
 
@@ -365,7 +365,7 @@ mustache에 익숙하지 않다면 [이 글](https://github.com/janl/mustache.js
 
 ![simple-mustache-custom.png](/assets/oas-generator/custom-template-file-structure.png)
 
-그런 다음, 수정한 template 파일만 남겨두고 수정하지 않은 나머지 템플릿 파일을 삭제한다. 그러면 자동으로 로컬에 없는 파일은 원격의 기본 설정을 사용하여 generate한다.
+그런 다음, 수정한 template 파일만 남겨두고 수정하지 않은 나머지 템플릿 파일을 삭제한다. 자동으로 로컬에 없는 파일은 원격의 기본 설정을 사용하여 generate한다.
 
 ### JSON Data 확인하기
 자 Template을 로컬로 가져오기도 했고, template을 수정하면 된다는 것도 알았다. 하지만 여전히 생기는 궁금증은 
@@ -389,7 +389,7 @@ yaml파일로부터 어떤 데이터가 추출되는지 console에 출력된다.
 ![json-data.png](/assets/oas-generator/json-data.png)
 
 ## Custom Template 예시
-Custom Template의 사용 예로 postfix로 "axios"를 붙이는 것을 가져왔다. 하지만 이해를 돕기 위한 간단한 예시일 뿐이고, 실제 사용에는 다양한 방법으로
+Custom Template의 사용 예로 suffix "axios"를 붙이는 것을 가져왔다. 하지만 이해를 돕기 위한 간단한 예시일 뿐이고, 실제 사용에는 다양한 방법으로
 응용이 가능 할 것이다. 실제 프로젝트에서 사용했던 커스텀 예시를 가져와보았다.
 
 전체 코드를 확인 할 수 없고, Template과 생성 코드의 일부분만 가져왔기 떄문에 명확하게 어떻게 구현되는지 이해되지 않을 수 있다.
@@ -529,7 +529,7 @@ export interface User {
 </Tabs>
 
 ### 템플릿의 유틸 함수 수정
-`typescript-axios`에서 공통으로 사용하는 utility 함수에서 사용하지 않는 기능에 대해서 제외를 하고 코드 생성을 하였다.
+`typescript-axios`에서 공통으로 사용하는 utility 함수의 사용하지 않는 로직을 제외를 하고 코드 생성을 하였다.
 예를 들어, serialize는 프로젝트에서 사용 할 필요가 없었고, 아래와 같이 수정하여 serialize 로직을 제외하였다.
 
 
