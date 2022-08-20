@@ -10,7 +10,7 @@ import style from '../index.module.css';
 
 const EXPERIENCE_INFO: ExperienceInfo[] = [
   {
-    name: 'LINE Financial+',
+    name: 'LINE Biz+',
     role: 'Frontend Developer',
     period: 'June 2019 to Present',
     description:
