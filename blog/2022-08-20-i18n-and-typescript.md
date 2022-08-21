@@ -84,7 +84,7 @@ typescript를 사용하는데 타입이 제대로 추론 되지 않는 다는 �
 이번 article에서는 i18n text의 format 별로 타입을 정의하는 방법에 대해서 이야기 해 볼 예정이다. i18n을 예로 들었지만 기본적으로는 typescript [Template Literal Types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html)과 관련된 이야기이다.
 
 :::info 사전지식
-- typescript 4.1+
+- typescript 4.1+ 에 대한 전반적인 지식
 - Template Literal Types에 대한 관심
 - i18 system 사용 경험 (optional)
 :::
@@ -153,25 +153,25 @@ tFunction('linkText', [<a href="/more">{tFunction('link')}</a>])
 ### I18n Return Type
 그렇다면 위 케이스들에 대해서 `tFunction`은 어떤 타입으로 return 되는 것이 이상적일까?
 
-```tsx
+```tsx showLineNumbers
 import tFunction from 'utils';
 
-1. tFunction('lineBreak') 
+tFunction('lineBreak') 
 // Hello <br /> I am FE developer
-2. tFunction('oneValue', [tFunction('unit', [1000])])
+tFunction('oneValue', [tFunction('unit', [1000])])
 // This product is $1000.
-3. tFunction('twoValue', [tFunction('unit', [500]), 3])
+tFunction('twoValue', [tFunction('unit', [500]), 3])
 // This product is $500 and it will be delivered after 3 days
-4. tFunction('linkText', [<a href="/more">{tFunction('link')}</a>])
+tFunction('linkText', [<a href="/more">{tFunction('link')}</a>])
 // <a href="/more">click</a> to show more information 
 ```
-1번 케이스를 보자.
+L3 케이스를 보자.
 
-1번은 `<br />`을 포함하고 있기 때문에 일반 string으로 추론되면 안된다. 따라서 i18n text에 `\n` 같은 줄바꿈이 있다면 `ReactElement`로 타입이 추론되어야 한다.
+L3은 `<br />`을 포함하고 있기 때문에 일반 string으로 추론되면 안된다. 따라서 i18n text에 `\n` 같은 줄바꿈이 있다면 `ReactElement`로 타입이 추론되어야 한다.
 
-2, 3번은 `values({0}, {1})`가 들어가 있지만 추가로 들어간 value 역시 string 혹은 number이다. 따라서 `string`으로 추론되어도 된다.
+L5, L7는 `values({0}, {1})`가 들어가 있지만 추가로 들어간 value 역시 string 혹은 number이다. 따라서 `string`으로 추론되어도 된다.
 
-마지막 4번은 2, 3번과는 조금 다르다. values로 a tag가 포함되었고 이를 그려주기 위해서는 `ReactElement`로 타입이 추론되어야한다.
+마지막 L9는 L5, L7과는 조금 다르다. values로 a tag가 포함되었고 이를 그려주기 위해서는 `ReactElement`로 타입이 추론되어야한다.
 
 ### Recap of Goal
 따라서 목표를 정리하자면 다음과 같다.
@@ -182,10 +182,115 @@ import tFunction from 'utils';
   - i18n value에서 `{}` 변수 키워드를 가지고 있고, 변수로 string과 number 가 아닌 값이 들어온다면 ReactElement으로 추론한다.
 - 추가로, 해당 i18n value가 `{}` 변수 키워드를 가지고 있는지 여부, 몇개를 가지고 있는지 여부에 따라 `tFunciton`의 2번째 parameter에 타입을 체크했으면 좋겠다.
 
-## Literal Type
+## Type 정의
+자, 이제 우리는 위 조건에 맞추어서 `tFunction`의 return type을 채워 나갈 예정이다.
+아래 코드 예시를 보자. ([playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDG8BmUIjgcilQ3wG4AoctCAOwGd5gBGADhoCk7a4BeOAb3Jw4AIjqgwAGyQiAXKIASSSZIhwA6tEkATEQBohoycBpIAQkRQBrOYuWqAdHAA6NOAEk4KPADEAonDaSABuyhBgSFD6hiK0SABqKJIArjLyIgAqABbAdHBgONrJGHC5AgAMAL4O0cIiyTTAMLYiACT8VbWiMADuEIkpaaLZZQUQRSVlHZVeNNql8D3AKnAARkiBysChRPMomDCRAkwz2igAnnRdIsY0Nuloxmg2BnW3VhlIAB7N6dNwMDUdCyEB6cBA0A2Jkw0BAKBgwFoInIMxQeWo9BgFHIMHOEQ8rA4XDcfFxEQgmFKhM4tAoZI27kJAGkkOdeHArKyKQS2DSaNj6XAMj4GhhESS4AAKTnneSMtgs856ODBJKpOgAfnkKBo5wAlLwAHxwBhQEwAc0oGIYAJFNDFtHkwtFCO4fGlrLlzNZytVgzo2t1Bp4xuYvOJAG0ZQBdUhwK20G3icDSdkwO0OmiS-DJqRIfB6uNURPwW7mSxWNMZ11Z-BliyoKwFijW+BxAapKsu8XZ9tq-PKiPp7u0bMNJr4ZUAVnK5T10cLxcxAL6HY2pOrPfwvX6-cncCHm9H+HHMH3EZn5QXyoAzAuWyW4O9Pj8u-aa9nn98z4OADwoOAsiITAeBEAB6FBVggZJmkNfhh3fLd3gLSpfwgw0F3IIA))
 
+```tsx showLineNumbers
+import React from 'react';
 
-### 줄바꿈 
+const i18nJson = {
+  "simple": "Hello World",
+  "lineBreak": "Hello. \n I am FE developer",
+  "oneValue": "This product is {0}.",
+  "unit": "${0}",
+  "twoValue": "This product is {0} and it will be delivered after {1} days",
+  "link": "click",
+  "linkText": "{0} to show more information"
+} as const;
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+
+type TFunction = (key: I18nKey, values?: any) => string
+
+const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key]; 
+
+const simple = tFunction('simple'); // string
+const lineBreak = tFunction('lineBreak'); // string
+const oneValue = tFunction('oneValue', [tFunction('unit', 500)]); // string
+const twoValue = tFunction('twoValue', [tFunction('unit', [500]), 3]); // string
+const linkText = tFunction('linkText', [<a href="/about">{tFunction('link')}</a>]) // string
+```
+이전까지 예제로 사용했던 i18n text 예제들이 모두 `i18nJson`에 포함되어 있고, 이는 `I18nJson`과 `I18nKey`로 각각의 타입으로 추론된다.
+이는, `TFunction` 함수 타입을 정의하고, 이를 `tFunction`에 사용한다. 현재는 모두 string 타입으로 리턴하고 있지만, 우리의 목표는 이를 케이스에 따라 각각
+다른 타입으로 추론되는 것을 목표로 한다.
+즉, 현재는 L20-L24 모두 string으로 타입이 추론되지만 이 글의 마지막에는 각 key에 따른 text의 형식에 맞춰 string과 ReactElement로 타입이 나뉘어지는 것을 목표로 한다.
+
+### 줄바꿈
+먼저 줄바꿈, `\n`이 i18n text에 포함 될 경우 string 대신 ReactElement으로 리턴하는 방법에 대해서 알아본다.
+그를 위해서는 [Template Literal Type](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)에 대한 이해가 필요하다.
+
+#### Template Literal Type
+Typescript의 문자열에는 string 타입이 있고, literal type이 있다. 그리고 더 나아가서 literal type을 조합해서 또 다른 타입을 만드는 `Template Literal Type`이 있다.
+예제로 보면 다음과 같다.
+```tsx showLineNumbers
+let str1 = 'example' // string
+const str2 = 'example' // 'example'
+
+type StrPrefix = 'one' | 'two'
+type StrPostfix = 'type' | 'sample'
+
+type TemplateStr = `${StrPostfix}_${StrPostfix}` // 'one_type' | 'two_type' | 'one_sample' | 'two_sample'
+```
+L1의 `str1`은 `let`으로 선언되어서 literal type으로 추론되지 않고 string 타입으로 추론된다. 왜냐하면 `str1` 변수는 다른 값으로 재할당이 가능하기 떄문이다.
+반면, L2의 `str2`는 `const`로 선언되어 `'example'`인 literal type으로 추론된다.
+
+L4-L5에서 선언된 `StrPrefix`와 `StrPostfix`를 합쳐 L7에서 `TemplateStr`는 4개의 literal type을 가지는 Union 타입으로 추론된다.
+
+이 원리를 이용해서 i18n text에 있는 `\n` 텍스트를 확인하고 별도의 타입으로 추론할 예정이다.
+
+#### 줄바꿈 타입 정의 ([playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARENBhSagFzqAEkmLEIcAOrRiAEzWYV64sApIAQuxQBrPYeOmAdHAAOhRwAJJwKMwAYoRw1kgAbsYQYEhQdg5qgkgAaijEAK5IPmoAKgAWwEJwYIzWhRhw1bgADNT+mapqhRTAMKUAJDjtXeowAO4Q+UUl+uVVNXUQDU0tI7QoFNbN8BPAJnAARkjxxsDJ7DsodDDpuGK01igAnkJjak4U3vNoTmjeezdL6eMpIAAeA3mGzgMDMQgqEAmcBA0FOzjo0BAKBgwEEah4mxqAmEMF4PBgLzS4UkMjkoSUlLSEDozVpskEvCZpzCtIA0kgXoo4J5BSyaVIORRydy4AAZZxuDyeaJYnHCgAGwxEUGcAHNqCFtTBdRQDRryRSqacytFehg8Qy4AAeAVCiF3bY1XlSN2YAB8AApRS99H64IkCsUhAB+fRbF4ASkU-oldMEAG03QBdOAeyjWGoKlzuVAqtXwGP4dAwEhkSjwfQ6-XkkkiWF2igOwT6W323HyJTBwX6H0UcOR2ZCeMUJMptmS+kZkO5lA1BNcOB8NvwTTgUjCmCd7sUQMsPfaJAsROb-iCdtfJVlw-HgenliP0tea+8HdwHIzMUL79o6Z4AVGV7YBmR4gYIZ69P0LDYAArK0rSJtmN53qSsJTIBpyMq+oEsJM0wQUhcDQURcEsAhnBQahrSYdgADMmG-ve8AgmCkLAV2b5ntxHoURmzooHAFTsHQChqAA9CgRwQIUAz+jgMH8cRILXtQzryf6mFAA))
+```tsx {11-15} showLineNumbers
+import React, { ReactElement } from 'react';
+
+const i18nJson = {
+  "simple": "Hello World",
+  "lineBreak": "Hello. \n I am FE developer",
+} as const;
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+
+type LineBreakFormat = `${string}\n${string}`;
+
+type TFunction = <Key extends I18nKey,>(key: Key, values?: any) => I18nJson[Key] extends LineBreakFormat ? ReactElement : string;
+
+const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any; 
+
+const simple = tFunction('simple'); // string
+const lineBreak = tFunction('lineBreak'); // ReactElement
+```
+L11을 보면 Template Literal String을 사용해서 `LineBreakFormat` 타입을 별도로 만든다. `${string}\n${string}`라고 설정을 하면 string으로 감싸진 `\n` 문자열이 있을때는 
+`LineBreakFormat`으로 추론된다.
+
+우리는 `TFunction`을 호출시 RunTime에 들어오는 key의 literal type을 보고 return type을 추론해야한다. type 영역에서 `I18nKey`를 그대로 사용하면 key 입력 값에 따라 return type을 달리 할 수 없다.
+여기서 [Function type inference](https://www.typescriptlang.org/docs/handbook/2/functions.html#inference)를 사용하여 아래와 같이 변경한다.
+```tsx
+// Before
+type TFunction = (key: I18nKey, values?: any) => string
+
+// After
+type TFunction = <Key extends I18nKey,>(key: Key, values?: any) => string;
+```
+위와 같은 방식으로 `Key`를 Generic으로 추출하고, `TFunction`을 호출할때 Generic을 명시적으로 선언하지 않으면, key로 들어오는 literal type을 사용할 수 있게 된다.
+
+마지막으로 Key에 대한 I18n text가 `LineBreakFormat`인지 판단하여 ReactElement와 string을 분기하면 된다.
+```tsx
+// Before
+type TFunction = <Key extends I18nKey,>(key: Key, values?: any) => string;
+
+// After
+type TFunction = <Key extends I18nKey,>(key: Key, values?: any) => I18nJson[Key] extends LineBreakFormat ? ReactElement : string;
+```
+typescript에서 extends는 interface에서 사용할때는 상속의 의미이지만, [Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html)로 활용할 수도 있다.
+따라서, i18n Text, `I18nJson[Key]`가 `LineBreakFormat`이면 ReactElement로 리턴하고, 아니라면 string 타입으로 리턴한다. 
+
+여기서, `I18nJson[Key]`의 Key는 RunTime에 사용된 Literal Type 이므로 Key로 `simple`이 들어온다면 `I18nJson['simple']`에 대한 타입으로 추론하여 `'Hello World'` literal type에 대해서 Conditional Type을 진행하게 된다. 
+마찬가지로 Key로 `lineBreak`를 사용한다면 `I18nJson['lineBreak']`의 타입인 `'Hello. \n I am FE developer'`로 타입 비교를 진행하기 때문에 `LineBreakFormat`의 비교문이 의미를 가지게 된다.
+
+그 덕분에 L17-L18에서 각각 string과 ReactElement 타입으로 다르게 리턴 타입이 진행된다.
+
 ### Values 개수 확인하기
 ### Values로 들어오는 타입 확인하기
 ### Values를 객체로 받기
