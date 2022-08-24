@@ -291,8 +291,140 @@ typescript에서 extends는 interface에서 사용할때는 상속의 의미이�
 
 그 덕분에 L17-L18에서 각각 string과 ReactElement 타입으로 다르게 리턴 타입이 진행된다.
 
-### Values 개수 확인하기
-### Values로 들어오는 타입 확인하기
+### 변수로 들어오는 타입 확인하기
+다음으로 확인해 볼 것은 `TFunction`의 2번째 parameter 배열에 number와 string만 있는 경우 string을 리턴하고, 이외의 ReactElement와 같은 값이 포함되어 있다면 ReactElement를 리턴하게 한다.
+예제로 볼 코드는 다음과 같다.
+```tsx showLineNumbers
+import React from 'react';
+
+const i18nJson = {
+  "oneValue": "This product is {0}.",
+  "twoValue": "This product is {0} and it will be delivered after {1} days",
+} as const;
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+
+type TFunction = (key: I18nKey, values?: any) => string
+
+const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any; 
+
+const oneValue = tFunction('oneValue', [100]);
+const twoValue = tFunction('twoValue', [100, '200']);
+const twoValueWithReactElement = tFunction('twoValue', [100, <a>Hello</a>]);
+```
+기존 playground 코드에서 필요한 부분만 남겨두었다. ([playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDG8BmUIjgcilQ3wG4AoctCAOwGd5gBGADhoCk7a4BeOAb3Jw4AIlpIAaigA2AVyQiAXKIAqAC2B04YHABNZGOJoEAGAL4A6EQBohomAHcIUuQuUj1xnRH2Hj-czgUGl0jeAdgaWk4ACMkOF0kaWAANyQiUJRMGHSBJjMElABPOhtyApQtanoYCnIYIrB4gElWDi4aXjgGpohMIzbOWgoelraAaSQiroBrKb64VrYhmjrRuBUAMVkaDGBuPgAKOaLlJZpJous4FJl5OgB+ZWCigEpeAD44BihgGgBzSjVBjdba7GD7GjKLY7PYHODHKZnCZTa63Vx0Z40N6fAbLDoAbROAF1SHAgbQQeIXPIujAwXCaId8NS7kh8NcCUwTCZia8KMD4I5nGy6QyIbRmcKaezOdyTNcAEw8vkCylCpwygDqwBgamQ6BgAFFpEgQEgaPA+PTYRKmfhpWyOXAuTzrgAeFAfAASSWkEHdAHovaryEA))
+우리의 목표는 L15, L16은 두번째 인자로 number, string 로만 이루어진 배열이 들어오기 때문에 string으로 리턴하고, L17은 `a tag`를 변수로 넣기 때문에 ReactElement로 리턴하는 것이다.
+
+해결방법은 간단하다. values가 `(string | number)[]` 타입인지 아닌지 판단하기만 하면 된다.
+```tsx
+type TFunction = <Params extends any[],>(key: I18nKey, values?: Params) => Params extends (string | number)[] ? string : ReactElement
+```
+위 코드에서 `values`의 타입을 [type inference](https://www.typescriptlang.org/docs/handbook/2/functions.html#inference)를 사용하기 위해서 Generic type으로 추출하고 
+`tFunction` 호출시에 아무런 Generic을 사용하지 않는다. 그렇다면 우리는 `Params`의 타입으로 condition type을 사용할 수 있다.
+
+`Params`가 number, string으로만 이루어진 배열이라면 자동으로 string으로 타입 추론이 되고, 다른 값(ReactElement)가 포함되어있다면 ReactElement로 리턴된다.
+[playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDG8BmUIjgcilQ3wG4AoctCAOwGd5gBGADhoCk7a4BeOAb3Jw4AIlpIAaigA2AVyQiAXKIAqAC2B04YHABNZGOJoEAGAL4A6EQBohomAHcIUuQuUj1xnRH2Hj-czgUGl0jeAdgaWk4ACMkOF0kaWAANyQiUJRMGHSBJjMElABPOhtyApQtanoYCnIYIrB4gElWDi4aXjgGpohMIzbOWgoelraAaSQiroBrKb64VrYhmjrRuBUAMVkaDGBuPgAeAAUUKBQQLSQADxyQrWCigG0AXWsAPgAKOaLlJZpJkVrHAUjJ5HQAPzKU7nS4ASl47zgMIuV1uSHucE+DCgwBoAHM4AAfOA0WQgOJQOGvOAQuA4vGE5TIdAwACi0iQIAxMEo1QY3W2uxg+xoyi2Oz2ByxPz+EymwNBrjoykeCJ4SOYyw6Tx+L1IcD5tAF4hc8i6MCFUpon3wprBSHwwKeTBMJhecIo-PgjmcDotVpFtFtvrNjudrpMwIATG6PV7jT6nGGAOrAGBqFkYDlcnkByVBm34UMOp1wF1u4GHFDvAASSWkEEOAHoa-HyEA)에서 확인해보면 다음과 같이 추론된다.
+```tsx
+const oneValue = tFunction('oneValue', [100]); // string
+const twoValue = tFunction('twoValue', [100, 200]); // string
+const twoValueWithReactElement = tFunction('twoValue', [100, <a>Hello</a>]); // ReactElement
+```
+이로써 변수에 number, string이 아닌 값이 들어가면 ReactElement로 추론할 방법을 찾았다.
+
+그런데, 변수가 포함된 i18n을 사용한다면 다음과 같은 케이스도 있을 것 같다.
+```tsx
+const i18nJson = {
+  "normal": "Hello World",
+  "oneValue": "This product is {0}.",
+  "twoValue": "This product is {0} and it will be delivered after {1} days",
+} as const;
+
+const oneValue = tFunction('oneValue'); // 변수가 사용되어야 하지만 빈 값을 넣은 경우.
+const twoValue = tFunction('twoValue', [100]); // 변수가 2개 들어가야하지만 1개만 들어간 경우.
+const normal = tFunction('normal', [100]); // 변수가 없어야하는데 사용되고 있는 경우.
+```
+즉, 변수의 개수가 맞지 않거나 사용해야하는데 사용하지 않거나, 사용하지 않아야하는데 사용하는 경우에 대한 것이다.
+이를 위해서는 조금 더 복잡한 타입 선언이 필요하게 되는데, 다음 문단을 이어서 보자.
+
+### 변수 개수 확인하기
+자, 이제 우리는 i18n text에 `{}`가 감싸진 문자열이 몇개가 되는지 찾아야한다. 이전에 줄바꿈에서 사용한대로 [Template Literal Type](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)을 
+사용할테지만, 그것만으로는 부족하다.
+
+#### [Recursive Conditional Types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#recursive-conditional-types)
+우리는 `{}`로 감싸진 문자열을 찾아내고 다시 `{}`로 감싸진 문자열이 있는지 확인하는 것이 필요하다. 이를 위해 쓰이는게 Recursive 방법이다.
+```tsx
+type ValuesArray<I18nText extends string> = I18nText extends `${string}{${string}}${string}` ? [any, ...ValuesArray<I18nText>] : []; 
+// This is not working!
+```
+바로 위와 같은 방식으로 사용한다. (물론 위쪽 코드는 틀린 코드이다.) `ValuesArray`를 선언하고 타입 추론을 위해 `I18nText`로 i18n text를 넘겨준다고 생각한다.
+그리곤, I18nText에 `{}` 형식의 literal type이 존재한다면, 배열을 하나 만들고 다시 `ValuesArray`를 수행하는 것이다.
+
+물론, 지금 이 코드는 정상동작하지 않을 것이다. Recursive의 input, 즉 I18nText로 다시 온전한 I18nText를 넣고 있기 때문이다. 우리는 `{}`가 포함된 string 중 남은 오른쪽 string을 추출해서 recursive의 input으로 넣어야한다.
+이를 예시로 설명하자면 `Hello {0} World {1} Thank {2} you` 라는 i18n text가 있을때 `ValuesArray`로 `[any, ...ValuesArray<?>]`로 추론을 했을때 ?에는 남은 문자열인 `  World {1} Thank {2} you`가 채워져야하고,
+`[any, any, ...ValuesArray<?>]`로 `{1}`까지 확인을 했다면 ` Thank {2} you` 문자열이 '?' 안으로 들어가야한다. 이를 위해서 사용하는 것은 [infer](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types) 키워드이다.
+
+#### [Inferring Within Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types)
+`Infer`를 사용하면 conditional type에서 사용하는 Generic을 가져다 리턴 타입으로 사용할 수 있다.
+즉, 다음과 같이 된다.
+```tsx
+type ValuesFormat<Suffix extends string> = `${string}{${string}}${Suffix}`;
+type ValuesArray<I18nText extends string> = I18nText extends ValuesFormat<infer Rest> ? [any, ...ValuesArray<Rest>] : [];
+```
+`ValuesFormat`은 단순 `{}`를 포함하는 문자열이 아닌 `Suffix`라는 Generic을 `}` 뒤에 포함하는 타입이다. 이는 단독으로 쓰이면 의미가 없지만, 아래의 `ValuesArray`에서 infer와 쓰이면 의미가 달라진다.
+이전 예제와 같이 `ValuesArray`는 `{}`가 있는지 확인을 하고 배열을 채운다. 그러고는 `infer Rest`를 사용하는데 `Rest`는 바로 `ValuesFormat`의 첫번째 Generic인 Suffix를 의미하게 되고 Rest를 다음 recursive에 사용하면 우리가 원하는 바가 완성된다.
+```tsx
+type Example = 'Hello {0} World {1} Thank {2} you';
+
+type ValuesFormat<Suffix extends string> = `${string}{${string}}${Suffix}`;
+type ValuesArray<I18nText extends string> = I18nText extends ValuesFormat<infer Rest> ? [any, ...ValuesArray<Rest>] : [];
+
+type Result = ValuesArray<Example> // [any, any, any];
+```
+[playground](https://www.typescriptlang.org/play?#code/C4TwDgpgBAogHgQwLZgDbQLxQOQAkKqoD2UA3gAwC+UA6kQE6oAmZAjNQCoAWCAdgNZkATNRBEArtgDcAKBmhIUAGoJU4iAGcAYgyQJgAHgDK4gGamAlnCgQ4wCLyYaoG4PQu8A5gD4oWAAYAJKSu7l6UpMGhHp6UlMEm5laU-rIK0CpqmgCC9PQIIAYAkqwAHLwctsA2dg5OLm4xvlgl5ZV2NfaOzpnq2rr6Bh6mEPRQAEqawL4A-FAA2nwgADRQAHQbvTl5BQaTrt4AulAAXAuHsvLg0PviqNVYWxq5+YXwyGgQvgD03wtLqwBUCWFxkQA)
+
+자, 이제 처음 예제에 `ValuesArray`를 적용시켜보자.
+```tsx {17,23,25} showLineNumbers
+import React, { ReactElement } from 'react';
+
+const i18nJson = {
+  "normal": "Hello World",
+  "oneValue": "This product is {0}.",
+  "twoValue": "This product is {0} and it will be delivered after {1} days",
+} as const;
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+
+type ValuesType = string | number | ReactElement;
+type ValuesFormat<Suffix extends string> = `${string}{${string}}${Suffix}`;
+type ValuesArray<I18nText extends string> = I18nText extends ValuesFormat<infer Rest> ? [ValuesType, ...ValuesArray<Rest>] : [];
+
+
+type TFunction = <Key extends I18nKey, Params extends ValuesArray<I18nJson[Key]>>(key: Key, values?: Params) => string
+
+const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any; 
+
+const oneValue = tFunction('oneValue'); // Error?
+const twoValue = tFunction('twoValue', [100]); // Type Error! 
+// Argument of type '[number]' is not assignable to parameter of type '[ValuesType, ValuesType]'.
+const normal = tFunction('normal', [100]); // Type Error!
+// Type 'number' is not assignable to type 'undefined'.
+```
+[playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARBWggUxNQC51ACSTFiEOAHVoxACZrMK9YKQA1HQFck+9QBUAFsBCcGCMNu4YcIG4AAzUAHT2jmowAO4QbsSe3mr+USEQYRFROLFwKBQ2kfApwKZwAEZIcDYmwABuSOyVKHQwnbhitDYoAJ5CibQoQQLCMLw8MCNgTQCSkjJyFIpwi8sQdJHrsoK8u6vrANJII9sA1tf7cGtSxxTzZ3AZnkI+S01KIigwAoAHM4AAfOAUdwgRpQCH4dAwEhkShzBZ-T4eJBCABiWhQMAAPABldx0OjAAAecCQVL6FSCgOBIIAfNsAAYAEhwzNB1BwPL5IOo1B5ZIp1OoHNOmK+OIAglAoKMic8KD46fAtZQbEyYEDQeylOrNfTafTdUF5XiCcTgXR+sgROyAPxwADaNt+y2wcX9NqVKpGROdMFZAF04AYPRH5hjlnAfLj3BQMMB5EoiVcbjrGU9LtdsAAFFAqkBBPN6rGZRXK1Xq14enMR1msgAU9xGBhz2Da2KEroMpfLQgAlIp2cK+DMRDsU2mYBmKAZk6n05m4J3rgZ1b24P3a0IDOURhOFOzxC9Nh6u1GpmUKCMuHAZ4I5855dsYAuNxR2ywn7YiwY4vgA9GBcCEMq0Cuvw77wKk6TYt+v5LoIAFIfKLDYB6YjRNEEagXAEFJpi0GMFAACEr6kUqIIwmicCPB8LAetCsKdBGLCREEmjwFMQjACCFAoPUpA7OYYBlig5B9PCLGYmx3p-NgKnLNxcTwbMUIEsQqHruh-4sJoUDaMQOGevhhHEaRPpNBR0BUTwdlKRxcI8VE-FlEIQkiWJEkwOYrGpi0lIUEgNgsHEQA)
+
+L17의 `TFunction`에서 `Parmas`에 `ValuesArray`를 적용시켰다. `ValuesArray`의 Generic으로는 `I18nJson[Key]`를 넣어서 Key를 타입추론을 통해 동적으로 받아 i18n text가 Generic으로 들어갈 수 있도록 한다.
+그렇다면, Params는 각각 length가 고정된 `ValuesType` 배열로 추론될 것이다.
+
+따라서, L22와 L24의 타입 체크에서 에러가 발생하게 되고 에러의 원인은 적절한 Array length를 맞추지 않았기 때문이다.
+하지만 L21에서는 변수를 넣지 않았다고 에러를 발생시키지 않는데, 이는 TFunction의 values에 붙은 `?` 키워드로 인하여 발생한다.
+
+조금만 더 완성도를 높여보자.
+
+#### [Rest Parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments) 
+
+
+
 ### Values를 객체로 받기
 ## JSON을 import하는 방식
 ## Recap
