@@ -397,7 +397,7 @@ type I18nJson = typeof i18nJson;
 type I18nKey = keyof I18nJson;
 
 type ValuesType = string | number | ReactElement;
-type ValuesFormat<Suffix extends string> = `${string}{${string}}${Suffix}`;
+type ValuesFormat<Suffix extends string> = `${string}{${string} }${Suffix}`;
 type ValuesArray<I18nText extends string> = I18nText extends ValuesFormat<infer Rest> ? [ValuesType, ...ValuesArray<Rest>] : [];
 
 
@@ -423,8 +423,225 @@ L17의 `TFunction`에서 `Parmas`에 `ValuesArray`를 적용시켰다. `ValuesAr
 
 #### [Rest Parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments) 
 
+함수에서 arguments의 개수를 동적으로 설정하기 위해서 사용하는건 `Rest Parameters`이다. 
+```tsx {1} showLineNumbers
+type TFunction = <Key extends I18nKey, Params extends ValuesArray<I18nJson[Key]>>(key: Key, values?: Params) => string
+
+const oneValue = tFunction('oneValue'); // Error?
+const twoValue = tFunction('twoValue', [100]); // Type Error!
+```
+따라서, 위와 같은 예제에서 `oneValue`에서 사용한 `tFunction`은 `?`로 없어도 된다는 표시가 아니라 경우에 따라 values 개수가 달라지는 `...`(Rest Parameters)를 사용하면된다.
+
+```tsx {1-3} showLineNumbers
+type TFunction = <Key extends I18nKey, Params extends ValuesArrayResult<I18nJson[Key]>>(key: Key, ...values: Params extends [] ? [undefined?] : [Params]) => string
+
+const tFunction: TFunction = (key: I18nKey, ...values: any) => i18nJson[key] as any;
+
+const oneValue = tFunction('oneValue'); // Type Error!
+```
+[playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARBWggUxNQC51ACSTFiEOAHVoxACZrMK9YKQA1HQFck+9QBUAFsBCcGCMNu4YcIG4AAzUAHT2jmowAO4QbsSe3mr+USEQYRFROLFwKBQ2kfApwKZwAEZIcDYmwABuSOyVKHQwnbhitDYoAJ5CibQoQQLCMLw8MCNgTQCSkjJyFIpwi8sQdJHrsoK8u6vrANJII9sA1tf7cGtSxxTzZ3AZnkI+S01KIigwAoAHM4AAfOAUdwgRpQCH4dAwEhkShzBZ-T4eJBCABiWhQMAAPABldx0OjAAAecCQVL6FSCgOBIIAfNsAAYAEhwzNB1BwPL5IOo1B5ZIp1OoHNOmK+OIAglAoKMic8KD46fAtZQbEyYEDQeylOrNfTafTdUF5XiCcTgXR+sgROyAPxwADaNt+y2wcX9NqVKpGROdMFZAF04AYPRHZcssZlFcrRs73MRiaatRaGXq4MLjYnvkHVVn6eydYzPVH3e4KkhKRQkJUDIGUyGy+G+B8fLi6xhgPIlESrjdK3n1aPsAAFFAqkBBcfW7FCEsjNMZtVHTYe0cR1msgAU9xGBincH9cTaK4Ms-ni8tVdjcHdHrrLUbzddUZjd5QC4jABKRR2WFPgZhEHY+woAdBAMXt+xgQctiUY9rgMSdrj9f1ryTIQDHKEZgIUdlxBeHcTyjKYygoEYuDgcDBEg5x5W2GBoNgihDxYFjsRYQD6IAekEuBCGVaBXX4Jj4FSdJsTYjikMEbjZPlFhsA9MRomibAtJ0uA9KAoSRJ9JoxMYKAAEIGOEuAlRBGE0TgR4PhYD1oVhToIxYSIgk0eApiEYAQQoFB6lIHZzDAOd-yQPp4RczE3O9P5sBS5ZvLiKTZihAliAUxDkO4zQoG0Yh+OMuBTNE8SrJ4WzqpYDy4R8qJ-LKIQgpCsKIpgcxXPfBtgWbFg4iAA)
+
+L1에서 `values`를 `...values`로 변경하고 `Params`가 빈 배열이라면 `[undefined?]`를, 빈 배열이 아니라면 `[Params]`로 타입 설정을 하면서 values가 필요 없다면 optional로 설정하고, values가 필요하다면 갯수만큼 arguments를 설정하는 방법이다.
+
+## 결과
+우리는 이전까지의 글에서 다음과 같은 타입 정의들을 구현해내었다.
+- 줄바꿈 키워드의 유무에 따라서 Return Type을 다르게 정의하기.
+- i18n 변수 parameter로 들어오는 runtime 값의 타입에 따라 Return Type을 다르게 정의하기.
+- i18n 변수 키워드의 개수에 따라 TFunction로 들어오는 i18n 변수 갯수 타입 정의하기.
+
+위 3가지 정의들을 합치게 되었을때 우리는 처음 정의했던 [i18n Rule](#i18n-rule)에 대해서 타입 단계에서 체크가 가능하게 된다.
 
 
-### Values를 객체로 받기
-## JSON을 import하는 방식
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs defaultValue='lineBreak'>
+  <TabItem value='draft' label='Draft'>
+
+  ```tsx showLineNumbers
+  import React from 'react';
+
+  const i18nJson = {
+  "simple": "Hello World",
+  "lineBreak": "Hello. \n I am FE developer",
+  "oneValue": "This product is {0}.",
+  "unit": "${0}",
+  "twoValue": "This product is {0} and it will be delivered after {1} days",
+  "link": "click",
+  "linkText": "{0} to show more information"
+} as const;
+
+  type I18nJson = typeof i18nJson;
+  type I18nKey = keyof I18nJson;
+
+  type TFunction = (key: I18nKey, values?: any) => string
+
+  const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key];
+
+  const simple = tFunction('simple'); // string
+  const lineBreak = tFunction('lineBreak'); // string
+  const oneValue = tFunction('oneValue', [tFunction('unit', 500)]); // string
+  const twoValue = tFunction('twoValue', [tFunction('unit', [500]), 3]); // string
+  const linkText = tFunction('linkText', [<a href="/about">{tFunction('link')}</a>]) // string
+  ```
+  <a href="https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDG8BmUIjgcilQ3wG4AoctCAOwGd5gBGADhoCk7a4BeOAb3Jw4AIjqgwAGyQiAXKIASSSZIhwA6tEkATEQBohoycBpIAQkRQBrOYuWqAdHAA6NOAEk4KPADEAonDaSABuyhBgSFD6hiK0SABqKJIArjLyIgAqABbAdHBgONrJGHC5AgAMAL4O0cIiyTTAMLYiACT8VbWiMADuEIkpaaLZZQUQRSVlHZVeNNql8D3AKnAARkiBysChRPMomDCRAkwz2igAnnRdIsY0Nuloxmg2BnW3VhlIAB7N6dNwMDUdCyEB6cBA0A2Jkw0BAKBgwFoInIMxQeWo9BgFHIMHOEQ8rA4XDcfFxEQgmFKhM4tAoZI27kJAGkkOdeHArKyKQS2DSaNj6XAMj4GhhESS4AAKTnneSMtgs856ODBJKpOgAfnkKBo5wAlLwAHxwBhQEwAc0oGIYAJFNDFtHkwtFCO4fGlrLlzNZytVgzo2t1Bp4xuYvOJAG0ZQBdUhwK20G3icDSdkwO0OmiS-DJqRIfB6uMAeiLJpgZpolut8Fu5ksVjTGddWfwtYsqCsBeLpdNFqoifgcQGqUbLvF2aHavzyoj6bHtGzDSa+GVAFZyuU9dHC3AS2WK1WBwC+sONqSm+P8L1+lOV3BZxeF-glzA7xH1+Vt8qAMzb7v7vtqzgd5Ph+Ud7WbbMQO+V8ZwAHhQOAsiITAeBEIsUFWCBkmaQ1+DnCDL3eAtKjgjDDW3Xce3LC0gA">Playground</a>
+
+  </TabItem>
+  <TabItem value='lineBreak' label='Line Break'>
+
+  ```tsx {16-21,23,26} showLineNumbers
+  import React, { ReactElement } from 'react';
+
+  const i18nJson = {
+  "simple": "Hello World",
+  "lineBreak": "Hello. \n I am FE developer",
+  "oneValue": "This product is {0}.",
+  "unit": "${0}",
+  "twoValue": "This product is {0} and it will be delivered after {1} days",
+  "link": "click",
+  "linkText": "{0} to show more information"
+} as const;
+
+  type I18nJson = typeof i18nJson;
+  type I18nKey = keyof I18nJson;
+
+  type LineBreakFormat = `${string}\n${string}`;
+
+  type TFunction = <Key extends I18nKey,>(
+    key: Key,
+    values?: any,
+  ) => I18nJson[Key] extends LineBreakFormat ? ReactElement : string;
+
+  const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any;
+
+  const simple = tFunction('simple'); // string
+  const lineBreak = tFunction('lineBreak'); // ReactElement
+  const oneValue = tFunction('oneValue', [tFunction('unit', 500)]); // string
+  const twoValue = tFunction('twoValue', [tFunction('unit', [500]), 3]); // string
+  const linkText = tFunction('linkText', [<a href="/about">{tFunction('link')}</a>]) // string
+  ```
+  <a href="https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARENBhSagFzqAEkmLEIcAOrRiAEzWYV64sApIAQuxQBrPYeOmAdHAAOhRwAJJwKMwAYoRw1kgAbsYQYEhQdg5qgkgAaijEAK5IPmoAKgAWwEJwYIzWhRhw1bgADNT+mapqhRTAMKUAJDjtXeowAO4Q+UUl+uVVNXUQDU0tI7QoFNbN8BPAJnAARkjxxsDJ7DsodDDpuGK01igAnkJjak4U3vNoTmjeezdL6eMpIAAeA3mGzgMDMQgqEAmcBA0FOzjo0BAKBgwEEah4mxqAmEMF4PBgLzS4UkMjkoSUlLSEDozVpskEvCZpzCtIA0kgXoo4J5BSyaVIORRydy4AAZZxuDyeaJYnHCgAGwxEUGcAHNqCFtTBdRQDRqZVTTmVor0MHiGXAADwCoUQu7bGq8qSuzAAPgAFKKXvpfXBEgVikIAPz6LYvACUij9ErpggA2q6ALpwd2Uaw1BUudyoFVq+DR-DoGAkMiUeD6HX6vgkkSw20Ue2CfQ2u24+RKIOC-TeihhiOzIRxiiJ5NsyX09PBnMoGrxrhwFuCNuacCkYUwDtdigBli77RIFgJjcAehvcCbZv42-gXyVpYPR-7J5Yb5LXivW972Qata3IKhn1JOAchmYpPz7B1TxgyNL2wdNDwQwRT16foWGwABWVpWgTLNrzgO8HxNZtW3gSZphQ+DO2-U86Ng1C4HQr9EJYHDODQwjWlI7AAGZSKAyjTT1SC2xBMFIUY49T1k908I4p0UDgCp2DoBQ1BvFAjggQoBj9HAMKY7iQSvagnX0v1SPI+9Hz1IA">Playground</a>
+
+  </TabItem>
+  <TabItem value='valueTypeCheck' label='+ Values Type Check'>
+
+  ```tsx {18,23-25,33} showLineNumbers
+  import React, { ReactElement } from 'react';
+
+  const i18nJson = {
+  "simple": "Hello World",
+  "lineBreak": "Hello. \n I am FE developer",
+  "oneValue": "This product is {0}.",
+  "unit": "${0}",
+  "twoValue": "This product is {0} and it will be delivered after {1} days",
+  "link": "click",
+  "linkText": "{0} to show more information"
+} as const;
+
+  type I18nJson = typeof i18nJson;
+  type I18nKey = keyof I18nJson;
+
+  type LineBreakFormat = `${string}\n${string}`;
+
+  type TFunction = <Key extends I18nKey, Params extends any[]>(
+    key: Key,
+    values?: Params,
+  ) => I18nJson[Key] extends LineBreakFormat
+    ? ReactElement
+    : Params extends (string | number)[]
+    ? string
+    : ReactElement;
+
+  const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any;
+
+  const simple = tFunction('simple'); // string
+  const lineBreak = tFunction('lineBreak'); // ReactElement
+  const oneValue = tFunction('oneValue', [tFunction('unit', [500])]); // string
+  const twoValue = tFunction('twoValue', [tFunction('unit', [500]), 3]); // string
+  const linkText = tFunction('linkText', [<a href="/about">{tFunction('link')}</a>]) // ReactElement
+  ```
+  <a href="https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARENBhSagFzqAEkmLEIcAOrRiAEzWYV64sApIAQuxQBrPYeOmAdHAAOhRwAJJwKMwAYoRw1kgAbsYQYEhQdg5qgkgAaijEAK5IPmoAKgAWwEJwYIzWhRhw1bgADNT+mapqhRTAMKUAJDjtXeowAO4Q+UUl+uVVNXUQDU0tI7QoFNbN8BPAJnAARkjxxsDJ7DsodDDpuGK01igAnkJjak4U3vNoTmjeezdL6eMpIAAeA3mGzgMDMQgqEAmcBA0FOzjo0BAKBgwEEah4mxqAmEMF4PBgLzS4UkMjkoSUlLSEDozVpskEvCZpzCtIA0kgXoo4J5BSyaVIORRydy4AAZZxuDyeaJYnHCgAGwxEUGcAHNqCFtTBdRQDRqZVTTmVor0MHiGXAADwCoUQu7bGq8qSu7AABRQUCiNXdlGsNS2LwA2gBdAB8AAoHKKXvpfQ5EgVikIAPz6ANBkBCewASkUcYldMEUddMbgoc98sV7lQKrVMAcOfw6BgJDIlA7qnzgeD9chYZqCZ1+rgAB84BRCiATlAS7HO3Bp2aHPpkD2++QqOSSSJYbaKPbBPobXbcfIlAmU-pvRRfXBM7MhPpI2WFBXxJK9JRimdYoBGFAvFwcB8Ce8CaOApDCjA56XhQCYsPB2hICwJZQQA9Hhm4mvq-CCKeXxKq2SEoXeaEsBRLZeDh+GEXuRCkIeHawXAOQzMU1G3g66G8Vm2HYFGyGCYI6G9P0LDiQArK0rQxiWqksURpp6qRpKwlMfGnIyNFCSwkzTKJ8lwBJxnSSwsmcIpymqdgADM6lwARmkkdxIJgpCAkXrR6G+e6llRk6KBwBU7B0Aoah4SgRwQIUAxxjgkmBSZII4dQToJXGqkeaxHAHgOQA">Playground</a>
+
+  </TabItem>
+  <TabItem value='valueNumberCheck' label='+ Value Number Check'>
+
+  ```tsx {18-20,22,24,31} showLineNumbers
+  import React, { ReactElement } from 'react';
+
+  const i18nJson = {
+  "simple": "Hello World",
+  "lineBreak": "Hello. \n I am FE developer",
+  "oneValue": "This product is {0}.",
+  "unit": "${0}",
+  "twoValue": "This product is {0} and it will be delivered after {1} days",
+  "link": "click",
+  "linkText": "{0} to show more information"
+} as const;
+
+  type I18nJson = typeof i18nJson;
+  type I18nKey = keyof I18nJson;
+
+  type LineBreakFormat = `${string}\n${string}`;
+
+  type ValuesType = string | number | ReactElement;
+  type ValuesFormat<Suffix extends string> = `${string}{${string}}${Suffix}`;
+  type ValuesArray<I18nText extends string> = I18nText extends ValuesFormat<infer Rest> ? [ValuesType, ...ValuesArray<Rest>] : [];
+
+  type TFunction = <Key extends I18nKey, Params extends ValuesArray<I18nJson[Key]>>(
+    key: Key,
+    ...values: Params extends [] ? [undefined?] : [Params]
+  ) => I18nJson[Key] extends LineBreakFormat
+    ? ReactElement
+    : Params extends (string | number)[]
+    ? string
+    : ReactElement;
+
+  const tFunction: TFunction = (key, ...values) => i18nJson[key] as any;
+
+  const simple = tFunction('simple'); // string
+  const lineBreak = tFunction('lineBreak'); // ReactElement
+  const oneValue = tFunction('oneValue', [tFunction('unit', [500])]); // string
+  const twoValue = tFunction('twoValue', [tFunction('unit', [500]), 3]); // string
+  const linkText = tFunction('linkText', [<a href="/about">{tFunction('link')}</a>]) // ReactElement
+  ```
+  <a href="https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARENBhSagFzqAEkmLEIcAOrRiAEzWYV64sApIAQuxQBrPYeOmAdHAAOhRwAJJwKMwAYoRw1kgAbsYQYEhQdg5qgkgAaijEAK5IPmoAKgAWwEJwYIzWhRhw1bgADNT+mapqhRTAMKUAJDjtXeowAO4Q+UUl+uVVNXUQDU0tI7QoFNbN8BPAJnAARkjxxsDJ7DsodDDpuGK01igAnkJjak4U3vNoTmjeezdL6eMpIAAeA3mGzgMDMQgqEAmcBA0FOzjo0BAKBgwEEah4mxqAmEMF4PBgLzS4UkMjkoSUlLSEDozVpskEvCZpzCtIA0kgXoo4J5BSyaVIORRydy4AAZZxuDyeaJYnHCgAGwxEUGcAHNqCFtTBdRQDRqZVTTjNikIylbhTr9XAAD5wCiFEAnKCu-DoGAkMiUMkUh02pBCVVQbEwAA8AGVCnQ6MBwXAIXdtjUnWaAHya42mg04Qv66jUYaJ5Op6gW0PU8NCACCUCgr1jvKkYMh6chlGs2ZN+vzSk7FG78Az-ZqjajMdjGPuyBE+YA-HAANqN+1pbD+feNlttl6x5cwXMAXTg+g3F8t1LK0V6GDxDLgsYFQqnWYlFE-2AABRQNsQBqb8BzgQ9W3bMcpQ3T8L1zXMAAoHFFF59H-Bx938RICltfQgJAsC+x-W84HXDdegSFMXGsVcrxvIioiEC8eAASkUfNYPpeDBSvcCagVFx3FQFU1RgBx12Qf1A3IKgHEI4CWN7TMIOQnM9V9D0vXSdjbykuBNMUv0iFIeSQ34QQRFhJ8KBfQR9EfZ9cXkJRkPQvd9zw2YhE4hR83ESVePQq8UBqLYXi4OA+BJGzNHAUhhRgOyHIoZCWAS7QkBYdjooAenyoyhzNKzSTgL4lTE5LUtc9KWEq0SvFygqipksygwUuL4BycMapc18Mt6-CcuwDcUoGwQMt6foWDGgBWVpWgvdiVta4qizKmzJmmEb+vsuqMp28M5s3CaDsGlgZs4BalpW7AAGY1rgQqNv1Lb4BBCd9rSjKvozU6N1jFA4Aqdg6AUNR8pQI4IEKAZcxwc7foa5xPFy6hY2hy9ONe9qA3M4MgA">Playground</a>
+
+  </TabItem>
+</Tabs>
+
+위의 완성된 코드를 살펴보자. Draft는 최초 예시로 가져왔던 [코드](i18n-and-typescript#type-정의)를 옮겨놓은 것이다. 여기서는 모든 `TFunction`이 string타입으로 리턴된다.
+
+>`Line Break`
+
+`Line Break` 버전에서는 `LineBreakFormat`의 비교문을 넣음으로써 `lineBreak`의 타입이 ReactElement로 추론된다.
+
+>`Values Type Check`
+
+`Values Type Check`에서는 `Params`를 추론하고 `string | number` 배열을 비교하면서 `linkText`가 ReactElement로 추론되게 코드를 추가했다.
+
+> Value Number Check
+
+마지막 `Value Number Check`에서는 `Params`에 대한 타입을 구체화하고 `values`를 Rest Parameter로 적용함으로써 리턴 타입은 바꾸지 않았지만,
+`tFunction`의 2번째 인자로 들어가는 values의 갯수를 타입 체크 단계에서 체크하는 것으로 타입을 강하게 적용하였다.
+
 ## Recap
+우리는 이로써 i18n Text에서 줄바꿈과 변수가 있는지 여부와, 변수의 runtime 타입 및 변수의 개수까지 type check 단계에서 진행할 수 있도록 타입을 정의해보았다.
+이 과정에서 우리는 다음과 같은 Typescript의 기능들을 활용하였다.
+- [Template Literal Type](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)
+- [Function Type inference](https://www.typescriptlang.org/docs/handbook/2/functions.html#inference)
+- [Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html)
+- [Recursive Conditional Types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#recursive-conditional-types)
+- [Inferring Within Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types)
+- [Rest Parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments)
+
+상당히 많은 수의 기능을 사용하였다. 평소에 복잡한 타입을 정의하지 않았더라면 모르고 있었던 기능도 있었을 것이며, 개념적으로는 이해하지만 실제로 사용해 볼 일이 없었던 기능들도 있었을 것이다.
+
+우리는 i18n Text를 Runtime에 오류를 확인하는 것이 아닌 TypeCheck때 오류를 확인하기 위해서 복잡하지만 유용한 타입을 정의해서 사용하였고, 각각의 요구사항을 구현하기 위해서 필요한 typescript 지식들도 확인해보았다.
+
+이 글을 보는 독자들은 각자 개발하고 있는 i18n을 적용하는 서비스에 유사한 타입을 구현할 수도 있고, 아니면 i18n은 사용하지 않지만 위 typescript 개념들을 이용하여 타입개선을 진행할 수도 있을 것 이다.
+
+필자는 i18n에 type system을 적용하면서 느끼게 된 점은 생각보다 typescript의 활용범위가 넓으며, Runtime에 확인하는 것보다 TypeCheck때 확인할 수 있도록 시스템을 구축한다는 건 매우 유용하고 안전한 방법이라는 것이다.
+
+이 글을 읽으며 신선한 자극 혹은 유용한 지식을 얻었길 바라며 만약 values 자리에 배열이 아니라 객체가 들어올 경우 어떤 방식이 될 수 있을지 부록으로 남긴다.
+
+## Appendix #1 변수를 Array 대신 Object로 받기
