@@ -443,6 +443,8 @@ const oneValue = tFunction('oneValue'); // Type Error!
 
 L1에서 `values`를 `...values`로 변경하고 `Params`가 빈 배열이라면 `[undefined?]`를, 빈 배열이 아니라면 `[Params]`로 타입 설정을 하면서 values가 필요 없다면 optional로 설정하고, values가 필요하다면 갯수만큼 arguments를 설정하는 방법이다.
 
+여기서 Array의 item에 ?가 들어가있는 것은 [Optional elements](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#optional-elements-in-tuple-types)에 대한 내용으로, 각 element가 optional로 설정될 수 있는 문법이다.
+
 ## 결과
 우리는 이전까지의 글에서 다음과 같은 타입 정의들을 구현해내었다.
 - 줄바꿈 키워드의 유무에 따라서 Return Type을 다르게 정의하기.
@@ -462,14 +464,14 @@ import TabItem from '@theme/TabItem';
   import React from 'react';
 
   const i18nJson = {
-  "simple": "Hello World",
-  "lineBreak": "Hello. \n I am FE developer",
-  "oneValue": "This product is {0}.",
-  "unit": "${0}",
-  "twoValue": "This product is {0} and it will be delivered after {1} days",
-  "link": "click",
-  "linkText": "{0} to show more information"
-} as const;
+    "simple": "Hello World",
+    "lineBreak": "Hello. \n I am FE developer",
+    "oneValue": "This product is {0}.",
+    "unit": "${0}",
+    "twoValue": "This product is {0} and it will be delivered after {1} days",
+    "link": "click",
+    "linkText": "{0} to show more information",
+  } as const;
 
   type I18nJson = typeof i18nJson;
   type I18nKey = keyof I18nJson;
@@ -493,14 +495,14 @@ import TabItem from '@theme/TabItem';
   import React, { ReactElement } from 'react';
 
   const i18nJson = {
-  "simple": "Hello World",
-  "lineBreak": "Hello. \n I am FE developer",
-  "oneValue": "This product is {0}.",
-  "unit": "${0}",
-  "twoValue": "This product is {0} and it will be delivered after {1} days",
-  "link": "click",
-  "linkText": "{0} to show more information"
-} as const;
+    "simple": "Hello World",
+    "lineBreak": "Hello. \n I am FE developer",
+    "oneValue": "This product is {0}.",
+    "unit": "${0}",
+    "twoValue": "This product is {0} and it will be delivered after {1} days",
+    "link": "click",
+    "linkText": "{0} to show more information"
+  } as const;
 
   type I18nJson = typeof i18nJson;
   type I18nKey = keyof I18nJson;
@@ -529,14 +531,14 @@ import TabItem from '@theme/TabItem';
   import React, { ReactElement } from 'react';
 
   const i18nJson = {
-  "simple": "Hello World",
-  "lineBreak": "Hello. \n I am FE developer",
-  "oneValue": "This product is {0}.",
-  "unit": "${0}",
-  "twoValue": "This product is {0} and it will be delivered after {1} days",
-  "link": "click",
-  "linkText": "{0} to show more information"
-} as const;
+    "simple": "Hello World",
+    "lineBreak": "Hello. \n I am FE developer",
+    "oneValue": "This product is {0}.",
+    "unit": "${0}",
+    "twoValue": "This product is {0} and it will be delivered after {1} days",
+    "link": "click",
+    "linkText": "{0} to show more information"
+  } as const;
 
   type I18nJson = typeof i18nJson;
   type I18nKey = keyof I18nJson;
@@ -569,14 +571,14 @@ import TabItem from '@theme/TabItem';
   import React, { ReactElement } from 'react';
 
   const i18nJson = {
-  "simple": "Hello World",
-  "lineBreak": "Hello. \n I am FE developer",
-  "oneValue": "This product is {0}.",
-  "unit": "${0}",
-  "twoValue": "This product is {0} and it will be delivered after {1} days",
-  "link": "click",
-  "linkText": "{0} to show more information"
-} as const;
+    "simple": "Hello World",
+    "lineBreak": "Hello. \n I am FE developer",
+    "oneValue": "This product is {0}.",
+    "unit": "${0}",
+    "twoValue": "This product is {0} and it will be delivered after {1} days",
+    "link": "click",
+    "linkText": "{0} to show more information"
+  } as const;
 
   type I18nJson = typeof i18nJson;
   type I18nKey = keyof I18nJson;
@@ -619,7 +621,7 @@ import TabItem from '@theme/TabItem';
 
 `Values Type Check`에서는 `Params`를 추론하고 `string | number` 배열을 비교하면서 `linkText`가 ReactElement로 추론되게 코드를 추가했다.
 
-> Value Number Check
+> `Value Number Check`
 
 마지막 `Value Number Check`에서는 `Params`에 대한 타입을 구체화하고 `values`를 Rest Parameter로 적용함으로써 리턴 타입은 바꾸지 않았지만,
 `tFunction`의 2번째 인자로 들어가는 values의 갯수를 타입 체크 단계에서 체크하는 것으로 타입을 강하게 적용하였다.
@@ -633,6 +635,7 @@ import TabItem from '@theme/TabItem';
 - [Recursive Conditional Types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#recursive-conditional-types)
 - [Inferring Within Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types)
 - [Rest Parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments)
+- [Optional elements in tuple types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#optional-elements-in-tuple-types)
 
 상당히 많은 수의 기능을 사용하였다. 평소에 복잡한 타입을 정의하지 않았더라면 모르고 있었던 기능도 있었을 것이며, 개념적으로는 이해하지만 실제로 사용해 볼 일이 없었던 기능들도 있었을 것이다.
 
@@ -645,3 +648,136 @@ import TabItem from '@theme/TabItem';
 이 글을 읽으며 신선한 자극 혹은 유용한 지식을 얻었길 바라며 만약 values 자리에 배열이 아니라 객체가 들어올 경우 어떤 방식이 될 수 있을지 부록으로 남긴다.
 
 ## Appendix #1 변수를 Array 대신 Object로 받기
+우리는 i18n text에 변수를 넣을때 Array 형식을 사용했다. 하지만 [i18next interpolation](https://www.i18next.com/translation-function/interpolation#basic) 예제를 보아도 그렇고 변수를 넣는데 객체를 형식으로 사용하는 경우도 많을 것이다.
+따라서, 배열이 아닌 객체를 주입하는 tFunction에 대한 타입정의를 부록으로 정리한다.
+
+### 예제
+
+```tsx showLineNumbers
+import React, { ReactElement } from 'react';
+
+const i18nJson = {
+  "oneValue": "This product is {value1}.",
+  "twoValue": "This product is {value1} and it will be delivered after {value2} days",
+  "link": "click",
+  "linkText": "{link} to show more information"
+} as const;
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+type LineBreakFormat = `${string}\n${string}`;
+
+type TFunction = <Key extends I18nKey,>(
+  key: Key,
+  values?: any,
+) => I18nJson[Key] extends LineBreakFormat ? ReactElement : string;
+
+const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any;
+
+const oneValue = tFunction('oneValue', { value1: '$500' }); // string
+const twoValue = tFunction('twoValue', { value1: '$500', value2: 3 }); // string
+const linkText = tFunction('linkText', { link: <a href="/about">{tFunction('link')}</a> }) // string
+```
+[playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARIKQA1FMQCuSNQC51AFQAWwIXDCMAJnoxwruAG66DY6gDo1mFeowAO4QOvqGJmoWLrYQDk4uOO7hXnAoFHbO8EHAxMRwAEZIcHZIxMCuSOyZKHQwVW4eSABMtHYoAJ5CfgFq5RQA1sbqaOVoQ-6qfcCDpkgAHjDDajj9A7QwEHBC5hBBcCDQxTN00CAoMMCCajy0KNYCwjC8PDAdYMUAkpIychSKcDeHwgdGcP1kgl4QK+PwA0kgOgCBgiQXBvlIIRQoe9igAZGZIABC7BQAwAYmcLgCAAYAEhwIigMwA5tQADoUemMlnUanYj5wUxkvQUDBXf5KAA88MRC3qGWs6IoMswAD4ABQBZEdEwqgLJAxCAD8JnSHX8AEpFKq0eC-gBtGUAXTgcsodms+IoRJJ5Mp8CN+HQMBIZEo8BM3IozJejxEgOFosughMQpFYvkSnV2pMSpVcANSCEpooHStCht4gxDu1LvuaVLscE8c0YQMAJgiYzFHVLFbTRY2DwhbEJhYtIArAAGKcsODUC1cOAAemX2xgTOj-Gb8GCoSaHa7yZ7LD3baQg9wBaao9Yk5nl8LzRMAGZ54uV2uo8zt084Gs5kWQ902PXsALlS88DWExJRQOBzHYOgFDUZcUAKCA9CWVUcE7EDxTAmYBhYC1qElVCbQXT9103ZkgA)
+
+우리는 위와 같은 예제를 사용할 것이며, 변수로 넣는 형태는 배열에서 객체 타입으로 변경되었다. 이때 우리는 변수로 들어가는 객체의 형식과,
+객체의 값을 보고 i18n text가 string으로 추론되기 적합한지 확인해 볼 것이다.
+
+### 변수들의 key 획득하기
+Text의 `{}` 포맷에 들어가있는 key들을 획득하는건 [Recursive](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#recursive-conditional-types)와 [infer](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types)를 사용한다.
+
+```tsx
+type ValueFormat<Key extends string = string, Suffix extends string = string> = `${string}{${Key}}${Suffix}`
+type ValuesKeyArray<I18nText extends string> = I18nText extends ValueFormat<infer Key, infer Suffix> ? [Key, ...ValuesKeyArray<Suffix>] : [];
+type ValuesKeyUnion<I18nText extends string> = ValuesKeyArray<I18nText>[number];
+
+type result = ValuesKeyArray<'This product is {value1} and it will be delivered after {value2} days'>
+// result: 'value1' | 'value2'
+```
+[playground](https://www.typescriptlang.org/play?#code/C4TwDgpgBAaghgGwK4QGIHsBOBbOwA8A0hCFBAB7AQB2AJgM5T3CYCW1A5lALxMvscANFADKSAGbjW5MpRoM+bTj0UCAfCoAGAEgDezJRwC+uvcRBGjesZOlHNAKFCRYiFPXMBBTJjgh8AJIAjAAc1AAqFMCyVHSMBuoqwWGRlDHyjPDIaFi4BOziEJhQ5sIFRaISUuQaAPxQANqlUAB0bVnuXj5++DbVagC6UABcjQMA3E7g0B0QHiQAqtSs6NSBoRFR6XGqnBq8s-Mg3r7+yZuUag3USNgARkUTDlMumHNICNEHbnNdp-gAcnCAAtWIwwJh0LQkABjaJgqC6ABuPyCRigcDoUFY0QA7qwEAgoA8oLQIAhWEiihBaBjxFRisifgAmdG0Pz0AFqBxAA)
+
+여기서도 마찬가지로 `ValueFormat`을 통해서 key와 suffix 값을 infer할 수 있게 분리하고, `ValuesKeyArray`에서 `{}` 안의 값들을 Tuple로 분리한다. 그런 뒤 `ValuesKeyUnion`에서 union으로 만들어주는 작업을 하는 것이다.
+이러면 변수로 들어가야할 key들 추출을 완료하게된다.
+
+### 획득한 Key를 params로 들어갈 수 있도록 타입 설정하기
+```tsx {22}  showLineNumbers
+import React, { ReactElement } from 'react';
+
+const i18nJson = {
+  "oneValue": "This product is {value1}.",
+  "twoValue": "This product is {value1} and it will be delivered after {value2} days",
+  "link": "click",
+  "linkText": "{link} to show more information"
+} as const;
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+type LineBreakFormat = `${string}\n${string}`;
+type ValuesType = string | number | ReactElement;
+
+type ValueFormat<Key extends string = string, Suffix extends string = string> = `${string}{${Key}}${Suffix}`
+type ValuesKeyArray<I18nText extends string> = I18nText extends ValueFormat<infer Key, infer Suffix> ? [Key, ...ValuesKeyArray<Suffix>] : [];
+type ValuesKeyUnion<I18nText extends string> = ValuesKeyArray<I18nText>[number];
+
+type TFunction = <
+  Key extends I18nKey,
+  Params extends I18nJson[Key] extends ValueFormat
+    ? [Record<ValuesKeyUnion<I18nJson[Key]>, ValuesType>]
+    : [undefined?]
+>(
+  key: Key,
+  ...values: Params
+) => I18nJson[Key] extends LineBreakFormat ? ReactElement : string;
+
+const tFunction: TFunction = (key: I18nKey, ...values: any) => i18nJson[key] as any;
+
+const oneValue = tFunction('oneValue', { value1: '$500' }); // string
+const twoValue = tFunction('twoValue', { value1: '$500', value2: 3 }); // string
+const linkText = tFunction('linkText', { link: <a href='/about'>{tFunction('link')}</a> }); // string
+```
+[playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARIKQA1FMQCuSNQC51AFQAWwIXDCMAJnoxwruAG66DY6gDo1mFeowAO4QOvqGJmoWLrYQDk4uOO7hXnAoFHbO8EHAxMRwAEZIcHZIxMCuSOyZKHQwVW4eSABMtHYoAJ5CfgFq5RQA1sbqaOVoQ-6qfcCDpkgAHjDDajj9A7QwEHBC5hBBcCDQxTN00CAoMMCCajy0KNYCwjC8PDAdYMUAkpIychSKcDeHwgdGcP1kgl4QK+PwA0kgOgCBgiQXBvlIIRQoe9igAZGZIABC7BQAwAYmcLgCAAYAEhwIigMwA5tQADoUemMlnUanYj5wMIGISmHEA7kUZlwAA+cAoehARSgMvw6BgJDIlGefGhgqaFKg5xgAB54YiFvUMtYJVKlDbsABlPR0OjAeZwC2UOzWmBMyXi30sgB8NK5gcl1Bw9LN1Go9KdLrdvNeYqFSCEZoAglAoJ1jeiKHNFh7Fl6fX7mSGlAWi-BPVa9eEDUbjScGmbsG3lQnXfMQwB+OAAbQ7cG847TGYR2dzHWNPbdQYAunATEOl-zipOzQBVChXCj5n61kuW73bcOVgHb6c5vM1i1BofyxVVDc6sWmMl6CgYA8A40AjNU8yzROEEUmOAAAUUFzEBrHrc8C0xEcERXRDrDTZsLgCVRByHZABCgOxjRvDo9wPI8MT+VCOiXINsEnUUPmXXDV2HH9SldCgkDsfslx4IMAAoAmRDoTA7AJx28ZJhRMGC4KEHgAEpFBDZCaLNdDSwbfEeOJVByUpeBB2QNUNXIKh2JtF5HhEQFv1-S5BBML8fz-eQlCEsSTALUdpNk9MTHSDpVIUENxGowQhzEld7jSCgOlswR7M0NMARgRyPIoISWDSpoWGwPBArEEwWFpABWAAGKqWDgahlK4OAAHpmovCt+BS+BglCJoMqy5ycpYHq00K3A4BKsrKpqsbAuaEwAGZ6salq2ptTqnjgNYTyUTL3MG3LtotMa8DWExjRQOBzHYOgFBYZqUAKCA9E4IMcD2pyD0OmYBhYZTqGNB6QwaprWvalkgA)
+
+위에서 이야기한 `ValuesKeyUnion`을 이용해 L22 처럼 [Rest Parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments)를 사용해서
+변수의 Key에 대한 object만 넣을 수 있게 values 타입을 설정한다. 그렇다면 L31-L33 예제에서 변수를 넣지 않거나, 잘못 넣었을때 오류가 발생하게 된다.
+
+### I18n text가 string이 되지 않는 경우 ReactElemenet로 추론
+```tsx {24-25,32} showLineNumbers
+import React, { ReactElement } from 'react';
+
+const i18nJson = {
+  "oneValue": "This product is {value1}.",
+  "twoValue": "This product is {value1} and it will be delivered after {value2} days",
+  "link": "click",
+  "linkText": "{link} to show more information"
+} as const;
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+type LineBreakFormat = `${string}\n${string}`;
+type ValuesType = string | number | ReactElement;
+
+type ValueFormat<Key extends string = string, Suffix extends string = string> = `${string}{${Key}}${Suffix}`
+type ValuesKeyArray<I18nText extends string> = I18nText extends ValueFormat<infer Key, infer Suffix> ? [Key, ...ValuesKeyArray<Suffix>] : [];
+type ValuesKeyUnion<I18nText extends string> = ValuesKeyArray<I18nText>[number];
+
+type TFunction = <Key extends I18nKey, Params extends I18nJson[Key] extends ValueFormat ?  [Record<ValuesKeyUnion<I18nJson[Key]>, ValuesType>] : [undefined?]>(
+  key: Key,
+  ...values: Params
+) => I18nJson[Key] extends LineBreakFormat
+  ? ReactElement
+    : I18nJson[Key] extends ValueFormat
+      ? Params extends [Record<string, string | number>] ? string : ReactElement
+  : string;
+
+const tFunction: TFunction = (key, ...values) => i18nJson[key] as any;
+
+const oneValue = tFunction('oneValue', { value1: '$500' }); // string
+const twoValue = tFunction('twoValue', { value1: '$500', value2: 3 }); // string
+const linkText = tFunction('linkText', { link: <a href="/about">{tFunction('link')}</a> }) // ReactElement
+```
+[plaground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARIKQA1FMQCuSNQC51AFQAWwIXDCMAJnoxwruAG66DY6gDo1mFeowAO4QOvqGJmoWLrYQDk4uOO7hXnAoFHbO8EHAxMRwAEZIcHZIxMCuSOyZKHQwVW4eSABMtHYoAJ5CfgFq5RQA1sbqaOVoQ-6qfcCDpkgAHjDDajj9A7QwEHBC5hBBcCDQxTN00CAoMMCCajy0KNYCwjC8PDAdYMUAkpIychSKcDeHwgdGcP1kgl4QK+PwA0kgOgCBgiQXBvlIIRQoe9igAZGZIABC7BQAwAYmcLgCAAYAEhwIigMwA5tQADoUemMlnUanYj5wMIGISmHEA7kUZlwAA+cAoehARSgMvw6BgJDIlGefGhgqaFKg5xgAB54YiFvUMtYJVKlDbsABlPR0OjAeZwC2UOzWmBMyXi30sgB8NK5gcl1Bw9LN1Go9KdLrdvNeYqFSCEZoAglAoJ1jeiKHNFh7Fl6fX7mSGlAWi-BPVa9eEDUbjScGmbsG3lQnXfMQwB+OAAbQ7cG847TGYR2dzHWNPbdQYAunATEOl-zipOzQBVChXCj5n61kuW73bcOVgHb6c5vM1i1BofyxVVDc6sWmMl6CgYA8A00EVPMs0ThBFsAABRQXMQGsetzwLTERwRFd4OsNNmypQdh2QAQoDsY0bw6PcDyPDE-mQjolyDbBJ1FD5l1XYcf1KV0KCQOx+2ogAKAJkQ6EwOwCcdvGSYUTCgmChB4ABKRQQ0QiizVQ0sG3xdjiVQclKXgHhB2QNUNXIKg4ACExFMESiVLPdD9R00zVFUQdJJQWDgIbIdcOgAj7QvCsVRfJVGMHG0mIMohSGMmAzL8lkXkeERAW-X9LkEEwvx-P95CUbj+OwESxPTOSFBDcRyMs-iV3uNIKA6eLBESzQ0wBGBkqyihuJYJqmhYbA8EKsQTBYWkAFYAAYxpYOBqBkrg4AAenm2LJX4Br4GCUImhatrUo6lgNrTXrcDgAahtGiajsK5oTAAZmm2aFqWm1VqeOA1hPJRWsy3bOvei0jrwNYTGNFA4HMdg6AUNR5pQAoID0JYgxwL6UoPX6ZgGFgZOoY0YZDGbHtVCLNSoHggA)
+
+L24-L25에서 `ValueFormat`인 경우 condition을 설정해서 `Record<string, string | number>`를 확인하여 변수로 string, number 이외의 타입을 사용할 경우 ReactElement를 사용하게 타입을 설정하면
+L32처럼 ReactElement로 추론되는 것을 확인 할 수 있다.
+
+이처럼 Array뿐 아니라 Object에 대해서 변수 type을 지정할 수도 있다.
