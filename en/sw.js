@@ -608,7 +608,7 @@ function waitUntil(event, asyncFn) {
 
 // @ts-ignore
 try {
-    self['workbox:core:6.5.0'] && _();
+    self['workbox:core:6.5.3'] && _();
 }
 catch (e) { }
 
@@ -1567,15 +1567,23 @@ class PrecacheStrategy extends workbox_strategies_Strategy_js__WEBPACK_IMPORTED_
             const integrityInManifest = params.integrity;
             const integrityInRequest = request.integrity;
             const noIntegrityConflict = !integrityInRequest || integrityInRequest === integrityInManifest;
+            // Do not add integrity if the original request is no-cors
+            // See https://github.com/GoogleChrome/workbox/issues/3096
             response = await handler.fetch(new Request(request, {
-                integrity: integrityInRequest || integrityInManifest,
+                integrity: request.mode !== 'no-cors'
+                    ? integrityInRequest || integrityInManifest
+                    : undefined,
             }));
             // It's only "safe" to repair the cache if we're using SRI to guarantee
             // that the response matches the precache manifest's expectations,
             // and there's either a) no integrity property in the incoming request
             // or b) there is an integrity, and it matches the precache manifest.
             // See https://github.com/GoogleChrome/workbox/issues/2858
-            if (integrityInManifest && noIntegrityConflict) {
+            // Also if the original request users no-cors we don't use integrity.
+            // See https://github.com/GoogleChrome/workbox/issues/3096
+            if (integrityInManifest &&
+                noIntegrityConflict &&
+                request.mode !== 'no-cors') {
                 this._useDefaultCacheabilityPluginIfNeeded();
                 const wasCached = await handler.cachePut(request, response.clone());
                 if (true) {
@@ -1774,7 +1782,7 @@ __webpack_require__.r(__webpack_exports__);
 
 // @ts-ignore
 try {
-    self['workbox:precaching:6.5.0'] && _();
+    self['workbox:precaching:6.5.3'] && _();
 }
 catch (e) { }
 
@@ -2764,8 +2772,6 @@ __webpack_require__.r(__webpack_exports__);
  * requests against third-party servers, you must define a RegExp that matches
  * the start of the URL.
  *
- * [See the module docs for info.]{@link https://developers.google.com/web/tools/workbox/modules/workbox-routing}
- *
  * @memberof workbox-routing
  * @extends workbox-routing.Route
  */
@@ -3327,7 +3333,7 @@ class Router {
 
 // @ts-ignore
 try {
-    self['workbox:routing:6.5.0'] && _();
+    self['workbox:routing:6.5.3'] && _();
 }
 catch (e) { }
 
@@ -3378,8 +3384,7 @@ __webpack_require__.r(__webpack_exports__);
  * is required if `capture` is not a `Route` object.
  * @param {string} [method='GET'] The HTTP method to match the Route
  * against.
- * @return {workbox-routing.Route} The generated `Route`(Useful for
- * unregistering).
+ * @return {workbox-routing.Route} The generated `Route`.
  *
  * @memberof workbox-routing
  */
@@ -4397,7 +4402,7 @@ class StrategyHandler {
 
 // @ts-ignore
 try {
-    self['workbox:strategies:6.5.0'] && _();
+    self['workbox:strategies:6.5.3'] && _();
 }
 catch (e) { }
 
@@ -4514,134 +4519,100 @@ __webpack_require__.r(__webpack_exports__);
  */
 /* eslint-disable no-restricted-globals */
 
-
-
 function parseSwParams() {
-  const params = JSON.parse(
-    new URLSearchParams(self.location.search).get('params'),
-  );
-  if (params.debug) {
-    console.log('[Docusaurus-PWA][SW]: Service Worker params:', params);
-  }
-  return params;
+    const params = JSON.parse(new URLSearchParams(self.location.search).get('params'));
+    if (params.debug) {
+        console.log('[Docusaurus-PWA][SW]: Service Worker params:', params);
+    }
+    return params;
 }
-
-// doc advises against dynamic imports in SW
+// Doc advises against dynamic imports in SW
 // https://developers.google.com/web/tools/workbox/guides/using-bundlers#code_splitting_and_dynamic_imports
 // https://twitter.com/sebastienlorber/status/1280155204575518720
 // but looks it's working fine as it's inlined by webpack, need to double check
 async function runSWCustomCode(params) {
-  if (false) {}
+    if (false) {}
 }
-
 /**
  * Gets different possible variations for a request URL. Similar to
  * https://git.io/JvixK
- *
- * @param {string} url
  */
 function getPossibleURLs(url) {
-  const possibleURLs = [];
-  const urlObject = new URL(url, self.location.href);
-
-  if (urlObject.origin !== self.location.origin) {
-    return possibleURLs;
-  }
-
-  // Ignore search params and hash
-  urlObject.search = '';
-  urlObject.hash = '';
-
-  // /blog.html
-  possibleURLs.push(urlObject.href);
-
-  // /blog/ => /blog/index.html
-  if (urlObject.pathname.endsWith('/')) {
-    possibleURLs.push(`${urlObject.href}index.html`);
-  } else {
-    // /blog => /blog/index.html
-    possibleURLs.push(`${urlObject.href}/index.html`);
-  }
-
-  return possibleURLs;
+    const urlObject = new URL(url, self.location.href);
+    if (urlObject.origin !== self.location.origin) {
+        return [];
+    }
+    // Ignore search params and hash
+    urlObject.search = '';
+    urlObject.hash = '';
+    return [
+        // /blog.html
+        urlObject.href,
+        // /blog/ => /blog/index.html
+        // /blog => /blog/index.html
+        `${urlObject.href}${urlObject.pathname.endsWith('/') ? '' : '/'}index.html`,
+    ];
 }
-
 (async () => {
-  const params = parseSwParams();
-
-  // eslint-disable-next-line no-underscore-dangle
-  const precacheManifest = [{"revision":"75d15317a9b42e6229109bc84354bc6a","url":"404.html"},{"revision":"15e5ae974a54e90c4c51a6ce212dad18","url":"about.html"},{"revision":"3a909fce988a2efa4866a24eeb797260","url":"archive.html"},{"revision":"c5e637e7381a12a53e7a601e7d51cf92","url":"assets/css/styles.dc6d86dd.css"},{"revision":"518ebed86f18de92ad1cd70ab7ca7400","url":"assets/js/0151937c.09240d66.js"},{"revision":"ca9e457ad68af3dda234206ef546a699","url":"assets/js/01a85c17.b2adf283.js"},{"revision":"46d323ac5c2d86963a901a0e13ea9030","url":"assets/js/050b7cb0.10d558a7.js"},{"revision":"aa56a374c2a15a4a3fb390060bb8d938","url":"assets/js/11ce7880.5c691f8f.js"},{"revision":"e777df705b76b3f948b16e59d79ceda8","url":"assets/js/130bf8e3.88676aac.js"},{"revision":"96bb34ee1fd8cb930af93ea4ff6a9fdc","url":"assets/js/15b483f2.a1ffcdfa.js"},{"revision":"45af763a450ebf9d3cfbc9ff813d2278","url":"assets/js/16e3ff4f.9bde0984.js"},{"revision":"744aab3b5670eddc0af2ad6f3a6e5bad","url":"assets/js/1ddeba0f.7cb30594.js"},{"revision":"3122a7793fcedf34b8c1397cada20666","url":"assets/js/1f391b9e.dd6d270a.js"},{"revision":"fdefd99bbab0615fd57121d78dfd088c","url":"assets/js/207af2ec.2de2bc43.js"},{"revision":"e913d5d4e68d24b6592dea332584e5d0","url":"assets/js/230.cabac319.js"},{"revision":"fb395d8574b90cefa4ba04dd0fe6988e","url":"assets/js/310fe2e4.1a970caa.js"},{"revision":"2117a17ac5c9c90cad507a734ca4be0c","url":"assets/js/33ad920b.73a5cdc5.js"},{"revision":"0785306e5788d40e543a6d06cf7a46f8","url":"assets/js/34fcf328.0e725a6e.js"},{"revision":"31f19397460e50adfdf75b1d69689f11","url":"assets/js/371c0967.f06ac432.js"},{"revision":"0f666d35e40cc94e41fe9ddc58b8e80f","url":"assets/js/393be207.a36f8543.js"},{"revision":"a672491f2f94c9b4648368dfd6861234","url":"assets/js/3a625615.9e57f967.js"},{"revision":"9c97b2bcc4f5d792f19e3c5dee7de474","url":"assets/js/3c74c1b2.413a5e86.js"},{"revision":"5b7782d476731c767a15871ba4f65aa0","url":"assets/js/4575aabe.e82914d5.js"},{"revision":"c14422c27bbcdf927cbe155c248056ca","url":"assets/js/4608.3c2a7ed5.js"},{"revision":"e9defa190b646dedb29230047c2f343d","url":"assets/js/4a970328.93e93eb3.js"},{"revision":"9678631c06b786b5eb4df6f3e584d46d","url":"assets/js/5131.a49d4eba.js"},{"revision":"c22c5300fd4736025094ff970812bbfb","url":"assets/js/517b9309.0ebaca1c.js"},{"revision":"a81122b6c3bae8d3ac3c7c677a3bcd3e","url":"assets/js/5283.804c29f2.js"},{"revision":"63755d69adf6126258c1ce5e68b1526d","url":"assets/js/5676ea29.424bdca4.js"},{"revision":"8eac5289030d37f67f7bd06eedf89dff","url":"assets/js/5cc35545.008f2afa.js"},{"revision":"9d23ba974f7971cc944e254c6a34e02c","url":"assets/js/6036e0a3.729380f3.js"},{"revision":"003a1cced9e3d02df296bb2c6181b353","url":"assets/js/6237.3a1325c8.js"},{"revision":"1365466b2ccce410095b6d33e13db80d","url":"assets/js/6460924a.f4a833d2.js"},{"revision":"a71a0c4e771653933004272c36156d1b","url":"assets/js/6875c492.f82202de.js"},{"revision":"6fa7efdcd38c47da01e5a6129c01eff6","url":"assets/js/6a06877f.7ca548c3.js"},{"revision":"ac8c87890f1b5d36c88d02886acffed3","url":"assets/js/6f277218.a0ae4fe5.js"},{"revision":"4b213fbca891afe98adf3eed5b3e8992","url":"assets/js/6f567c88.bf2a877f.js"},{"revision":"ac019ea505ee517a7003b0ee72a8ab65","url":"assets/js/745451c7.78e3f8d5.js"},{"revision":"4a902753ca937c69d77b08b182f4a1c5","url":"assets/js/7b7aec91.7d99c437.js"},{"revision":"58ff1e05f43718522b6ec46885469f75","url":"assets/js/7cc2f69d.bca91b74.js"},{"revision":"f48dd94d88104d369770a6197752431c","url":"assets/js/7de7cb96.f97c1eba.js"},{"revision":"2bcefbb83d8c94dab193c32cf1a3bfe2","url":"assets/js/814f3328.7a67b80b.js"},{"revision":"ad881ae77b0c7b37e31df928729b72ff","url":"assets/js/84b4d9aa.a5d8c35b.js"},{"revision":"303ebfdf8e228db26892552abb449921","url":"assets/js/89a0ec2a.ff91875c.js"},{"revision":"9a4df44dd15c017a0545da50e92ca46c","url":"assets/js/8d1b3e58.dfffdbe3.js"},{"revision":"3f64df2a24255c84397e0b9bd7f12a43","url":"assets/js/9e4087bc.fa9bc6c2.js"},{"revision":"b824ea6a011a2952177810efeb76a2ae","url":"assets/js/a0033cb3.74d79059.js"},{"revision":"2a429f2be65dbcf0ad4bce40d728218c","url":"assets/js/a6aa9e1f.2ab0f510.js"},{"revision":"f304dddbb4366e56daa260506194f60d","url":"assets/js/acc1df19.1e16d47f.js"},{"revision":"eec2e66712fb29821ec0005718332c2d","url":"assets/js/b455e532.96741fe3.js"},{"revision":"c5af69104498443c60be87cee1696878","url":"assets/js/b51176a2.a065f741.js"},{"revision":"59c354e836e0148fc6b68f09f9abd0e3","url":"assets/js/b7021afe.ea4769e3.js"},{"revision":"ec875f68f303149a84ee0fdc0b74e125","url":"assets/js/bc898147.0b0864c1.js"},{"revision":"205fae4d7f0d8a3642aa0a567fe77204","url":"assets/js/ccc49370.48726e5f.js"},{"revision":"81e50f3a008f56fc92a0b3c5a5300cfa","url":"assets/js/d878448a.e533552d.js"},{"revision":"b339f6a945ff2bdc1c423ba861c593c3","url":"assets/js/d9bc16bb.85919503.js"},{"revision":"7686b80424e51025d878f86f5e936ee8","url":"assets/js/dcae5a58.70c4d920.js"},{"revision":"c34f11f1c2bb0b06499c41849229093a","url":"assets/js/dd7bef9c.34b9a874.js"},{"revision":"281e42d4debae92a3997297fa9f483fd","url":"assets/js/dfd65bc4.f71f337c.js"},{"revision":"74c4080bd6e082ad05d21ce4af88fda9","url":"assets/js/e169ae7a.947b084f.js"},{"revision":"27ec1de0b97b3cf15e8e1983bcdb984c","url":"assets/js/e703092b.f8c35ef9.js"},{"revision":"8f2db110d498d0eb15406c3132d7623a","url":"assets/js/e993d01e.3b351964.js"},{"revision":"99cf41aaf57b2e3cb068431bb3848517","url":"assets/js/fa1f50fd.537d3f56.js"},{"revision":"91b210c45a45441575967ebdbf281eda","url":"assets/js/main.0ecb62a5.js"},{"revision":"9bcf5c558941af7287cf68dedbdf783f","url":"assets/js/runtime~main.81fc8f84.js"},{"revision":"aa805215d1f4e542599bf83bb35480b7","url":"deep-dive-to-immer.html"},{"revision":"b2c912cea7e7b739a489e40e6ba9267d","url":"how-to-cancel-at-axios.html"},{"revision":"839edce4567b45cbb0bc63d5feaa905e","url":"how-to-time-travel-debugging-at-redux-devtools.html"},{"revision":"3c751f34b625d140a619a6116d6365ad","url":"how-to-use-oas-generator.html"},{"revision":"b22c197850937e1c474fe9e52595ff25","url":"index.html"},{"revision":"1f09fa7803dd04ee909a20a66cd255a8","url":"manifest.json"},{"revision":"2f62fe4df750baec3281b9f5ba284089","url":"markdown-page.html"},{"revision":"fae7c351445a2e4a58ac3de77d780b4f","url":"tags.html"},{"revision":"8ad6ac5fbf3d9c8acc82da355da3c8d9","url":"tags/axios.html"},{"revision":"78e45d469a6fdf2f737f801d7a28dc41","url":"tags/deep-dive.html"},{"revision":"5bcbb40b98db81852cb5c998d27cc7a2","url":"tags/how-to-use.html"},{"revision":"04683e4068e71cdc803b1f04908f21f8","url":"tags/how-to-work.html"},{"revision":"4e9cb607cf3c4c43113c4d08c79f6ecb","url":"tags/immer.html"},{"revision":"9094a11b5940448fde20038ca8e31218","url":"tags/immutable.html"},{"revision":"3913609d78e98519b4742044421e873b","url":"tags/javascript.html"},{"revision":"15d67a2c03a0b1fd68a0f4fed5f41fcc","url":"tags/library.html"},{"revision":"34dd710a14ad7fd33563cb091148ff8f","url":"tags/oas-generator.html"},{"revision":"9efe24d05f6e44b38a4d1f21dad6c085","url":"tags/oas.html"},{"revision":"efc0aa3063c42b49ae4b15edf6893c74","url":"tags/redux-devtools.html"},{"revision":"e7d09ea420422200c0b83fb2300056fe","url":"tags/redux-toolkit.html"},{"revision":"bce81f513042d52d85bff698a08d6cf5","url":"tags/redux.html"},{"revision":"433d300d6b5ecd247b41ed7e0e512c5a","url":"tags/time-travel.html"},{"revision":"849d076eb83bc95b0723fa9ddf363d9f","url":"tags/typescript-axios.html"},{"revision":"6cbf35dd9166375d6d453f5a3c2951a8","url":"tags/typescript.html"},{"revision":"9daca30f40c4a2d5ee3009b080629043","url":"tags/web.html"},{"revision":"3bfe5bfc1306e05b7f878895d8dbb242","url":"assets/images/bundle-size-before-7407fd7d58a90ad46c640a81a7f01e3f.png"},{"revision":"9f308739e47fa3e9dbead35fda105e2b","url":"assets/images/bundle-size-solution-1-97fb457689d2bf829e4fe626154a7f3d.png"},{"revision":"1427752bd26ded1ae863b6c23bbf0d7d","url":"assets/images/bundle-size-total-c9e54fee59b31c4f63e26b1629cacea1.png"},{"revision":"ddef57aba59c9a8b93afd27e5b9d5b19","url":"assets/images/bundle-size-tree-shaking-7579190bad4c794d953b194abdadb72b.png"},{"revision":"8e2348ba1ac2d5e04b69903381392b29","url":"assets/images/compare-with-oas-process-f06411dcf6ef44a750902a331a7decae.png"},{"revision":"b2be08caaddd9a7826a9c3dccbd68b79","url":"assets/images/custom-template-file-structure-3f7246499275329f6899dafd70a9be64.png"},{"revision":"1cb057a91b650fc6950b63384a581160","url":"assets/images/generate-flow-c98b06d44356831c20680e6e878f50e9.png"},{"revision":"75dd98d10dfd20420eaec8d5b25087c6","url":"assets/images/generate-flow-with-custom-da080608e96a61f1372bca8ab74f64c0.png"},{"revision":"f4971bae53d52203e1568bd502c1488c","url":"assets/images/generator-cli-config-1ef96fee0f92f6a567dc7c31d7886e6d.png"},{"revision":"f3097f4ae4d14f2504cdee90ddfec8a3","url":"assets/images/json-data-56707278962b502322435f4f1d2e6bad.png"},{"revision":"84b78432e6bc84da835a9141f99a4d7a","url":"assets/images/line-bank-ef54716dd49338c5467123bbdf2d0526.png"},{"revision":"1740cf6d15be147dd28e2827051ecfad","url":"assets/images/modusign-dd60aa493dc0c587dde5a47be4c2eb6a.png"},{"revision":"b482a9d711433d9fba022a06e0b5d7b9","url":"assets/images/oas-json-53d33e0ad70801d4dadb7687fe11c936.png"},{"revision":"60b89db57f9d9fd8f66225c49c75e585","url":"assets/images/swagger-be194e19af167f8cd0f468c99ce2b9a3.png"},{"revision":"40b22595e10076894f21906cf18a97ce","url":"assets/images/usage-1-f4f230376f161a12b032a419b0d19a84.png"},{"revision":"9d431ed14cc0553f56d839f62f5ee233","url":"assets/images/usage-2-940df81f97a5d7ea75bb27a0e8592dad.png"},{"revision":"88fc46bd5aeaa8bf9c6fc797666cf18b","url":"assets/images/usage-3-981c2eb7577bd6f46c13fc4320ac99fb.png"},{"revision":"3bfe5bfc1306e05b7f878895d8dbb242","url":"assets/oas-generator/bundle-size-before.png"},{"revision":"9f308739e47fa3e9dbead35fda105e2b","url":"assets/oas-generator/bundle-size-solution-1.png"},{"revision":"1427752bd26ded1ae863b6c23bbf0d7d","url":"assets/oas-generator/bundle-size-total.png"},{"revision":"ddef57aba59c9a8b93afd27e5b9d5b19","url":"assets/oas-generator/bundle-size-tree-shaking.png"},{"revision":"8e2348ba1ac2d5e04b69903381392b29","url":"assets/oas-generator/compare-with-oas-process.png"},{"revision":"b2be08caaddd9a7826a9c3dccbd68b79","url":"assets/oas-generator/custom-template-file-structure.png"},{"revision":"75dd98d10dfd20420eaec8d5b25087c6","url":"assets/oas-generator/generate-flow-with-custom.png"},{"revision":"1cb057a91b650fc6950b63384a581160","url":"assets/oas-generator/generate-flow.png"},{"revision":"f4971bae53d52203e1568bd502c1488c","url":"assets/oas-generator/generator-cli-config.png"},{"revision":"f3097f4ae4d14f2504cdee90ddfec8a3","url":"assets/oas-generator/json-data.png"},{"revision":"b482a9d711433d9fba022a06e0b5d7b9","url":"assets/oas-generator/oas-json.png"},{"revision":"60b89db57f9d9fd8f66225c49c75e585","url":"assets/oas-generator/swagger.png"},{"revision":"40b22595e10076894f21906cf18a97ce","url":"assets/oas-generator/usage-1.png"},{"revision":"9d431ed14cc0553f56d839f62f5ee233","url":"assets/oas-generator/usage-2.png"},{"revision":"88fc46bd5aeaa8bf9c6fc797666cf18b","url":"assets/oas-generator/usage-3.png"},{"revision":"a42888e9ad62ddcd2c74e9b74f680f84","url":"favicon/android-chrome-192x192.png"},{"revision":"baa4aae59b194d0914cbf1cdb5a27940","url":"favicon/android-chrome-512x512.png"},{"revision":"da8205b9ebd9ee751f9aa3f21dd5d205","url":"favicon/apple-touch-icon.png"},{"revision":"d7f03db683af79b4b7f82f6946001575","url":"favicon/favicon-16x16.png"},{"revision":"a4bf47e7bd796ee34be13e256721608c","url":"favicon/favicon-32x32.png"},{"revision":"d54554233ecfce28975ee14425c1063a","url":"favicon/favicon.ico"},{"revision":"e38c59813e5b036fca30ac4c8c2aa23a","url":"favicon/mstile-150x150.png"},{"revision":"9a0b099e1f63b5eef5b6e11d2a00d80f","url":"favicon/safari-pinned-tab.svg"},{"revision":"a04be705f11110978bea2fdb8869e8af","url":"icon/invest.png"},{"revision":"cfb20065d8a46117e72a96cea014d4d3","url":"icon/line-bank-id.png"},{"revision":"ffc852acc9947e721316be11a49c5389","url":"icon/line-bank-id.svg"},{"revision":"84b78432e6bc84da835a9141f99a4d7a","url":"icon/line-bank.png"},{"revision":"1740cf6d15be147dd28e2827051ecfad","url":"icon/modusign.png"},{"revision":"7d7361381c856895bfb802e1c18375f1","url":"img/004-hacker.svg"},{"revision":"7714a37d9d866b79298a94c4ddd6f8a8","url":"img/dark-room-computer.jpeg"},{"revision":"7d7361381c856895bfb802e1c18375f1","url":"img/logo.svg"},{"revision":"b9d9189ed8f8dd58e70d9f8b3f693b3e","url":"img/tutorial/docsVersionDropdown.png"},{"revision":"c14bff79aafafca0957ccc34ee026e2c","url":"img/tutorial/localeDropdown.png"}];
-  const controller = new workbox_precaching__WEBPACK_IMPORTED_MODULE_0__.PrecacheController({
-    fallbackToNetwork: true, // safer to turn this true?
-  });
-
-  if (params.offlineMode) {
-    controller.addToCacheList(precacheManifest);
-    if (params.debug) {
-      console.log('[Docusaurus-PWA][SW]: addToCacheList', {
-        precacheManifest,
-      });
-    }
-  }
-
-  await runSWCustomCode(params);
-
-  self.addEventListener('install', (event) => {
-    if (params.debug) {
-      console.log('[Docusaurus-PWA][SW]: install event', {
-        event,
-      });
-    }
-    event.waitUntil(controller.install(event));
-  });
-
-  self.addEventListener('activate', (event) => {
-    if (params.debug) {
-      console.log('[Docusaurus-PWA][SW]: activate event', {
-        event,
-      });
-    }
-    event.waitUntil(controller.activate(event));
-  });
-
-  self.addEventListener('fetch', async (event) => {
+    const params = parseSwParams();
+    // eslint-disable-next-line no-underscore-dangle
+    const precacheManifest = [{"revision":"dad007e6c6adf8156aca18b0fdf142af","url":"404.html"},{"revision":"878115ac55e897f482328471668d9389","url":"about.html"},{"revision":"07dcf9a823ca6ef12ab009932b9ca743","url":"archive.html"},{"revision":"45574cca0e4d0102ced710a7e3c8c3e3","url":"assets/css/styles.55ea3d40.css"},{"revision":"3adb52cdc07bdb5ac2690cc26932ba46","url":"assets/js/0151937c.98371407.js"},{"revision":"43fac62b6fd6f5a3c68f6f7db9a61c59","url":"assets/js/01a85c17.c868e0b4.js"},{"revision":"85394dd3f2e060721afc8bcffd23f7d8","url":"assets/js/050b7cb0.467ee1fd.js"},{"revision":"de94364e5dee1ec3fdf7be1a33e24a65","url":"assets/js/11ce7880.87768911.js"},{"revision":"6b68af028a2e43c43395b58552a3b8f2","url":"assets/js/130bf8e3.2e50d885.js"},{"revision":"7e0a7249a1c1019b6fd915163e874e08","url":"assets/js/15b483f2.f97b0a99.js"},{"revision":"b9d54049327063a3cba8b11032f301c5","url":"assets/js/16e3ff4f.9b2507f5.js"},{"revision":"eb04f1a00e678bd8219fb971363ec6ba","url":"assets/js/1db70561.830e50e2.js"},{"revision":"2059a939be3ebd30860aae861d2e057c","url":"assets/js/1ddeba0f.2e81f6b9.js"},{"revision":"03463534e30447cc7b9839f2f40d6861","url":"assets/js/1f391b9e.57978684.js"},{"revision":"b8df6914fd1e3c8ad2b25006b114b7f4","url":"assets/js/207af2ec.6d4c2989.js"},{"revision":"847167de3d305277cbbc2408b4e04d4b","url":"assets/js/2539.4eea157b.js"},{"revision":"8b09efe4fef71ae9aca0c3796a0f64e5","url":"assets/js/310fe2e4.f8920fa5.js"},{"revision":"9ee323a0b974228f39f6560a2e1d1e9b","url":"assets/js/33ad920b.baabf645.js"},{"revision":"b822a2debb0a264e9866f7309b6da77d","url":"assets/js/34fcf328.c3c9c9b0.js"},{"revision":"bc1be335ceb6709be7820799b096a818","url":"assets/js/371c0967.0c4acfa9.js"},{"revision":"0f666d35e40cc94e41fe9ddc58b8e80f","url":"assets/js/393be207.a36f8543.js"},{"revision":"d6fbde4e75f07e02300595311f6a3b10","url":"assets/js/3a625615.2e50c46e.js"},{"revision":"446954c82fe4fa8aeee57837c414809c","url":"assets/js/3c74c1b2.dd50e7f0.js"},{"revision":"e710a338190db42441f0f34190bdd28d","url":"assets/js/4575aabe.43348ce5.js"},{"revision":"f5528578c5c255e82f313a41cbeaf63b","url":"assets/js/4846cb72.f42f051f.js"},{"revision":"8dd2f7d5fbd14a94824ce543feac47cf","url":"assets/js/4972.f60edd99.js"},{"revision":"3f3e843d76ce43a05bd3a12b4f1c2d7e","url":"assets/js/4a970328.a3276161.js"},{"revision":"6539372208c2cdd37eaca85b6c923636","url":"assets/js/5044.2bbe56cb.js"},{"revision":"57e60884bb50f299128e139c94f4bb2d","url":"assets/js/5131.5818ac42.js"},{"revision":"4fc7564cc084bebd3221b74c02e4cff0","url":"assets/js/517b9309.022290e2.js"},{"revision":"1f2a8a923a84801bd1a83e6e406c323b","url":"assets/js/5283.57db27f0.js"},{"revision":"bababba1ce3f2d6e8bdfc3affed3b65d","url":"assets/js/5676ea29.1098dda3.js"},{"revision":"fd7c40dfdc93825289191384271673ac","url":"assets/js/5cc35545.bfd23d33.js"},{"revision":"1df9998f693002f911f9daf5703031e0","url":"assets/js/6036e0a3.97d048dd.js"},{"revision":"94be171afafdf671fa5efe7e6778b9e8","url":"assets/js/6460924a.e20ed503.js"},{"revision":"4c27f2d655ae5468bbb713d9abf4f6dc","url":"assets/js/6875c492.ae614fea.js"},{"revision":"c1291b7e79bf64b951555578254069d8","url":"assets/js/6a06877f.49348ca0.js"},{"revision":"54e3be0cf3b5d4d457de3d18981ccf6f","url":"assets/js/6d22e7c1.8656324f.js"},{"revision":"12e7e7000ff941ada21192bae066907d","url":"assets/js/6f277218.14cf6136.js"},{"revision":"4a66f15b72b40cab6b621a9081602901","url":"assets/js/6f567c88.d0df1e0f.js"},{"revision":"e15bcd614e1529969ba5581b5603114c","url":"assets/js/745451c7.02833939.js"},{"revision":"bd4986763fc78d21d741567bfeb7834e","url":"assets/js/7807.6a7795c5.js"},{"revision":"be15eb2b660365307e9a467bb5b25401","url":"assets/js/796adb71.d2273562.js"},{"revision":"9d82b1a29dbbe1a87993ac696b404aa3","url":"assets/js/7b7aec91.3c347db4.js"},{"revision":"737127a257e5f9364ae839c0b7b8e0fd","url":"assets/js/7cc2f69d.8bb8787c.js"},{"revision":"1f5da1653f46f0d2945d355a4663e23b","url":"assets/js/7de7cb96.f1a74dd5.js"},{"revision":"dae921c4f5a4157e539bd7533a258131","url":"assets/js/814f3328.ada91044.js"},{"revision":"bb86c355881067091d80589b56fd9830","url":"assets/js/84b4d9aa.39bbad27.js"},{"revision":"fc2f63c30dd837f89ab7dbaf05355625","url":"assets/js/89a0ec2a.18bcafe3.js"},{"revision":"c5a00e201a3e7784053fac27371ae39f","url":"assets/js/8d1b3e58.003742c9.js"},{"revision":"f528cb391e549f337d68026fdb8e0ef6","url":"assets/js/9db9616a.0cb0fbbf.js"},{"revision":"8c5ad0d1c4f305ccbb2e719c9d48b9f0","url":"assets/js/9e4087bc.4a80fa68.js"},{"revision":"da5c4dcd7c4857dba3bb7e4269760273","url":"assets/js/a0033cb3.6eefc9ee.js"},{"revision":"831d8bf2c50fdb7964722549be22ceeb","url":"assets/js/a6aa9e1f.40baae8b.js"},{"revision":"d2872f13cd42a4042011470062105a34","url":"assets/js/acc1df19.ec440ace.js"},{"revision":"e1d7caa05eaf46124b1dc8f17c00496d","url":"assets/js/adaafead.3a28ccfe.js"},{"revision":"94ec41470989435765bb169ebf7f164a","url":"assets/js/b455e532.f1f8648a.js"},{"revision":"e6f11cf277939cc2e2a49b83433d0157","url":"assets/js/b51176a2.efc35327.js"},{"revision":"3f6571313433b8e1b5d2e390dc4d336f","url":"assets/js/b7021afe.5ffc6dda.js"},{"revision":"77435786c0ac4b03eed9bdcb3e9d3ae8","url":"assets/js/bc898147.977a1916.js"},{"revision":"515e8d4a03aafd8792cbf470aa5de66b","url":"assets/js/ccc49370.899b0e8e.js"},{"revision":"f692fba134924275ea5975b297baa237","url":"assets/js/ce4d0eba.5de24a4a.js"},{"revision":"eb99640c063186a077b6ea71878b7bc3","url":"assets/js/d878448a.5c09c900.js"},{"revision":"72875a0ff50c895d418cf1abd9017357","url":"assets/js/d9bc16bb.aaf7ff8d.js"},{"revision":"1a66dc2ea18c796d3ddbb413556d4ddf","url":"assets/js/dcae5a58.04bc76ab.js"},{"revision":"c490eae153f10c8f7001b6efe930349b","url":"assets/js/dd7bef9c.e7ed2525.js"},{"revision":"6a5cf36f0b9cc4611c49c45563fefac3","url":"assets/js/dfd65bc4.bd64c0a1.js"},{"revision":"b23cea5c2aad347784dc2cb22b978c6e","url":"assets/js/e048e698.7ea0ba9a.js"},{"revision":"8e1a80e04f6743916563e227ff021e08","url":"assets/js/e169ae7a.bb47652e.js"},{"revision":"59487fbdec730451654c44e90d29295e","url":"assets/js/e703092b.44455300.js"},{"revision":"c97167c30ead9a02053ea678c0f00b50","url":"assets/js/e993d01e.89b7d429.js"},{"revision":"b6f7699986366878e7c5f2e94e83091a","url":"assets/js/fa1f50fd.54a79f9f.js"},{"revision":"6694b40f74554c7e1c627e793b2983ad","url":"assets/js/main.c0b680c9.js"},{"revision":"e2a184e0b1a8a72109d1e7d42997953f","url":"assets/js/runtime~main.82f23b82.js"},{"revision":"c10dec9ca140a8a77f12895a65ff5b47","url":"deep-dive-to-immer.html"},{"revision":"a96225177cfccdf2efc9be9988ce1b13","url":"how-to-cancel-at-axios.html"},{"revision":"de8f54f78dc9928d919611c909d06394","url":"how-to-time-travel-debugging-at-redux-devtools.html"},{"revision":"31386b9b99aac636b45b767fd8d612b6","url":"how-to-use-oas-generator.html"},{"revision":"b456ef915fc2b0cfdb278d51849c4d9e","url":"i18n-and-typescript.html"},{"revision":"0894f4861517bbcef1be90b130731379","url":"index.html"},{"revision":"1f09fa7803dd04ee909a20a66cd255a8","url":"manifest.json"},{"revision":"fe20b569c541a7ac576a0373e98323f3","url":"markdown-page.html"},{"revision":"a26730a01d6221e26e097b7696fe040b","url":"tags.html"},{"revision":"7a8d67df8084e7532eb39ec714bc7a60","url":"tags/axios.html"},{"revision":"eed210b64433f925733cdc27f8fdf0d9","url":"tags/deep-dive.html"},{"revision":"46f3cb5c5bd6fcc6569c383b49d7821e","url":"tags/how-to-use.html"},{"revision":"fc54c79b8acfe0f10131ddbea4933cf2","url":"tags/how-to-work.html"},{"revision":"8f84f0d6740da7cfa6e53a20216fdbde","url":"tags/i-18-n.html"},{"revision":"4f55bfe4962be9641fdec4b0ac44aecb","url":"tags/immer.html"},{"revision":"e3e65b92c6e4cafcfbf8a160dc8715ad","url":"tags/immutable.html"},{"revision":"7abae3fefe9e77591e418f93c400bf62","url":"tags/javascript.html"},{"revision":"9369fdbccb8aa531199c1b1c46291a23","url":"tags/library.html"},{"revision":"1cf800912dae5e02689147958e93e494","url":"tags/oas-generator.html"},{"revision":"1592437680dda196cbe5206e68a5160f","url":"tags/oas.html"},{"revision":"463d88573eea64d6c97d16f00d34ec09","url":"tags/redux-devtools.html"},{"revision":"008b2695a332b906f71ef819a7a57aec","url":"tags/redux-toolkit.html"},{"revision":"bcb052c87990e8cbb7e62ca2f252f730","url":"tags/redux.html"},{"revision":"a4ab9d645bb9668061c6f087f74024b1","url":"tags/template-literal-type.html"},{"revision":"3bcee601e4cd15c7a60e176d1658d512","url":"tags/time-travel.html"},{"revision":"5ccc1856c9999e70c886fae2cc63a2a9","url":"tags/typescript-axios.html"},{"revision":"57e2c16f67ec9241d30de02166f1d877","url":"tags/typescript.html"},{"revision":"534047cd246e5adc53744167661142d9","url":"tags/web.html"},{"revision":"3bfe5bfc1306e05b7f878895d8dbb242","url":"assets/images/bundle-size-before-7407fd7d58a90ad46c640a81a7f01e3f.png"},{"revision":"9f308739e47fa3e9dbead35fda105e2b","url":"assets/images/bundle-size-solution-1-97fb457689d2bf829e4fe626154a7f3d.png"},{"revision":"1427752bd26ded1ae863b6c23bbf0d7d","url":"assets/images/bundle-size-total-c9e54fee59b31c4f63e26b1629cacea1.png"},{"revision":"ddef57aba59c9a8b93afd27e5b9d5b19","url":"assets/images/bundle-size-tree-shaking-7579190bad4c794d953b194abdadb72b.png"},{"revision":"8e2348ba1ac2d5e04b69903381392b29","url":"assets/images/compare-with-oas-process-f06411dcf6ef44a750902a331a7decae.png"},{"revision":"b2be08caaddd9a7826a9c3dccbd68b79","url":"assets/images/custom-template-file-structure-3f7246499275329f6899dafd70a9be64.png"},{"revision":"1cb057a91b650fc6950b63384a581160","url":"assets/images/generate-flow-c98b06d44356831c20680e6e878f50e9.png"},{"revision":"75dd98d10dfd20420eaec8d5b25087c6","url":"assets/images/generate-flow-with-custom-da080608e96a61f1372bca8ab74f64c0.png"},{"revision":"f4971bae53d52203e1568bd502c1488c","url":"assets/images/generator-cli-config-1ef96fee0f92f6a567dc7c31d7886e6d.png"},{"revision":"f3097f4ae4d14f2504cdee90ddfec8a3","url":"assets/images/json-data-56707278962b502322435f4f1d2e6bad.png"},{"revision":"84b78432e6bc84da835a9141f99a4d7a","url":"assets/images/line-bank-ef54716dd49338c5467123bbdf2d0526.png"},{"revision":"1740cf6d15be147dd28e2827051ecfad","url":"assets/images/modusign-dd60aa493dc0c587dde5a47be4c2eb6a.png"},{"revision":"b482a9d711433d9fba022a06e0b5d7b9","url":"assets/images/oas-json-53d33e0ad70801d4dadb7687fe11c936.png"},{"revision":"60b89db57f9d9fd8f66225c49c75e585","url":"assets/images/swagger-be194e19af167f8cd0f468c99ce2b9a3.png"},{"revision":"40b22595e10076894f21906cf18a97ce","url":"assets/images/usage-1-f4f230376f161a12b032a419b0d19a84.png"},{"revision":"9d431ed14cc0553f56d839f62f5ee233","url":"assets/images/usage-2-940df81f97a5d7ea75bb27a0e8592dad.png"},{"revision":"88fc46bd5aeaa8bf9c6fc797666cf18b","url":"assets/images/usage-3-981c2eb7577bd6f46c13fc4320ac99fb.png"},{"revision":"3bfe5bfc1306e05b7f878895d8dbb242","url":"assets/oas-generator/bundle-size-before.png"},{"revision":"9f308739e47fa3e9dbead35fda105e2b","url":"assets/oas-generator/bundle-size-solution-1.png"},{"revision":"1427752bd26ded1ae863b6c23bbf0d7d","url":"assets/oas-generator/bundle-size-total.png"},{"revision":"ddef57aba59c9a8b93afd27e5b9d5b19","url":"assets/oas-generator/bundle-size-tree-shaking.png"},{"revision":"8e2348ba1ac2d5e04b69903381392b29","url":"assets/oas-generator/compare-with-oas-process.png"},{"revision":"b2be08caaddd9a7826a9c3dccbd68b79","url":"assets/oas-generator/custom-template-file-structure.png"},{"revision":"75dd98d10dfd20420eaec8d5b25087c6","url":"assets/oas-generator/generate-flow-with-custom.png"},{"revision":"1cb057a91b650fc6950b63384a581160","url":"assets/oas-generator/generate-flow.png"},{"revision":"f4971bae53d52203e1568bd502c1488c","url":"assets/oas-generator/generator-cli-config.png"},{"revision":"f3097f4ae4d14f2504cdee90ddfec8a3","url":"assets/oas-generator/json-data.png"},{"revision":"b482a9d711433d9fba022a06e0b5d7b9","url":"assets/oas-generator/oas-json.png"},{"revision":"60b89db57f9d9fd8f66225c49c75e585","url":"assets/oas-generator/swagger.png"},{"revision":"40b22595e10076894f21906cf18a97ce","url":"assets/oas-generator/usage-1.png"},{"revision":"9d431ed14cc0553f56d839f62f5ee233","url":"assets/oas-generator/usage-2.png"},{"revision":"88fc46bd5aeaa8bf9c6fc797666cf18b","url":"assets/oas-generator/usage-3.png"},{"revision":"a42888e9ad62ddcd2c74e9b74f680f84","url":"favicon/android-chrome-192x192.png"},{"revision":"baa4aae59b194d0914cbf1cdb5a27940","url":"favicon/android-chrome-512x512.png"},{"revision":"da8205b9ebd9ee751f9aa3f21dd5d205","url":"favicon/apple-touch-icon.png"},{"revision":"d7f03db683af79b4b7f82f6946001575","url":"favicon/favicon-16x16.png"},{"revision":"a4bf47e7bd796ee34be13e256721608c","url":"favicon/favicon-32x32.png"},{"revision":"d54554233ecfce28975ee14425c1063a","url":"favicon/favicon.ico"},{"revision":"e38c59813e5b036fca30ac4c8c2aa23a","url":"favicon/mstile-150x150.png"},{"revision":"9a0b099e1f63b5eef5b6e11d2a00d80f","url":"favicon/safari-pinned-tab.svg"},{"revision":"a04be705f11110978bea2fdb8869e8af","url":"icon/invest.png"},{"revision":"cfb20065d8a46117e72a96cea014d4d3","url":"icon/line-bank-id.png"},{"revision":"ffc852acc9947e721316be11a49c5389","url":"icon/line-bank-id.svg"},{"revision":"84b78432e6bc84da835a9141f99a4d7a","url":"icon/line-bank.png"},{"revision":"1740cf6d15be147dd28e2827051ecfad","url":"icon/modusign.png"},{"revision":"7d7361381c856895bfb802e1c18375f1","url":"img/004-hacker.svg"},{"revision":"7714a37d9d866b79298a94c4ddd6f8a8","url":"img/dark-room-computer.jpeg"},{"revision":"7d7361381c856895bfb802e1c18375f1","url":"img/logo.svg"},{"revision":"b9d9189ed8f8dd58e70d9f8b3f693b3e","url":"img/tutorial/docsVersionDropdown.png"},{"revision":"c14bff79aafafca0957ccc34ee026e2c","url":"img/tutorial/localeDropdown.png"}];
+    const controller = new workbox_precaching__WEBPACK_IMPORTED_MODULE_0__.PrecacheController({
+        // Safer to turn this true?
+        fallbackToNetwork: true,
+    });
     if (params.offlineMode) {
-      const requestURL = event.request.url;
-      const possibleURLs = getPossibleURLs(requestURL);
-      for (let i = 0; i < possibleURLs.length; i += 1) {
-        const possibleURL = possibleURLs[i];
-        const cacheKey = controller.getCacheKeyForURL(possibleURL);
-        if (cacheKey) {
-          const cachedResponse = caches.match(cacheKey);
-          if (params.debug) {
-            console.log('[Docusaurus-PWA][SW]: serving cached asset', {
-              requestURL,
-              possibleURL,
-              possibleURLs,
-              cacheKey,
-              cachedResponse,
-            });
-          }
-          event.respondWith(cachedResponse);
-          break;
+        controller.addToCacheList(precacheManifest);
+        if (params.debug) {
+            console.log('[Docusaurus-PWA][SW]: addToCacheList', { precacheManifest });
         }
-      }
     }
-  });
-
-  self.addEventListener('message', async (event) => {
-    if (params.debug) {
-      console.log('[Docusaurus-PWA][SW]: message event', {
-        event,
-      });
-    }
-
-    const type = event.data && event.data.type;
-
-    if (type === 'SKIP_WAITING') {
-      self.skipWaiting();
-    }
-  });
+    await runSWCustomCode(params);
+    self.addEventListener('install', (event) => {
+        if (params.debug) {
+            console.log('[Docusaurus-PWA][SW]: install event', { event });
+        }
+        event.waitUntil(controller.install(event));
+    });
+    self.addEventListener('activate', (event) => {
+        if (params.debug) {
+            console.log('[Docusaurus-PWA][SW]: activate event', { event });
+        }
+        event.waitUntil(controller.activate(event));
+    });
+    self.addEventListener('fetch', async (event) => {
+        if (params.offlineMode) {
+            const requestURL = event.request.url;
+            const possibleURLs = getPossibleURLs(requestURL);
+            for (const possibleURL of possibleURLs) {
+                const cacheKey = controller.getCacheKeyForURL(possibleURL);
+                if (cacheKey) {
+                    const cachedResponse = caches.match(cacheKey);
+                    if (params.debug) {
+                        console.log('[Docusaurus-PWA][SW]: serving cached asset', {
+                            requestURL,
+                            possibleURL,
+                            possibleURLs,
+                            cacheKey,
+                            cachedResponse,
+                        });
+                    }
+                    event.respondWith(cachedResponse);
+                    break;
+                }
+            }
+        }
+    });
+    self.addEventListener('message', async (event) => {
+        if (params.debug) {
+            console.log('[Docusaurus-PWA][SW]: message event', { event });
+        }
+        const type = event.data?.type;
+        if (type === 'SKIP_WAITING') {
+            // lib def bug, see https://github.com/microsoft/TypeScript/issues/14877
+            self.skipWaiting();
+        }
+    });
 })();
 
 })();

@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkhyunmoahn_github_io=self.webpackChunkhyunmoahn_github_io||[]).push([[1268],{4885:function(t){t.exports=JSON.parse('{"allTagsPath":"/en/tags","slug":"/en/tags/typescript","name":"typescript","count":1,"permalink":"/en/tags/typescript"}')}}]);

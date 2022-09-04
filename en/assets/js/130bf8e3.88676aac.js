@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkhyunmoahn_github_io=self.webpackChunkhyunmoahn_github_io||[]).push([[5968],{7925:function(e){e.exports=JSON.parse('{"allTagsPath":"/en/tags","slug":"/en/tags/immer","name":"immer","count":1,"permalink":"/en/tags/immer"}')}}]);

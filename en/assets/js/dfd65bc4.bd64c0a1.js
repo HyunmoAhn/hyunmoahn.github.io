@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkhyunmoahn_github_io=self.webpackChunkhyunmoahn_github_io||[]).push([[1913],{1122:function(a){a.exports=JSON.parse('{"label":"immutable","permalink":"/en/tags/immutable","allTagsPath":"/en/tags","count":1}')}}]);

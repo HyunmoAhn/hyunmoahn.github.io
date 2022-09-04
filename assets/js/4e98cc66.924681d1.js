@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkhyunmoahn_github_io=self.webpackChunkhyunmoahn_github_io||[]).push([[2029],{4764:function(e){e.exports=JSON.parse('{"permalink":"/tags/web","page":1,"postsPerPage":10,"totalPages":1,"totalCount":4,"previousPage":null,"nextPage":null,"blogDescription":"Write article associated with Front-end development","blogTitle":"hmos.dev"}')}}]);

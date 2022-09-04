@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkhyunmoahn_github_io=self.webpackChunkhyunmoahn_github_io||[]).push([[2509],{6854:function(a){a.exports=JSON.parse('{"label":"i18n","permalink":"/tags/i-18-n","allTagsPath":"/tags","count":1}')}}]);
