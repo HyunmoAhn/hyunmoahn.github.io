@@ -1,0 +1,1040 @@
+---
+slug: i18n-and-typescript
+title: i18n and typescript
+description: i18n and typescript
+keywords:
+  - i18n
+  - typescript
+  - web
+  - Template Literal Types
+authors: HyunmoAhn
+tags: [i18n, typescript, template literal type]
+---
+
+## Intro
+I am using typescript and [i18next](https://www.i18next.com/) for our project,
+I would like to summarize the experience of strongly applying the type check of the i18n JSON file.
+
+### About I18n
+First, the following is how i18n was being used.
+
+i18n is used to display text in multiple languages on the same webpage, meaning to display it in a language with one key, multiple values.
+
+```tsx
+const i18nJSON = {
+  'simple-example': 'This is example text',
+  'values-example': 'I need to show {0} value',
+  'line-break-example': 'Hello. \n I am FE developer'
+} as const
+```
+First, there is an object in the form of Key-Value as above. The object may be a JSON or an object of a typescript.
+
+```tsx
+import tFunction from 'utils';
+
+tFunction('simple-example') // This is example text
+tFunction('values-example', [15]) // I need to show 15 value
+tFunction('line-break-example') // Hello <br /> I am FE developer
+```
+Second, `tFunction` is used to insert the i18n key to obtain a string that fits the key.
+In some cases, the string including the value that fits each text may be returned by inserting a variable such as `values-example`.
+
+In the last `line-break-example`, the `\n` line break character is converted to the `<br/>` tag so that it can be line break on React.
+
+:::caution
+This article uses a function called `tFunction` as a method for applying i18n.
+Since it mainly deals with content at the type level, not JS logic, it will not deal with what actually happens to internal logic.
+It can be said that it plays the same role as a function such as [i18next.t](https://www.i18next.com/overview/api#t).
+:::
+
+### How about I18n return type
+
+Here, it may be seen what value the returned value in `tFunction` is. Then, what is the type of each return value?
+```tsx showLineNumbers
+import tFunction from 'utils';
+
+tFunction('simple-example')
+// This is example text
+// string
+tFunction('values-example', [15])
+// I need to show 15 value
+// string
+tFunction('line-break-example')
+// Hello <br /> I am FE developer
+// ReactElement
+```
+It may be considered that L3 and L6 are string types.
+However, in L9, ReactElement is returned because there is `\n` in the i18n text.
+
+:::note
+To support the line break by returning the string without returning to `ReactElement`,
+[dangerouslySetInnerHTML](https://reactjs.org/docs/dom-elements.html#dangerouslysetinnerhtml) shall be used.
+
+However, since there are many limitations, return to ReactElement instead of string.
+:::
+
+If the variable `values-example` contains JSX such as atag instead of `15`, the return type of `values-example` is also different.
+```tsx
+import tFunction from 'utils';
+
+tFunction('values-example', [15]) 
+// I need to show 15 value
+// string
+
+tFunction('values-example', [<a href="/about">more</a>]) 
+// I need to show <a href="/about">more</a> value
+// ReactElement
+```
+Even if the `values-example` I18n key is used as above, the type must vary depending on what value comes to values.
+This is because `a tag` must also be returned to a component that is a ReactElement, not a string, as in `<br/>`.
+
+### What is matter?
+
+It was found that the i18n Text type varies as string and ReactElement depending on the case.
+So what is the problem?
+
+**`tFunction` is that it does not intelligently infer types as mentioned above.**
+
+What is the problem if the type is not properly inferred here?
+
+```tsx
+<input 
+  type='input' 
+  placeholder={tFunction('line-break-example')} // type error  
+/>
+```
+In many cases, typically when using HTML tags, attributes defined as strings may contain i18n values rather than strings.
+In this case, `[object Object]` is displayed in the placeholder instead of the xlt text.
+
+Of course, it's obviously strange to have an a tag in the placeholder or a line change like \n.
+However, there may be cases where the i18n key is incorrectly used, or there may be cases where the i18n text is incorrectly registered.
+
+In other words, there are the above problems in that the type is not properly inferred when using typescript, and it can cause another problem.
+
+In this article, we will talk about how to define the type by format of i18n text.
+This article is basically related to typescript [Template Literal Types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html), although i18n is an example.
+
+:::info PRE-REQUIRED
+- General knowledge of `typescript 4.1+`
+- Interest in [Template Literal Types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html)
+- The experience of `i18n system`(optional)
+:::
+
+<!--truncate-->
+
+## Goal
+Rules must be established to respond to line breaks and variables while using i18n.
+Like rule that "put in `\n` when you want to line break on the string"
+or "If you want to insert a variable that depends on the case, use `{}`.
+
+We will first explain the i18n rule we are using and then talk about how to decide the type for the rule.
+
+### I18n Rule
+
+#### Line Break
+In i18n text, if you want to line break and display it, put `\n` in the part of i18n text.
+
+```json
+// i18n text json
+{
+  "lineBreak": "Hello. \n I am FE developer"
+}
+
+// displayed text
+Hello
+I am FE developer
+```
+
+#### Variable
+In i18n text, if you want to include a variable in the JS code that is contextually different, rather than static text, Cover with `{}`.
+Because you can put multiple variables in one i18n text, Inside the `{}`, start from 0 and increase it by 1.
+
+```json
+// i18n text json
+{
+  "oneValue": "This product is {0}.",
+  "unit": "${0}",
+  "twoValue": "This product is {0} and it will be delivered after {1} days"
+}
+```
+```tsx
+import tFunction from 'utils';
+
+tFunction('oneValue', [tFunction('unit', [1000])])
+// This product is $1000.
+
+tFunction('twoValue', [tFunction('unit', [500]), 3])
+// This product is $500 and it will be delivered after 3 days
+```
+
+#### Link
+If you want to include a link in the i18n text, you use the same way as the variable.
+`{}` is wrapped and used, and the text to be shown on the link is made into a separate i18n text.
+```json
+// i18n text json
+{
+  "link": "click",
+  "linkText": "{0} to show more information"
+}
+```
+```tsx
+import tFunction from 'utils';
+
+tFunction('linkText', [<a href="/more">{tFunction('link')}</a>])
+// <a href="/more">click</a> to show more information 
+```
+
+### I18n Return Type
+Then, for the above cases, what type of `tFunction` would be ideal to be returned to?
+
+```tsx showLineNumbers
+import tFunction from 'utils';
+
+const i18nJson = {
+  "lineBreak": "Hello. \n I am FE developer",
+  "oneValue": "This product is {0}.",
+  "unit": "${0}",
+  "twoValue": "This product is {0} and it will be delivered after {1} days",
+  "link": "click",
+  "linkText": "{0} to show more information"
+} as const;
+
+tFunction('lineBreak') 
+// Hello <br /> I am FE developer
+tFunction('oneValue', [tFunction('unit', [1000])])
+// This product is $1000.
+tFunction('twoValue', [tFunction('unit', [500]), 3])
+// This product is $500 and it will be delivered after 3 days
+tFunction('linkText', [<a href="/more">{tFunction('link')}</a>])
+// <a href="/more">click</a> to show more information 
+```
+Since L12 contains `<br />`, it should not be inferred as a normal string.
+Therefore, if there is a line change such as `\n` in i18n text, the type should be inferred as `ReactElement`.
+
+L14 and L16 contain `values ({0} and {1})`, but the additional value is also string or number. Therefore, it may be inferred as `string`.
+
+The last L18 is slightly different from the L14 and L16.
+The a tag was included as values, and in order to display it, the type must be inferred as `ReactElement`.
+
+### Recap of Goal
+Therefore, the goals are summarized as follows.
+- The return type of `tFunction` should be inferred according to the i18n key.
+- The return type of `tFunction` depends on the format of the i18n text that matches the i18n key.
+  - If you have a `\n` line-breaking keyword in i18n text, infer it as `ReactElement`.
+  - In i18n text, if the variable `{}` has a keyword, and values such as string and number are entered as variables, it is inferred as string.
+  - In i18n text, if the variable `{}` has a keyword, and a value other than string and number is entered as a variable, it is inferred as ReactElement.
+- In addition, it would be good to check the type in the second parameter of `tFunciton` depending on whether the i18n text has the `{}` variable keyword or how many.
+
+## Definition of Type
+Now, we are planning to fill in the return type of `tFunction` according to the above conditions.
+Let's look at an example of the code below.
+
+```tsx showLineNumbers
+import React from 'react';
+
+const i18nJson = {
+  "simple": "Hello World",
+  "lineBreak": "Hello. \n I am FE developer",
+  "oneValue": "This product is {0}.",
+  "unit": "${0}",
+  "twoValue": "This product is {0} and it will be delivered after {1} days",
+  "link": "click",
+  "linkText": "{0} to show more information"
+} as const;
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+
+type TFunction = (key: I18nKey, values?: any) => string
+
+const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key]; 
+
+const simple = tFunction('simple'); // string
+const lineBreak = tFunction('lineBreak'); // string
+const oneValue = tFunction('oneValue', [tFunction('unit', 500)]);
+// string
+const twoValue = tFunction('twoValue', [tFunction('unit', [500]), 3]);
+// string
+const linkText = tFunction('linkText', [<a href="/about">{tFunction('link')}</a>])
+// string
+```
+[playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDG8BmUIjgcilQ3wG4AoctCAOwGd5gBGADhoCk7a4BeOAb3Jw4AIjqgwAGyQiAXKIASSSZIhwA6tEkATEQBohoycBpIAQkRQBrOYuWqAdHAA6NOAEk4KPADEAonDaSABuyhBgSFD6hiK0SABqKJIArjLyIgAqABbAdHBgONrJGHC5AgAMAL4O0cIiyTTAMLYiACT8VbWiMADuEIkpaaLZZQUQRSVlHZVeNNql8D3AKnAARkiBysChRPMomDCRAkwz2igAnnRdIsY0Nuloxmg2BnW3VhlIAB7N6dNwMDUdCyEB6cBA0A2Jkw0BAKBgwFoInIMxQeWo9BgFHIMHOEQ8rA4XDcfFxEQgmFKhM4tAoZI27kJAGkkOdeHArKyKQS2DSaNj6XAMj4GhhESS4AAKTnneSMtgs856ODBJKpOgAfnkKBo5wAlLwAHxwBhQEwAc0oGIYAJFNDFtHkwtFCO4fGlrLlzNZytVgzo2t1Bp4xuYvOJAG0ZQBdUhwK20G3icDSdkwO0OmiS-DJqRIfB6uNURPwW7mSxWNMZ11Z-BliyoKwFijW+BxAapKsu8XZ9tq-PKiPp7u0bMNJr4ZUAVnK5T10cLxcxAL6HY2pOrPfwvX6-cncCHm9H+HHMH3EZn5QXyoAzAuWyW4O9Pj8u-aa9nn98z4OADwoOAsiITAeBEAB6FBVggZJmkNfhh3fLd3gLSpfwgw0F3IIA)
+
+All previous examples of i18n text used as examples are included in `i18nJson`, which is inferred as `I18nJson` and `I18nKey`.
+This defines the `TFunction` function type and uses it for `tFunction`.
+Currently, all are returning to the string type, but our goal is to infer this from a different type depending on the case.
+In other words, although both L20-L27 are currently inferred as strings, at the end of this article,
+it aims to be divided into strings and ReactElement according to the format of text according to each key.
+
+### LineBreak
+First, if `\n` is included in i18n text, we will learn how to return to ReactElement instead of string.
+We need to understand the [Template Literal Type](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html) for this feature.
+
+#### Template Literal Type
+Typescript has a string type and a literal type. Furthermore, there is a `Template Literal Type` that combines literal types to create another type.
+As an example, it is as follows.
+
+```tsx showLineNumbers
+let str1 = 'example' // string
+const str2 = 'example' // 'example'
+
+type StrPrefix = 'one' | 'two'
+type StrPostfix = 'type' | 'sample'
+
+type TemplateStr = `${StrPostfix}_${StrPostfix}`
+// 'one_type' | 'two_type' | 'one_sample' | 'two_sample'
+```
+The `str1` of L1 is declared `let` and is not inferred as a literal type,
+but as a string type because the `str1` variable can be reallocated to a different value.
+On the other hand, `str2` of L2 is declared as `const` and is inferred as a literal type of `example`.
+
+By combining `StrPrefix` and `StrPostfix` declared in L4-L5, `TemplateStr` is inferred as a Union type with four literal types in L7.
+
+Using this principle, we will check the `\n` text in i18n text and infer it as a separate type.
+
+#### Define line break type
+```tsx  showLineNumbers
+import React, { ReactElement } from 'react';
+
+const i18nJson = {
+  "simple": "Hello World",
+  "lineBreak": "Hello. \n I am FE developer",
+} as const;
+
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+
+// highlight-start
+type LineBreakFormat = `${string}\n${string}`;
+
+type TFunction = <Key extends I18nKey,>(
+  key: Key,
+  values?: any,
+) => I18nJson[Key] extends LineBreakFormat ? ReactElement : string;
+// highlight-end
+
+const tFunction: TFunction = (key: I18nKey, values: any) =>
+  i18nJson[key] as any;
+
+const simple = tFunction('simple'); // string
+const lineBreak = tFunction('lineBreak'); // ReactElement
+```
+[playground](https://www.typescriptlang.org/play?ssl=8&ssc=1&pln=9&pc=1#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARENBhSagFzqAEkmLEIcAOrRiAEzWYV64sApIAQuxQBrPYeOmAdHAAOhRwAJJwKMwAYoRw1kgAbsYQYEhQdjy0KEJwAsIwvDwwAJ5p4ZIycqFKpWkQdHDiUrKCvHVIFVIA0kglinCefQ1dVW18HXAAMs5uHp7R0CAo8EoABgAkOCJQzgDm1CFbO-vUa0WTACrRAK4UGMDySgA8vf1IAB4wlNa5YZVvTAAPgAFEMSvpAXBEihiDckEIAPz6FAUEoASkUQNGrQoAG03gBdOCfb4UX7TWbuVALJYrOCI-DoGAkMiUeD6E4UPZFfIiOAwW73GCPCj6a53B5POBgvr6f49PrYGFwhEotGYhTY5pjfHg4k5SJorhwPh8+CacCkAaCyUiwQgliW7RIFjok0Aeg9cC5e34gn5Thc1K8NqFUoojqDcxpbs93uQzNZ5CoQA)
+
+If you look at L12, use the Template Literal String to make the `LineBreakFormat` type separately.
+If you set `${string}\n${string}`, you have a string of `\n` wrapped in the string
+It is inferred as `LineBreakFormat`.
+
+#### Function type inference
+
+We should infer the return type by looking at the literal type of the key entering run-time when calling `TFunction`.
+If `I18nKey` is used as it is in the type area, the return type cannot be changed according to the key input value.
+
+Here, change it as follows using [Function type conference](https://www.typescriptlang.org/docs/handbook/2/functions.html#inference).
+```tsx
+// Before
+type TFunction = (key: I18nKey, values?: any) => string
+
+// After
+type TFunction = <Key extends I18nKey,>(key: Key, values?: any) => string;
+```
+If `Key` is extracted as Generic in the above way and `TFunction` is not explicitly declared, the literal type entering the key can be used.
+
+Finally, determine whether the I18n text for the key is `LineBreakFormat` and branch ReactElement and string.
+```tsx
+// Before
+type TFunction = <Key extends I18nKey,>(key: Key, values?: any) => string;
+
+// After
+type TFunction = <Key extends I18nKey,>(key: Key, values?: any) =>
+// highlight-start
+  I18nJson[Key] extends LineBreakFormat ? ReactElement : string;
+// highlight-end
+```
+In `typescript`, `extends` means inheritance when used in interface, but it can also be used as [Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html).
+Therefore, if i18n Text, `I18nJson[Key]` is `LineBreakFormat`, it returns to ReactElement, otherwise it returns to string type.
+
+Here, the key of `I18nJson[Key]` is a literal type used for run-time.
+
+Therefore, if `simple` is introduced as a key, use the `Hello World` literal type by inference as a type for `I18nJson['simple']`. <br/>
+If `lineBreak` is used as a key, the condition logic of `LineBreakFormat` is meaningful because the type comparison of `Hello. \n I am FE developer` is performed as a type of `I18nJson['lineBreak']`.
+- `I18nJson[Key]`
+  - Key: simple -> `I18nJson['simple']` -> `'Hello World'`
+  - Key: lineBreak -> `I18nJson['lineBreak']` -> `'Hello. \n I am FE developer'`
+
+Thanks to this, the return type proceeds differently in L17-L18 with the string and react element types, respectively.
+
+### To determine the type of entry to a variable
+Next, if there is only a number and a string in the second parameter array of `TFunction`,
+the string is returned, and if other values such as ReactElement are included, the ReactElement is returned.
+
+As an example, the code to view is as follows.
+```tsx showLineNumbers
+import React from 'react';
+
+const i18nJson = {
+  "oneValue": "This product is {0}.",
+  "twoValue": "This product is {0} and it will be delivered after {1} days",
+} as const;
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+
+type TFunction = (key: I18nKey, values?: any) => string
+
+const tFunction: TFunction = (key: I18nKey, values: any) =>
+  i18nJson[key] as any;
+
+const oneValue = tFunction('oneValue', [100]);
+const twoValue = tFunction('twoValue', [100, '200']);
+const twoValueWithReactElement = tFunction(
+  'twoValue',
+  [100, <a>Hello</a>],
+);
+```
+[playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDG8BmUIjgcilQ3wG4AoctCAOwGd5gBGADhoCk7a4BeOAb3Jw4AIlpIAaigA2AVyQiAXKIAqAC2B04YHABNZGOJoEAGAL4A6EQBohomAHcIUuQuUj1xnRH2Hj-czgUGl0jeAdgaWk4ACMkOF0kaWAANyQiUJRMGHSBJjMElABPOhtyApQtanoYCnIYIrB4gElWDi4aXjgGpohMIzbOWgoelraAaSQiroBrKb64VrYhmjrRuBUAMVkaDGBuPgAKOaLlJZpJous4FJl5OgB+ZWCigEpeAD44BihgGgBzSjVBjdba7GD7GjKLY7PYHODHKZnCZTa63Vx0Z40N6fAbLDoAbROAF1SHAgbQQeIXPIujAwXCaId8NS7kh8NcCUwTCZia8KMD4I5nGy6QyIbRmcKaezOdyTNcAEw8vkCylCpwygDqwBgamQ6BgAFFpEgQEgaPA+PTYRKmfhpWyOXAuTzrgAeFAfAASSWkEHdAHovaryEA)
+
+Only necessary parts of the existing playground code have been left.
+Our goal is to return L15 and L16 to string because the second parameters is an array consisting only of number and string,
+and return to ReactElement because L17 puts `a tag` as a variable.
+
+The solution is simple. All you have to do is determine whether the values are of type `(string | number)[]`.
+```tsx
+type TFunction = <Params extends any[],>(key: I18nKey, values?: Params) =>
+  Params extends (string | number)[]
+  ? string : ReactElement
+```
+In the above code, the type of `values` is extracted as a Generic type to use
+[type inference](https://www.typescriptlang.org/docs/handbook/2/functions.html#inference),
+and no Generic is used when calling `tFunction`. Then we can use condition type as the type of `Params`.
+
+If `Params` is an array consisting of only number and string,
+it is automatically inferred as a type string, and if another value(ReactElement) is included, it is returned as a ReactElement.
+When checked on the [playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDG8BmUIjgcilQ3wG4AoctCAOwGd5gBGADhoCk7a4BeOAb3Jw4AIlpIAaigA2AVyQiAXKIAqAC2B04YHABNZGOJoEAGAL4A6EQBohomAHcIUuQuUj1xnRH2Hj-czgUGl0jeAdgaWk4ACMkOF0kaWAANyQiUJRMGHSBJjMElABPOhtyApQtanoYCnIYIrB4gElWDi4aXjgGpohMIzbOWgoelraAaSQiroBrKb64VrYhmjrRuBUAMVkaDGBuPgAeAAUUKBQQLSQADxyQrWCigG0AXWsAPgAKOaLlJZpJkVrHAUjJ5HQAPzKU7nS4ASl47zgMIuV1uSHucE+DCgwBoAHM4AAfOA0WQgOJQOGvOAQuA4vGE5TIdAwACi0iQIAxMEo1QY3W2uxg+xoyi2Oz2ByxPz+EymwNBrjoykeCJ4SOYyw6Tx+L1IcD5tAF4hc8i6MCFUpon3wprBSHwwKeTBMJhecIo-PgjmcDotVpFtFtvrNjudrpMwIATG6PV7jT6nGGAOrAGBqFkYDlcnkByVBm34UMOp1wF1u4GHFDvAASSWkEEOAHoa-HyEA)
+, it is inferred as follows.
+```tsx
+const oneValue = tFunction('oneValue', [100]); // string
+const twoValue = tFunction('twoValue', [100, 200]); // string
+const twoValueWithReactElement = tFunction(
+  'twoValue',
+  [100, <a>Hello</a>],
+); // ReactElement
+```
+Thus, if a value other than number and string is included in the variable, we found a method to infer as ReactElement.
+
+However, if i18n including variables is used, there may be the following cases.
+```tsx
+const i18nJson = {
+  "normal": "Hello World",
+  "oneValue": "This product is {0}.",
+  "twoValue": "This product is {0} and it will be delivered after {1} days",
+} as const;
+
+const oneValue = tFunction('oneValue');
+// NEED type error!!
+// Variables should be used, but empty values are entered.
+const twoValue = tFunction('twoValue', [100]);
+// NEED type error!!
+// The two is time to be, but when it enters only one.
+const normal = tFunction('normal', [100]);
+// NEED type error!!
+// If there should be no variables, but they are being used.
+```
+In other words, it is about the case where the number of variables is not correct or used when they should be used, or used when they should not be used.
+For this, a more complex type declaration is needed, and let's continue with the next paragraph.
+
+### To check the number of variables
+Now, we need to find how many strings are wrapped with `{}`.
+As we used in the line break before, We'll use the [Template Literal Type](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)
+We will use it, but that is not enough.
+
+#### [Recursive Conditional Types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#recursive-conditional-types)
+We need to find string that wrapped `{}` and check it again. The Recursive method is used for this.
+```tsx
+// This is not working!
+type ValuesArray<I18nText extends string> =
+  I18nText extends `${string}{${string}}${string}`
+  ? [any, ...ValuesArray<I18nText>] : [];
+```
+It is used in the same way as above. (Of course, the code above is incorrect.)
+
+I think it declares `Values Array` and hands over i18n text to `I18nText` for type inference.
+Then, if there is a literal type of `{}` in the I18nText, it is to create an array and perform `ValuesArray` again.
+
+Of course, this code will not work properly now. <br/>
+This is because the input of Recursive, that is, I18nText, is being put back in full I18nText. <br/>
+We need to extract the remaining right string from the string containing `{}` and put it as input of the recursive.
+
+To example this as an example,
+1. `Hello {0} World {1} Thank {2} you`
+2. `World {1} Thank {2} you`
+3. `Thank {2} you`
+
+If we use text 1 on `ValuesArray`, result is inferred `[any, ...ValuesArray<?>]` and rest string(2nd text) is entered on `?`.
+Next `ValuesArray` uses text 2 as input. it returns `[any, any, ...ValuesArray<?>]`.
+At last, `ValuesArray` should use text 3 as input, and it should return `[any, any, any]`.
+
+To above logic, we will use [infer](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types)
+
+#### [Inferring Within Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types)
+If `Infer` is used, the generic used in the conditional type can be taken and used as the return type.
+In other words, it is as follows.
+```tsx
+type ValuesFormat<Suffix extends string> =
+  `${string}{${string}}${Suffix}`;
+type ValuesArray<I18nText extends string> =
+  I18nText extends ValuesFormat<infer Rest>
+  ? [any, ...ValuesArray<Rest>] : [];
+```
+`ValuesFormat` is a type that includes generic `Suffix` after `}`,
+rather than a string containing simple `{}`.
+It is meaningless if used alone, but if used with `infer` in `Values Array` below, the meaning is different.
+As in the previous example, `ValuesArray` check if `{}` exist and fill in the array.
+Then, `infer Rest` is used, and `Rest` means Suffix, the first generic of `ValuesFormat`, and if we use Rest for the next recursive, what we want is completed.
+```tsx
+type Example = 'Hello {0} World {1} Thank {2} you';
+
+type ValuesFormat<Suffix extends string> =
+  `${string}{${string}}${Suffix}`;
+type ValuesArray<I18nText extends string> =
+  I18nText extends ValuesFormat<infer Rest>
+  ? [any, ...ValuesArray<Rest>] : [];
+
+type Result = ValuesArray<Example> // [any, any, any];
+```
+[playground](https://www.typescriptlang.org/play?#code/C4TwDgpgBAogHgQwLZgDbQLxQOQAkKqoD2UA3gAwC+UA6kQE6oAmZAjNQCoAWCAdgNZkATNRBEArtgDcAKBmhIUAGoJU4iAGcAYgyQJgAHgDK4gGamAlnCgQ4wCLyYaoG4PQu8A5gD4oWAAYAJKSu7l6UpMGhHp6UlMEm5laU-rIK0CpqmgCC9PQIIAYAkqwAHLwctsA2dg5OLm4xvlgl5ZV2NfaOzpnq2rr6Bh6mEPRQAEqawL4A-FAA2nwgADRQAHQbvTl5BQaTrt4AulAAXAuHsvLg0PviqNVYWxq5+YXwyGgQvgD03wtLqwBUCWFxkQA)
+
+Now, let's apply `ValuesArray` to the first example.
+```tsx showLineNumbers
+import React, { ReactElement } from 'react';
+
+const i18nJson = {
+  "normal": "Hello World",
+  "oneValue": "This product is {0}.",
+  "twoValue": "This product is {0} and it will be delivered after {1} days",
+} as const;
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+
+type ValuesType = string | number | ReactElement;
+type ValuesFormat<Suffix extends string> =
+  `${string}{${string} }${Suffix}`;
+type ValuesArray<I18nText extends string> =
+  I18nText extends ValuesFormat<infer Rest>
+  ? [ValuesType, ...ValuesArray<Rest>] : [];
+
+// highlight-start
+type TFunction = <
+  Key extends I18nKey,
+  Params extends ValuesArray<I18nJson[Key]>,
+>(key: Key, values?: Params) => string
+// highlight-end
+
+const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any; 
+
+const oneValue = tFunction('oneValue'); // Error?
+const twoValue = tFunction('twoValue', [100]); // Type Error!
+// highlight-start
+// Argument of type '[number]' is not assignable
+// to parameter of type '[ValuesType, ValuesType]'.
+// highlight-end
+const normal = tFunction('normal', [100]); // Type Error!
+// highlight-start
+// Type 'number' is not assignable to type 'undefined'.
+// highlight-end
+```
+[playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARBWggUxNQC51ACSTFiEOAHVoxACZrMK9YKQA1HQFck+9QBUAFsBCcGCMNu4YcIG4AAzUAHT2jmowAO4QbsSe3mr+USEQYRFROLFwKBQ2kfApwKZwAEZIcDYmwABuSOyVKHQwnbhitDYoAJ5CibQoQQLCMLw8MCNgTQCSkjJyFIpwi8sQdJHrsoK8u6vrANJII9sA1tf7cGtSxxTzZ3AZnkI+S01KIigwAoAHM4AAfOAUdwgRpQCH4dAwEhkShzBZ-T4eJBCABiWhQMAAPABldx0OjAAAecCQVL6FSCgOBIIAfNsAAYAEhwzNB1BwPL5IOo1B5ZIp1OoHNOmK+OIAglAoKMic8KD46fAtZQbEyYEDQeylOrNfTafTdUF5XiCcTgXR+sgROyAPxwADaNt+y2wcX9NqVKpGROdMFZAF04AYPRH5hjlnAfLj3BQMMB5EoiVcbjrGU9LtdsAAFFAqkBBPN6rGZRXK1Xq14enMR1msgAU9xGBhz2Da2KEroMpfLQgAlIp2cK+DMRDsU2mYBmKAZk6n05m4J3rgZ1b24P3a0IDOURhOFOzxC9Nh6u1GpmUKCMuHAZ4I5855dsYAuNxR2ywn7YiwY4vgA9GBcCEMq0Cuvw77wKk6TYt+v5LoIAFIfKLDYB6YjRNEEagXAEFJpi0GMFAACEr6kUqIIwmicCPB8LAetCsKdBGLCREEmjwFMQjACCFAoPUpA7OYYBlig5B9PCLGYmx3p-NgKnLNxcTwbMUIEsQqHruh-4sJoUDaMQOGevhhHEaRPpNBR0BUTwdlKRxcI8VE-FlEIQkiWJEkwOYrGpi0lIUEgNgsHEQA)
+
+In `TFunction` of L19, `ValuesArray` was applied to `Parmas`.
+As the generic of `ValuesArray`, `I18nJson[Key]` is added to dynamically receive the key through type inference so that i18n text can enter the generic.
+If so, Params will be inferred as a `ValuesType` array with a fixed length, respectively.
+
+Therefore, an error occurs in the type check of L28 and L31, and the cause of the error is that an appropriate array length is not matched.
+However, L26 does not generate an error because the variable is not included, which is caused by the keyword '?' attached to the values of TFunction.
+
+Let's increase the level of perfection a little.
+
+#### [Rest Parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments) 
+
+`Rest Parameters` is used to dynamically set the number of arguments in the function.
+```tsx showLineNumbers
+// highlight-start
+type TFunction = <
+  Key extends I18nKey,
+  Params extends ValuesArray<I18nJson[Key]>
+>(key: Key, values?: Params) => string
+// highlight-end
+
+const oneValue = tFunction('oneValue'); // Error?
+const twoValue = tFunction('twoValue', [100]); // Type Error!
+```
+Therefore, in the above example, `tFunction` used in `oneValue` use `...` (Rest Parameters), which changes the number of values depending on the case, instead of `?` indicating that it is not necessary.
+
+```tsx showLineNumbers
+// highlight-start
+type TFunction = <
+  Key extends I18nKey,
+  Params extends ValuesArrayResult<I18nJson[Key]>
+>(
+  key: Key,
+  ...values: Params extends [] ? [undefined?] : [Params]
+) => string
+// highlight-end
+
+const tFunction: TFunction = (key: I18nKey, ...values: any) => i18nJson[key] as any;
+
+const oneValue = tFunction('oneValue'); // Type Error!
+```
+[playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARBWggUxNQC51ACSTFiEOAHVoxACZrMK9YKQA1HQFck+9QBUAFsBCcGCMNu4YcIG4AAzUAHT2jmowAO4QbsSe3mr+USEQYRFROLFwKBQ2kfApwKZwAEZIcDYmwABuSOyVKHQwnbhitDYoAJ5CibQoQQLCMLw8MCNgTQCSkjJyFIpwi8sQdJHrsoK8u6vrANJII9sA1tf7cGtSxxTzZ3AZnkI+S01KIigwAoAHM4AAfOAUdwgRpQCH4dAwEhkShzBZ-T4eJBCABiWhQMAAPABldx0OjAAAecCQVL6FSCgOBIIAfNsAAYAEhwzNB1BwPL5IOo1B5ZIp1OoHNOmK+OIAglAoKMic8KD46fAtZQbEyYEDQeylOrNfTafTdUF5XiCcTgXR+sgROyAPxwADaNt+y2wcX9NqVKpGROdMFZAF04AYPRHZcssZlFcrRs73MRiaatRaGXq4MLjYnvkHVVn6eydYzPVH3e4KkhKRQkJUDIGUyGy+G+B8fLi6xhgPIlESrjdK3n1aPsAAFFAqkBBcfW7FCEsjNMZtVHTYe0cR1msgAU9xGBincH9cTaK4Ms-ni8tVdjcHdHrrLUbzddUZjd5QC4jABKRR2WFPgZhEHY+woAdBAMXt+xgQctiUY9rgMSdrj9f1ryTIQDHKEZgIUdlxBeHcTyjKYygoEYuDgcDBEg5x5W2GBoNgihDxYFjsRYQD6IAekEuBCGVaBXX4Jj4FSdJsTYjikMEbjZPlFhsA9MRomibAtJ0uA9KAoSRJ9JoxMYKAAEIGOEuAlRBGE0TgR4PhYD1oVhToIxYSIgk0eApiEYAQQoFB6lIHZzDAOd-yQPp4RczE3O9P5sBS5ZvLiKTZihAliAUxDkO4zQoG0Yh+OMuBTNE8SrJ4WzqpYDy4R8qJ-LKIQgpCsKIpgcxXPfBtgWbFg4iAA)
+
+Change `values` to `...values` in L1 and type `[undefined?]` if `Params` is an empty array, and `[Params]` if it is not an empty array.
+If so, if values are not required, it is set to optional, and if values are required, it is a method of receiving arrays of the length of the number.
+
+Here, the ? in the item of the Array is about the [Optional elements](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#optional-elements-in-tuple-types),
+which is a grammar in which each element can be set to optional.
+
+## Result
+We have implemented the following type definitions in previous articles.
+- Define the Return Type differently depending on the presence or absence of the line break keyword.
+- Define the return type differently according to the type of runtime value entering the i18n variable parameter.
+- Define the number of i18n variables entering `TFunction` according to the number of i18n variable keywords.
+
+When the above three definitions are combined, we can check the first [i18n Rule](#i18n-rule) at the type level.
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+<Tabs defaultValue='lineBreak'>
+  <TabItem value='draft' label='Draft'>
+
+  ```tsx showLineNumbers
+  import React from 'react';
+
+  const i18nJson = {
+    "simple": "Hello World",
+    "lineBreak": "Hello. \n I am FE developer",
+    "oneValue": "This product is {0}.",
+    "unit": "${0}",
+    "twoValue": "This product is {0} and it will be delivered after {1} days",
+    "link": "click",
+    "linkText": "{0} to show more information",
+  } as const;
+
+  type I18nJson = typeof i18nJson;
+  type I18nKey = keyof I18nJson;
+
+  type TFunction = (key: I18nKey, values?: any) => string
+
+  const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key];
+
+  const simple = tFunction('simple'); // string
+  const lineBreak = tFunction('lineBreak'); // string
+  const oneValue = tFunction('oneValue', [tFunction('unit', 500)]); // string
+  const twoValue = tFunction('twoValue', [tFunction('unit', [500]), 3]); // string
+  const linkText = tFunction('linkText', [<a href="/about">{tFunction('link')}</a>]) // string
+  ```
+  <a href="https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDG8BmUIjgcilQ3wG4AoctCAOwGd5gBGADhoCk7a4BeOAb3Jw4AIjqgwAGyQiAXKIASSSZIhwA6tEkATEQBohoycBpIAQkRQBrOYuWqAdHAA6NOAEk4KPADEAonDaSABuyhBgSFD6hiK0SABqKJIArjLyIgAqABbAdHBgONrJGHC5AgAMAL4O0cIiyTTAMLYiACT8VbWiMADuEIkpaaLZZQUQRSVlHZVeNNql8D3AKnAARkiBysChRPMomDCRAkwz2igAnnRdIsY0Nuloxmg2BnW3VhlIAB7N6dNwMDUdCyEB6cBA0A2Jkw0BAKBgwFoInIMxQeWo9BgFHIMHOEQ8rA4XDcfFxEQgmFKhM4tAoZI27kJAGkkOdeHArKyKQS2DSaNj6XAMj4GhhESS4AAKTnneSMtgs856ODBJKpOgAfnkKBo5wAlLwAHxwBhQEwAc0oGIYAJFNDFtHkwtFCO4fGlrLlzNZytVgzo2t1Bp4xuYvOJAG0ZQBdUhwK20G3icDSdkwO0OmiS-DJqRIfB6uMAeiLJpgZpolut8Fu5ksVjTGddWfwtYsqCsBeLpdNFqoifgcQGqUbLvF2aHavzyoj6bHtGzDSa+GVAFZyuU9dHC3AS2WK1WBwC+sONqSm+P8L1+lOV3BZxeF-glzA7xH1+Vt8qAMzb7v7vtqzgd5Ph+Ud7WbbMQO+V8ZwAHhQOAsiITAeBEIsUFWCBkmaQ1+DnCDL3eAtKjgjDDW3Xce3LC0gA">Playground</a>
+
+  </TabItem>
+  <TabItem value='lineBreak' label='Line Break'>
+
+  ```tsx showLineNumbers
+  import React, { ReactElement } from 'react';
+
+  const i18nJson = {
+    "simple": "Hello World",
+    "lineBreak": "Hello. \n I am FE developer",
+    "oneValue": "This product is {0}.",
+    "unit": "${0}",
+    "twoValue": "This product is {0} and it will be delivered after {1} days",
+    "link": "click",
+    "linkText": "{0} to show more information"
+  } as const;
+
+  type I18nJson = typeof i18nJson;
+  type I18nKey = keyof I18nJson;
+
+  // highlight-start
+  type LineBreakFormat = `${string}\n${string}`;
+
+  type TFunction = <Key extends I18nKey,>(
+    key: Key,
+    values?: any,
+  ) => I18nJson[Key] extends LineBreakFormat
+    ? ReactElement : string;
+  // highlight-end
+
+  // highlight-start
+  const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any;
+  // highlight-end
+
+  const simple = tFunction('simple'); // string
+  // highlight-start
+  const lineBreak = tFunction('lineBreak'); // ReactElement
+  // highlight-end
+  const oneValue = tFunction('oneValue', [tFunction('unit', 500)]); // string
+  const twoValue = tFunction('twoValue', [tFunction('unit', [500]), 3]); // string
+  const linkText = tFunction('linkText', [<a href="/about">{tFunction('link')}</a>]) // string
+  ```
+  <a href="https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARENBhSagFzqAEkmLEIcAOrRiAEzWYV64sApIAQuxQBrPYeOmAdHAAOhRwAJJwKMwAYoRw1kgAbsYQYEhQdg5qgkgAaijEAK5IPmoAKgAWwEJwYIzWhRhw1bgADNT+mapqhRTAMKUAJDjtXeowAO4Q+UUl+uVVNXUQDU0tI7QoFNbN8BPAJnAARkjxxsDJ7DsodDDpuGK01igAnkJjak4U3vNoTmjeezdL6eMpIAAeA3mGzgMDMQgqEAmcBA0FOzjo0BAKBgwEEah4mxqAmEMF4PBgLzS4UkMjkoSUlLSEDozVpskEvCZpzCtIA0kgXoo4J5BSyaVIORRydy4AAZZxuDyeaJYnHCgAGwxEUGcAHNqCFtTBdRQDRqZVTTmVor0MHiGXAADwCoUQu7bGq8qSuzAAPgAFKKXvpfXBEgVikIAPz6LYvACUij9ErpggA2q6ALpwd2Uaw1BUudyoFVq+DR-DoGAkMiUeD6HX6vgkkSw20Ue2CfQ2u24+RKIOC-TeihhiOzIRxiiJ5NsyX09PBnMoGrxrhwFuCNuacCkYUwDtdigBli77RIFgJjcAehvcCbZv42-gXyVpYPR-7J5Yb5LXivW972Qata3IKhn1JOAchmYpPz7B1TxgyNL2wdNDwQwRT16foWGwABWVpWgTLNrzgO8HxNZtW3gSZphQ+DO2-U86Ng1C4HQr9EJYHDODQwjWlI7AAGZSKAyjTT1SC2xBMFIUY49T1k908I4p0UDgCp2DoBQ1BvFAjggQoBj9HAMKY7iQSvagnX0v1SPI+9Hz1IA">Playground</a>
+
+  </TabItem>
+  <TabItem value='valueTypeCheck' label='+ Values Type Check'>
+
+  ```tsx showLineNumbers
+  import React, { ReactElement } from 'react';
+
+  const i18nJson = {
+    "simple": "Hello World",
+    "lineBreak": "Hello. \n I am FE developer",
+    "oneValue": "This product is {0}.",
+    "unit": "${0}",
+    "twoValue": "This product is {0} and it will be delivered after {1} days",
+    "link": "click",
+    "linkText": "{0} to show more information"
+  } as const;
+
+  type I18nJson = typeof i18nJson;
+  type I18nKey = keyof I18nJson;
+
+  type LineBreakFormat = `${string}\n${string}`;
+
+  // highlight-start
+  type TFunction = <Key extends I18nKey, Params extends any[]>(
+  // highlight-end
+    key: Key,
+    values?: Params,
+  ) => I18nJson[Key] extends LineBreakFormat
+    ? ReactElement
+    // highlight-start
+    : Params extends (string | number)[]
+    ? string
+    : ReactElement;
+    // highlight-end
+
+  const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any;
+
+  const simple = tFunction('simple'); // string
+  const lineBreak = tFunction('lineBreak'); // ReactElement
+  const oneValue = tFunction('oneValue', [tFunction('unit', [500])]); // string
+  const twoValue = tFunction('twoValue', [tFunction('unit', [500]), 3]); // string
+  // highlight-start
+  const linkText = tFunction(
+    'linkText',
+    [<a href="/about">{tFunction('link')}</a>],
+  ) // ReactElement
+  // highlight-end
+  ```
+  <a href="https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARENBhSagFzqAEkmLEIcAOrRiAEzWYV64sApIAQuxQBrPYeOmAdHAAOhRwAJJwKMwAYoRw1kgAbsYQYEhQdg5qgkgAaijEAK5IPmoAKgAWwEJwYIzWhRhw1bgADNT+mapqhRTAMKUAJDjtXeowAO4Q+UUl+uVVNXUQDU0tI7QoFNbN8BPAJnAARkjxxsDJ7DsodDDpuGK01igAnkJjak4U3vNoTmjeezdL6eMpIAAeA3mGzgMDMQgqEAmcBA0FOzjo0BAKBgwEEah4mxqAmEMF4PBgLzS4UkMjkoSUlLSEDozVpskEvCZpzCtIA0kgXoo4J5BSyaVIORRydy4AAZZxuDyeaJYnHCgAGwxEUGcAHNqCFtTBdRQDRqZVTTmVor0MHiGXAADwCoUQu7bGq8qSu7AABRQUCiNXdlGsNS2LwA2gBdAB8AAoHKKXvpfQ5EgVikIAPz6ANBkBCewASkUcYldMEUddMbgoc98sV7lQKrVMAcOfw6BgJDIlA7qnzgeD9chYZqCZ1+rgAB84BRCiATlAS7HO3Bp2aHPpkD2++QqOSSSJYbaKPbBPobXbcfIlAmU-pvRRfXBM7MhPpI2WFBXxJK9JRimdYoBGFAvFwcB8Ce8CaOApDCjA56XhQCYsPB2hICwJZQQA9Hhm4mvq-CCKeXxKq2SEoXeaEsBRLZeDh+GEXuRCkIeHawXAOQzMU1G3g66G8Vm2HYFGyGCYI6G9P0LDiQArK0rQxiWqksURpp6qRpKwlMfGnIyNFCSwkzTKJ8lwBJxnSSwsmcIpymqdgADM6lwARmkkdxIJgpCAkXrR6G+e6llRk6KBwBU7B0Aoah4SgRwQIUAxxjgkmBSZII4dQToJXGqkeaxHAHgOQA">Playground</a>
+
+  </TabItem>
+  <TabItem value='valueNumberCheck' label='+ Value Number Check'>
+
+  ```tsx showLineNumbers
+  import React, { ReactElement } from 'react';
+
+  const i18nJson = {
+    "simple": "Hello World",
+    "lineBreak": "Hello. \n I am FE developer",
+    "oneValue": "This product is {0}.",
+    "unit": "${0}",
+    "twoValue": "This product is {0} and it will be delivered after {1} days",
+    "link": "click",
+    "linkText": "{0} to show more information"
+  } as const;
+
+  type I18nJson = typeof i18nJson;
+  type I18nKey = keyof I18nJson;
+
+  type LineBreakFormat = `${string}\n${string}`;
+
+  // highlight-start
+  type ValuesType = string | number | ReactElement;
+  type ValuesFormat<Suffix extends string,> = `${string}{${string}}${Suffix}`;
+  type ValuesArray<I18nText extends string,> = I18nText extends ValuesFormat<infer Rest,> ? [ValuesType, ...ValuesArray<Rest,>] : [];
+  // highlight-end
+
+  // highlight-start
+  type TFunction = <
+    Key extends I18nKey,
+    Params extends ValuesArray<I18nJson[Key]>,
+  >(
+  // highlight-end
+    key: Key,
+  // highlight-start
+    ...values: Params extends [] ? [undefined?] : [Params]
+  // highlight-end
+  ) => I18nJson[Key] extends LineBreakFormat
+    ? ReactElement
+    : Params extends (string | number)[]
+    ? string
+    : ReactElement;
+
+  // highlight-start
+  const tFunction: TFunction = (key, ...values) => i18nJson[key] as any;
+  // highlight-end
+
+  const simple = tFunction('simple'); // string
+  const lineBreak = tFunction('lineBreak'); // ReactElement
+  const oneValue = tFunction('oneValue', [tFunction('unit', [500])]); // string
+  const twoValue = tFunction('twoValue', [tFunction('unit', [500]), 3]); // string
+  const linkText = tFunction('linkText', [<a href="/about">{tFunction('link')}</a>]) // ReactElement
+  ```
+  <a href="https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARENBhSagFzqAEkmLEIcAOrRiAEzWYV64sApIAQuxQBrPYeOmAdHAAOhRwAJJwKMwAYoRw1kgAbsYQYEhQdg5qgkgAaijEAK5IPmoAKgAWwEJwYIzWhRhw1bgADNT+mapqhRTAMKUAJDjtXeowAO4Q+UUl+uVVNXUQDU0tI7QoFNbN8BPAJnAARkjxxsDJ7DsodDDpuGK01igAnkJjak4U3vNoTmjeezdL6eMpIAAeA3mGzgMDMQgqEAmcBA0FOzjo0BAKBgwEEah4mxqAmEMF4PBgLzS4UkMjkoSUlLSEDozVpskEvCZpzCtIA0kgXoo4J5BSyaVIORRydy4AAZZxuDyeaJYnHCgAGwxEUGcAHNqCFtTBdRQDRqZVTTjNikIylbhTr9XAAD5wCiFEAnKCu-DoGAkMiUMkUh02pBCVVQbEwAA8AGVCnQ6MBwXAIXdtjUnWaAHya42mg04Qv66jUYaJ5Op6gW0PU8NCACCUCgr1jvKkYMh6chlGs2ZN+vzSk7FG78Az-ZqjajMdjGPuyBE+YA-HAANqN+1pbD+feNlttl6x5cwXMAXTg+g3F8t1LK0V6GDxDLgsYFQqnWYlFE-2AABRQNsQBqb8BzgQ9W3bMcpQ3T8L1zXMAAoHFFF59H-Bx938RICltfQgJAsC+x-W84HXDdegSFMXGsVcrxvIioiEC8eAASkUfNYPpeDBSvcCagVFx3FQFU1RgBx12Qf1A3IKgHEI4CWN7TMIOQnM9V9D0vXSdjbykuBNMUv0iFIeSQ34QQRFhJ8KBfQR9EfZ9cXkJRkPQvd9zw2YhE4hR83ESVePQq8UBqLYXi4OA+BJGzNHAUhhRgOyHIoZCWAS7QkBYdjooAenyoyhzNKzSTgL4lTE5LUtc9KWEq0SvFygqipksygwUuL4BycMapc18Mt6-CcuwDcUoGwQMt6foWDGgBWVpWgvdiVta4qizKmzJmmEb+vsuqMp28M5s3CaDsGlgZs4BalpW7AAGY1rgQqNv1Lb4BBCd9rSjKvozU6N1jFA4Aqdg6AUNR8pQI4IEKAZcxwc7foa5xPFy6hY2hy9ONe9qA3M4MgA">Playground</a>
+
+  </TabItem>
+</Tabs>
+
+Let's look at the completed code above. Draft is a translation of [the code](#definition-of-type) that was originally imported as an example.
+Here, all `TFunctions` are returned to the string type.
+
+>`Line Break`
+
+In the `Line Break` version, the type of `lineBreak` is inferred as ReactElement by adding a comparative sentence of `LineBreakFormat`.
+
+>`Values Type Check`
+
+In `Values Type Check`, we deduced `Params` and compared the `string | number` array, adding code so that `linkText` is inferred as a ReactElement.
+
+> `Value Number Check`
+
+In the last `Value Number Check`, we did not change the return type by specifying the type for `Params` and applying `values` as the Rest Parameter
+The type was strongly applied by checking the number of values entering the second factor of `tFunction` at the type check stage.
+
+## Recap
+We have thus defined the type so that we can proceed in the type check step,
+including whether there are line changes and variables in i18n Text, and the runtime type of the variable and the number of variables.
+In this process, we utilized the following functions of Typecript.
+- [Template Literal Type](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)
+- [Function Type inference](https://www.typescriptlang.org/docs/handbook/2/functions.html#inference)
+- [Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html)
+- [Recursive Conditional Types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#recursive-conditional-types)
+- [Inferring Within Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types)
+- [Rest Parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments)
+- [Optional elements in tuple types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#optional-elements-in-tuple-types)
+
+A considerable number of features were used.
+If you hadn't defined complex types, there would have been features that you didn't know,
+and there would have been features that you didn't understand conceptually but didn've actually used.
+
+We used i18n Text to define and use complex but useful types to check errors at TypeCheck instead of checking errors at Runtime,
+and also checked the typescript knowledge required to implement each requirement.
+
+Readers of this article may implement a similar type of service that applies the i18n they are developing,
+or they may use the above typescript concepts to improve the type.
+
+What I felt while applying the type system to i18n is that the scope of use of typescript is wider than I thought,
+and it is very useful and safe to build a system so that it can be checked at Type-check rather than at runtime.
+
+I hope you have gained fresh stimulation or useful knowledge while reading this article, and I leave an appendix on how it can be if an object enters the value position rather than an arrangement.
+
+## Appendix #1 Receive variables as objects instead of arrays
+
+We used Array format when we put variables in i18n text.
+However, even if you look at the example [i18next interpolation](https://www.i18next.com/translation-function/interpolation#basic),
+there are many cases where objects are used in the form of variables.
+Therefore, type definitions for tFunctions that inject objects other than arrays are summarized as appendices.
+
+### Example
+
+```tsx showLineNumbers
+import React, { ReactElement } from 'react';
+
+const i18nJson = {
+  "oneValue": "This product is {value1}.",
+  "twoValue": "This product is {value1} and it will be delivered after {value2} days",
+  "link": "click",
+  "linkText": "{link} to show more information"
+} as const;
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+type LineBreakFormat = `${string}\n${string}`;
+
+type TFunction = <Key extends I18nKey,>(
+  key: Key,
+  values?: any,
+) => I18nJson[Key] extends LineBreakFormat
+  ? ReactElement : string;
+
+const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any;
+
+const oneValue = tFunction(
+  'oneValue',
+  {
+    value1: '$500'
+  },
+); // string
+const twoValue = tFunction(
+  'twoValue',
+  {
+    value1: '$500',
+    value2: 3,
+  },
+); // string
+const linkText = tFunction(
+  'linkText',
+  {
+    link: <a href="/about">{tFunction('link')}</a>,
+  },
+) // string
+```
+[playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARIKQA1FMQCuSNQC51AFQAWwIXDCMAJnoxwruAG66DY6gDo1mFeowAO4QOvqGJmoWLrYQDk4uOO7hXnAoFHbO8EHAxMRwAEZIcHZIxMCuSOyZKHQwVW4eSABMtHYoAJ5CfgFq5RQA1sbqaOVoQ-6qfcCDpkgAHjDDajj9A7QwEHBC5hBBcCDQxTN00CAoMMCCajy0KNYCwjC8PDAdYMUAkpIychSKcDeHwgdGcP1kgl4QK+PwA0kgOgCBgiQXBvlIIRQoe9igAZGZIABC7BQAwAYmcLgCAAYAEhwIigMwA5tQADoUemMlnUanYj5wUxkvQUDBXf5KAA88MRC3qGWs6IoMswAD4ABQBZEdEwqgLJAxCAD8JnSHX8AEpFKq0eC-gBtGUAXTgcsodms+IoRJJ5Mp8CN+HQMBIZEo8BM3IozJejxEgOFosughMQpFYvkSnV2pMSpVcANSCEpooHStCht4gxDu1LvuaVLscE8c0YQMAJgiYzFHVLFbTRY2DwhbEJhYtIArAAGKcsODUC1cOAAemX2xgTOj-Gb8GCoSaHa7yZ7LD3baQg9wBaao9Yk5nl8LzRMAGZ54uV2uo8zt084Gs5kWQ902PXsALlS88DWExJRQOBzHYOgFDUZcUAKCA9CWVUcE7EDxTAmYBhYC1qElVCbQXT9103ZkgA)
+
+We will use the example above, and the form of putting as a variable has changed from an array to an object type.
+So we're talking about the form of the object that goes into the variable.
+
+### To get keys for variables
+The keys in the `{}` format of the text are acquired using [Recursive](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#recursive-conditional-types) and [infer](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types).
+
+```tsx
+type ValueFormat<
+  Key extends string = string,
+  Suffix extends string = string,
+> = `${string}{${Key}}${Suffix}`
+
+type ValuesKeyArray<I18nText extends string> =
+  I18nText extends ValueFormat<infer Key, infer Suffix>
+  ? [Key, ...ValuesKeyArray<Suffix>] : [];
+
+type ValuesKeyUnion<I18nText extends string> =
+  ValuesKeyArray<I18nText>[number];
+
+type result = ValuesKeyArray<'This product is {value1} and it will be delivered after {value2} days'>
+// result: 'value1' | 'value2'
+```
+[playground](https://www.typescriptlang.org/play?#code/C4TwDgpgBAaghgGwK4QGIHsBOBbOwA8A0hCFBAB7AQB2AJgM5T3CYCW1A5lALxMvscANFADKSAGbjW5MpRoM+bTj0UCAfCoAGAEgDezJRwC+uvcRBGjesZOlHNAKFCRYiFPXMBBTJjgh8AJIAjAAc1AAqFMCyVHSMBuoqwWGRlDHyjPDIaFi4BOziEJhQ5sIFRaISUuQaAPxQANqlUAB0bVnuXj5++DbVagC6UABcjQMA3E7g0B0QHiQAqtSs6NSBoRFR6XGqnBq8s-Mg3r7+yZuUag3USNgARkUTDlMumHNICNEHbnNdp-gAcnCAAtWIwwJh0LQkABjaJgqC6ABuPyCRigcDoUFY0QA7qwEAgoA8oLQIAhWEiihBaBjxFRisifgAmdG0Pz0AFqBxAA)
+
+Again, We separate key and suffix to infer using `ValueFormat` and value of `{}` is separated on `ValuesKeyArray`.
+Then, we make it union using `ValuesKeyUnion`.
+This completes the extraction of keys that should enter the variable.
+
+### Set the type to allow the acquired keys to enter the parameters
+```tsx showLineNumbers
+import React, { ReactElement } from 'react';
+
+const i18nJson = {
+  "oneValue": "This product is {value1}.",
+  "twoValue": "This product is {value1} and it will be delivered after {value2} days",
+  "link": "click",
+  "linkText": "{link} to show more information"
+} as const;
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+type LineBreakFormat = `${string}\n${string}`;
+type ValuesType = string | number | ReactElement;
+
+type ValueFormat<
+  Key extends string = string,
+  Suffix extends string = string,
+> = `${string}{${Key}}${Suffix}`
+
+type ValuesKeyArray<I18nText extends string> =
+  I18nText extends ValueFormat<infer Key, infer Suffix>
+  ? [Key, ...ValuesKeyArray<Suffix>] : [];
+
+type ValuesKeyUnion<I18nText extends string> =
+  ValuesKeyArray<I18nText>[number];
+
+type TFunction = <
+  Key extends I18nKey,
+  Params extends I18nJson[Key] extends ValueFormat
+  // highlight-start
+    ? [Record<ValuesKeyUnion<I18nJson[Key]>, ValuesType>]
+  // highlight-end
+    : [undefined?]
+>(
+  key: Key,
+  ...values: Params
+) => I18nJson[Key] extends LineBreakFormat
+  ? ReactElement : string;
+
+const tFunction: TFunction = (key: I18nKey, ...values: any) => i18nJson[key] as any;
+
+const oneValue = tFunction(
+  'oneValue',
+  {
+    value1: '$500'
+  },
+); // string
+const twoValue = tFunction(
+  'twoValue',
+  {
+    value1: '$500',
+    value2: 3,
+  },
+); // string
+const linkText = tFunction(
+  'linkText',
+  {
+    link: <a href="/about">{tFunction('link')}</a>,
+  },
+) // string
+```
+[playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARIKQA1FMQCuSNQC51AFQAWwIXDCMAJnoxwruAG66DY6gDo1mFeowAO4QOvqGJmoWLrYQDk4uOO7hXnAoFHbO8EHAxMRwAEZIcHZIxMCuSOyZKHQwVW4eSABMtHYoAJ5CfgFq5RQA1sbqaOVoQ-6qfcCDpkgAHjDDajj9A7QwEHBC5hBBcCDQxTN00CAoMMCCajy0KNYCwjC8PDAdYMUAkpIychSKcDeHwgdGcP1kgl4QK+PwA0kgOgCBgiQXBvlIIRQoe9igAZGZIABC7BQAwAYmcLgCAAYAEhwIigMwA5tQADoUemMlnUanYj5wMIGISmHEA7kUZlwAA+cAoehARSgMvw6BgJDIlGefGhgqaFKg5xgAB54YiFvUMtYJVKlDbsABlPR0OjAeZwC2UOzWmBMyXi30sgB8NK5gcl1Bw9LN1Go9KdLrdvNeYqFSCEZoAglAoJ1jeiKHNFh7Fl6fX7mSGlAWi-BPVa9eEDUbjScGmbsG3lQnXfMQwB+OAAbQ7cG847TGYR2dzHWNPbdQYAunATEOl-zipOzQBVChXCj5n61kuW73bcOVgHb6c5vM1i1BofyxVVDc6sWmMl6CgYA8A40AjNU8yzROEEUmOAAAUUFzEBrHrc8C0xEcERXRDrDTZsLgCVRByHZABCgOxjRvDo9wPI8MT+VCOiXINsEnUUPmXXDV2HH9SldCgkDsfslx4IMAAoAmRDoTA7AJx28ZJhRMGC4KEHgAEpFBDZCaLNdDSwbfEeOJVByUpeBB2QNUNXIKh2JtF5HhEQFv1-S5BBML8fz-eQlCEsSTALUdpNk9MTHSDpVIUENxGowQhzEld7jSCgOlswR7M0NMARgRyPIoISWDSpoWGwPBArEEwWFpABWAAGKqWDgahlK4OAAHpmovCt+BS+BglCJoMqy5ycpYHq00K3A4BKsrKpqsbAuaEwAGZ6salq2ptTqnjgNYTyUTL3MG3LtotMa8DWExjRQOBzHYOgFBYZqUAKCA9E4IMcD2pyD0OmYBhYZTqGNB6QwaprWvalkgA)
+
+Using `ValuesKeyUnion` mentioned above, set the values type so that only objects for the key of the variable can be inserted
+using [Rest Parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments) as shown in L22.
+If so, in the L31-L33 example, an error will occur if a variable is not entered or if it is entered incorrectly.
+
+### If I18n text is not stringed, infer with ReactElement
+```tsx showLineNumbers
+import React, { ReactElement } from 'react';
+
+const i18nJson = {
+  "oneValue": "This product is {value1}.",
+  "twoValue": "This product is {value1} and it will be delivered after {value2} days",
+  "link": "click",
+  "linkText": "{link} to show more information"
+} as const;
+
+type I18nJson = typeof i18nJson;
+type I18nKey = keyof I18nJson;
+type LineBreakFormat = `${string}\n${string}`;
+type ValuesType = string | number | ReactElement;
+
+type ValueFormat<
+  Key extends string = string,
+  Suffix extends string = string,
+> = `${string}{${Key}}${Suffix}`
+
+type ValuesKeyArray<I18nText extends string> =
+  I18nText extends ValueFormat<infer Key, infer Suffix>
+  ? [Key, ...ValuesKeyArray<Suffix>] : [];
+
+type ValuesKeyUnion<I18nText extends string> =
+  ValuesKeyArray<I18nText>[number];
+
+type TFunction = <
+  Key extends I18nKey,
+  Params extends I18nJson[Key] extends ValueFormat
+    ?  [Record<ValuesKeyUnion<I18nJson[Key]>, ValuesType>] : [undefined?],
+>(
+  key: Key,
+  ...values: Params
+) => I18nJson[Key] extends LineBreakFormat
+  // highlight-start
+  ? ReactElement
+    : I18nJson[Key] extends ValueFormat
+      ? Params extends [Record<string, string | number>]
+        ? string : ReactElement
+  // highlight-end
+  : string;
+
+const tFunction: TFunction = (key, ...values) => i18nJson[key] as any;
+
+const oneValue = tFunction('oneValue', { value1: '$500' }); // string
+const twoValue = tFunction('twoValue', { value1: '$500', value2: 3 }); // string
+// highlight-start
+const linkText = tFunction('linkText', { link: <a href="/about">{tFunction('link')}</a> }) // ReactElement
+// highlight-end
+```
+[plaground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARIKQA1FMQCuSNQC51AFQAWwIXDCMAJnoxwruAG66DY6gDo1mFeowAO4QOvqGJmoWLrYQDk4uOO7hXnAoFHbO8EHAxMRwAEZIcHZIxMCuSOyZKHQwVW4eSABMtHYoAJ5CfgFq5RQA1sbqaOVoQ-6qfcCDpkgAHjDDajj9A7QwEHBC5hBBcCDQxTN00CAoMMCCajy0KNYCwjC8PDAdYMUAkpIychSKcDeHwgdGcP1kgl4QK+PwA0kgOgCBgiQXBvlIIRQoe9igAZGZIABC7BQAwAYmcLgCAAYAEhwIigMwA5tQADoUemMlnUanYj5wMIGISmHEA7kUZlwAA+cAoehARSgMvw6BgJDIlGefGhgqaFKg5xgAB54YiFvUMtYJVKlDbsABlPR0OjAeZwC2UOzWmBMyXi30sgB8NK5gcl1Bw9LN1Go9KdLrdvNeYqFSCEZoAglAoJ1jeiKHNFh7Fl6fX7mSGlAWi-BPVa9eEDUbjScGmbsG3lQnXfMQwB+OAAbQ7cG847TGYR2dzHWNPbdQYAunATEOl-zipOzQBVChXCj5n61kuW73bcOVgHb6c5vM1i1BofyxVVDc6sWmMl6CgYA8A00EVPMs0ThBFsAABRQXMQGsetzwLTERwRFd4OsNNmypQdh2QAQoDsY0bw6PcDyPDE-mQjolyDbBJ1FD5l1XYcf1KV0KCQOx+2ogAKAJkQ6EwOwCcdvGSYUTCgmChB4ABKRQQ0QiizVQ0sG3xdjiVQclKXgHhB2QNUNXIKg4ACExFMESiVLPdD9R00zVFUQdJJQWDgIbIdcOgAj7QvCsVRfJVGMHG0mIMohSGMmAzL8lkXkeERAW-X9LkEEwvx-P95CUbj+OwESxPTOSFBDcRyMs-iV3uNIKA6eLBESzQ0wBGBkqyihuJYJqmhYbA8EKsQTBYWkAFYAAYxpYOBqBkrg4AAenm2LJX4Br4GCUImhatrUo6lgNrTXrcDgAahtGiajsK5oTAAZmm2aFqWm1VqeOA1hPJRWsy3bOvei0jrwNYTGNFA4HMdg6AUNR5pQAoID0JYgxwL6UoPX6ZgGFgZOoY0YZDGbHtVCLNSoHggA)
+
+In the case of `ValueFormat` in L35-L37, if condition is set to `Record<string, string | number>`,
+and if a type other than string and number is used as a variable, it can be confirmed that it is inferred as ReactElement like L44.
+
+In this way, the variable type can be specified not only for the array but also for the object.

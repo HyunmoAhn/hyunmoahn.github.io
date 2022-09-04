@@ -99,11 +99,11 @@ tFunction('values-example', [<a href="/about">more</a>])
   placeholder={tFunction('line-break-example')} // type error  
 />
 ```
-여러가지 경우가 있겠지만, 대표적으로는 HTML tag를 사용할 때 string으로 정의 된 attribute에 string이 아닌 i18n 값이 포함 될 수 있다. 이러면, placeholder에 xlt value 대신 `[object Object]`가 보이게 된다.
+여러가지 경우가 있겠지만, 대표적으로는 HTML tag를 사용할 때 string으로 정의 된 attribute에 string이 아닌 i18n 값이 포함 될 수 있다. 이러면, placeholder에 xlt text 대신 `[object Object]`가 보이게 된다.
 
 물론, placeholder에 a tag가 들어가거나 \n 같은 줄바꿈이 들어가는 케이스가 명백히 이상하다. 하지만 i18n key를 잘못 사용하는 경우도 있고, i18n text가 잘못 등록 된 경우도 있을 수 있다.
 
-typescript를 사용하는데 타입이 제대로 추론 되지 않는 다는 점에 있어서 위와 같은 문제점이 있고 또 다른 문제를 야기 할 수 있다.
+즉, typescript를 사용하는데 타입이 제대로 추론 되지 않는 다는 점에 있어서 위와 같은 문제점이 있고 또 다른 문제를 야기 할 수 있다.
 
 이번 article에서는 i18n text의 format 별로 타입을 정의하는 방법에 대해서 이야기 해 볼 예정이다. i18n을 예로 들었지만 기본적으로는 typescript [Template Literal Types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html)과 관련된 이야기이다.
 
@@ -312,7 +312,7 @@ L12를 보면 Template Literal String을 사용해서 `LineBreakFormat` 타입�
 
 #### Function type inference
 
-우리는 `TFunction`을 호출시 RunTime에 들어오는 key의 literal type을 보고 return type을 추론해야한다. type 영역에서 `I18nKey`를 그대로 사용하면 key 입력 값에 따라 return type을 달리 할 수 없다.
+우리는 `TFunction`을 호출시 run-time에 들어오는 key의 literal type을 보고 return type을 추론해야한다. type 영역에서 `I18nKey`를 그대로 사용하면 key 입력 값에 따라 return type을 달리 할 수 없다.
 여기서 [Function type inference](https://www.typescriptlang.org/docs/handbook/2/functions.html#inference)를 사용하여 아래와 같이 변경한다.
 ```tsx
 // Before
@@ -445,8 +445,11 @@ Recursive의 input, 즉 I18nText로 다시 온전한 I18nText를 넣고 있기 �
 2. `World {1} Thank {2} you`
 3. `Thank {2} you`
 
-1번 text가 있을때 `ValuesArray`로 `[any, ...ValuesArray<?>]`로 추론을 했을때 ?에는 남은 문자열인 2번 text가 채워져야하고,
-`[any, any, ...ValuesArray<?>]`로 `{1}`까지 확인을 했다면 3번 문자열이 '?' 안으로 들어가야한다. 이를 위해서 사용하는 것은 [infer](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types) 키워드이다.
+`ValuesArray`에 1번 text를 사용할때, 리턴 값은 `[any, ...ValuesArray<?>]`가 될 것이다. 그러고 다음 ValuesArray의 ? 에는 2번 text가 포함되어야한다.
+다음 `ValuesArray`는 2번 text를 사용하고 리턴 값으로 `[any, any, ...ValuesArray<?>]`를 사용할 것이다.
+마지막으로, `ValuesArray`는 3번 text를 input으로 사용해야하고 리턴 값으로는 [any, any, any]가 되어어야한다.
+
+위와 같은 로직을 위해서는 [infer](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types)를 사용한다.
 
 #### [Inferring Within Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types)
 `Infer`를 사용하면 conditional type에서 사용하는 Generic을 가져다 리턴 타입으로 사용할 수 있다.
@@ -519,7 +522,7 @@ L19의 `TFunction`에서 `Parmas`에 `ValuesArray`를 적용시켰다. `ValuesAr
 그렇다면, Params는 각각 length가 고정된 `ValuesType` 배열로 추론될 것이다.
 
 따라서, L28와 L31의 타입 체크에서 에러가 발생하게 되고 에러의 원인은 적절한 Array length를 맞추지 않았기 때문이다.
-하지만 L26에서는 변수를 넣지 않았다고 에러를 발생시키지 않는데, 이는 TFunction의 values에 붙은 `?` 키워드로 인하여 발생한다.
+하지만 L26에서는 변수를 넣지 않았다고 에러를 발생시키지 않는데, 이는 `TFunction`의 values에 붙은 `?` 키워드로 인하여 발생한다.
 
 조금만 더 완성도를 높여보자.
 
@@ -556,7 +559,8 @@ const oneValue = tFunction('oneValue'); // Type Error!
 ```
 [playground](https://www.typescriptlang.org/play?#code/JYWwDg9gTgLgBAJQKYEMDGMA0cDejUYCiANkiEgHbwC+cAZlBCHAORQEwsDcAUD2hAoBneMACMADgoApIYLgBeXDzhwARBWggUxNQC51ACSTFiEOAHVoxACZrMK9YKQA1HQFck+9QBUAFsBCcGCMNu4YcIG4AAzUAHT2jmowAO4QbsSe3mr+USEQYRFROLFwKBQ2kfApwKZwAEZIcDYmwABuSOyVKHQwnbhitDYoAJ5CibQoQQLCMLw8MCNgTQCSkjJyFIpwi8sQdJHrsoK8u6vrANJII9sA1tf7cGtSxxTzZ3AZnkI+S01KIigwAoAHM4AAfOAUdwgRpQCH4dAwEhkShzBZ-T4eJBCABiWhQMAAPABldx0OjAAAecCQVL6FSCgOBIIAfNsAAYAEhwzNB1BwPL5IOo1B5ZIp1OoHNOmK+OIAglAoKMic8KD46fAtZQbEyYEDQeylOrNfTafTdUF5XiCcTgXR+sgROyAPxwADaNt+y2wcX9NqVKpGROdMFZAF04AYPRHZcssZlFcrRs73MRiaatRaGXq4MLjYnvkHVVn6eydYzPVH3e4KkhKRQkJUDIGUyGy+G+B8fLi6xhgPIlESrjdK3n1aPsAAFFAqkBBcfW7FCEsjNMZtVHTYe0cR1msgAU9xGBincH9cTaK4Ms-ni8tVdjcHdHrrLUbzddUZjd5QC4jABKRR2WFPgZhEHY+woAdBAMXt+xgQctiUY9rgMSdrj9f1ryTIQDHKEZgIUdlxBeHcTyjKYygoEYuDgcDBEg5x5W2GBoNgihDxYFjsRYQD6IAekEuBCGVaBXX4Jj4FSdJsTYjikMEbjZPlFhsA9MRomibAtJ0uA9KAoSRJ9JoxMYKAAEIGOEuAlRBGE0TgR4PhYD1oVhToIxYSIgk0eApiEYAQQoFB6lIHZzDAOd-yQPp4RczE3O9P5sBS5ZvLiKTZihAliAUxDkO4zQoG0Yh+OMuBTNE8SrJ4WzqpYDy4R8qJ-LKIQgpCsKIpgcxXPfBtgWbFg4iAA)
 
-L1에서 `values`를 `...values`로 변경하고 `Params`가 빈 배열이라면 `[undefined?]`를, 빈 배열이 아니라면 `[Params]`로 타입 설정을 하면서 values가 필요 없다면 optional로 설정하고, values가 필요하다면 갯수만큼 arguments를 설정하는 방법이다.
+L1에서 `values`를 `...values`로 변경하여 `Params`가 빈 배열이라면 `[undefined?]`를, 빈 배열이 아니라면 `[Params]`로 타입 설정을 한다.
+그렇다면 values가 필요 없다면 optional로 설정되고, values가 필요하다면 갯수 길이의 array를 받는 방법이다.
 
 여기서 Array의 item에 ?가 들어가있는 것은 [Optional elements](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-0.html#optional-elements-in-tuple-types)에 대한 내용으로, 각 element가 optional로 설정될 수 있는 문법이다.
 
@@ -718,9 +722,9 @@ import TabItem from '@theme/TabItem';
 
   // highlight-start
   type ValuesType = string | number | ReactElement;
-  type ValuesFormat<Suffix extends string> = `${string}{${string}}${Suffix}`;
-  type ValuesArray<I18nText extends string> = I18nText extends ValuesFormat<infer Rest> ? [ValuesType, ...ValuesArray<Rest>] : [];
-    // highlight-end
+  type ValuesFormat<Suffix extends string,> = `${string}{${string}}${Suffix}`;
+  type ValuesArray<I18nText extends string,> = I18nText extends ValuesFormat<infer Rest,> ? [ValuesType, ...ValuesArray<Rest,>] : [];
+  // highlight-end
 
   // highlight-start
   type TFunction = <
@@ -753,7 +757,7 @@ import TabItem from '@theme/TabItem';
   </TabItem>
 </Tabs>
 
-위의 완성된 코드를 살펴보자. Draft는 최초 예시로 가져왔던 [코드](i18n-and-typescript#type-정의)를 옮겨놓은 것이다. 여기서는 모든 `TFunction`이 string타입으로 리턴된다.
+위의 완성된 코드를 살펴보자. Draft는 최초 예시로 가져왔던 [코드](#type-정의)를 옮겨놓은 것이다. 여기서는 모든 `TFunction`이 string타입으로 리턴된다.
 
 >`Line Break`
 
@@ -785,7 +789,7 @@ import TabItem from '@theme/TabItem';
 
 이 글을 보는 독자들은 각자 개발하고 있는 i18n을 적용하는 서비스에 유사한 타입을 구현할 수도 있고, 아니면 i18n은 사용하지 않지만 위 typescript 개념들을 이용하여 타입개선을 진행할 수도 있을 것 이다.
 
-필자는 i18n에 type system을 적용하면서 느끼게 된 점은 생각보다 typescript의 활용범위가 넓으며, Runtime에 확인하는 것보다 TypeCheck때 확인할 수 있도록 시스템을 구축한다는 건 매우 유용하고 안전한 방법이라는 것이다.
+필자는 i18n에 type system을 적용하면서 느끼게 된 점은 생각보다 typescript의 활용범위가 넓으며, runtime에 확인하는 것보다 Type-Check때 확인할 수 있도록 시스템을 구축한다는 건 매우 유용하고 안전한 방법이라는 것이다.
 
 이 글을 읽으며 신선한 자극 혹은 유용한 지식을 얻었길 바라며 만약 values 자리에 배열이 아니라 객체가 들어올 경우 어떤 방식이 될 수 있을지 부록으로 남긴다.
 
@@ -935,7 +939,7 @@ const linkText = tFunction(
 위에서 이야기한 `ValuesKeyUnion`을 이용해 L22 처럼 [Rest Parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments)를 사용해서
 변수의 Key에 대한 object만 넣을 수 있게 values 타입을 설정한다. 그렇다면 L31-L33 예제에서 변수를 넣지 않거나, 잘못 넣었을때 오류가 발생하게 된다.
 
-### I18n text가 string이 되지 않는 경우 ReactElemenet로 추론
+### I18n text가 string이 되지 않는 경우 ReactElement로 추론
 ```tsx showLineNumbers
 import React, { ReactElement } from 'react';
 
