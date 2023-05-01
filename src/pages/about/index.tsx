@@ -4,6 +4,7 @@ import linebankIcon from '@site/static/icon/line-bank.png';
 import linebankIdIcon from '@site/static/icon/line-bank-id.png';
 import modusignIcon from '@site/static/icon/modusign.png';
 import investIcon from '@site/static/icon/invest.png';
+import lineMonaryIcon from '@site/static/icon/line-monary.jpeg';
 
 import Experience, { ExperienceInfo, ProjectInfo } from '../../components/about/Experience';
 import style from '../index.module.css';
@@ -15,13 +16,20 @@ const EXPERIENCE_INFO: ExperienceInfo[] = [
     period: 'June 2019 to Present',
     description:
       'LINE Corporation service messenger application. It is mainly used in Southeast Asian\n' +
-      'countries such as Japan, Thailand, and Taiwan. LINE Financial have a goal to provide\n' +
+      'countries such as Japan, Thailand, and Taiwan. LINE Biz have a goal to provide\n' +
       'fintech services with linked to LINE messenger.',
     projects: [
       {
+        name: 'LINE Monary',
+        description: 'Content delivery that deepens knowledge of a wide range about money',
+        period: 'April 2023 to Present',
+        tech: 'Typescript, NextJS, SWR',
+        imageUrl: lineMonaryIcon,
+      },
+      {
         name: 'LINE bank JP',
         description: 'Internet bank with Line messenger in Japan',
-        period: 'November 2020 to Present',
+        period: 'November 2020 to March 2023',
         tech: 'Typescript, React, Redux, Redux-saga, webpack',
         imageUrl: linebankIcon,
       },
