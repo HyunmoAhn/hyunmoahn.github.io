@@ -69,7 +69,7 @@ const EXPERIENCE_INFO: ExperienceInfo[] = [
       {
         name: 'Modusign Service',
         description: 'A web service that support to online contract',
-        period: 'June 2019 to April 2020',
+        period: 'December 2016 to February 2018',
         tech: 'Vue2, vuex, vue-cli',
         imageUrl: modusignIcon,
       },
