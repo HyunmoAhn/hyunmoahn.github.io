@@ -116,7 +116,7 @@ function About() {
           </div>
           <div className="col col--10 row margin-bottom--lg">
             {EXPERIENCE_INFO.map((item) => (
-              <Experience {...item} />
+              <Experience key={item.name} {...item} />
             ))}
           </div>
         </div>

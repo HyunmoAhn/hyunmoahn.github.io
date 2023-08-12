@@ -53,7 +53,7 @@ function Experience({ name, role, period, description, projects }: ExperienceInf
       <p>{description}</p>
       <div className="row">
         {projects.map((project) => (
-          <ProjectCard {...project} />
+          <ProjectCard key={project.name} {...project} />
         ))}
       </div>
     </div>
