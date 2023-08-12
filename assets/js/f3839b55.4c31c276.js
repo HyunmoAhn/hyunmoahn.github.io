@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkhyunmoahn_github_io=self.webpackChunkhyunmoahn_github_io||[]).push([[8691],{8172:function(t){t.exports=JSON.parse('{"label":"template literal type","permalink":"/tags/template-literal-type","allTagsPath":"/tags","count":1}')}}]);
