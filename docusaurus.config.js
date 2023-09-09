@@ -81,6 +81,12 @@ module.exports = {
       theme: lightCodeTheme,
       darkTheme: darkCodeTheme,
     },
+    algolia: {
+      appId: 'LJWMP0KD7V',
+      apiKey: 'd75034780859d3329f9d6db9ec83fe79',
+      indexName: 'hmos.dev',
+      contextualSearch: true,
+    },
   },
   presets: [
     [
