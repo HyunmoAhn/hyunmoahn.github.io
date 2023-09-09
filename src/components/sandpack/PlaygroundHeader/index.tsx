@@ -5,6 +5,7 @@ import { useSandpack, UnstyledOpenInCodeSandboxButton } from '@codesandbox/sandp
 
 const Container = styled.div`
   display: flex;
+  gap: 10px;
   margin: 10px 14px;
 `;
 
