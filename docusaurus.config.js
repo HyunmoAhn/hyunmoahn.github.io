@@ -83,7 +83,7 @@ module.exports = {
     },
     algolia: {
       appId: 'LJWMP0KD7V',
-      apiKey: 'a163e5c391db055b3de16d13c029b58c',
+      apiKey: 'd75034780859d3329f9d6db9ec83fe79',
       indexName: 'hmos',
       contextualSearch: true,
     },
