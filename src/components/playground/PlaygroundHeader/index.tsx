@@ -1,6 +1,6 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
-import { RefreshCw, ExternalLink } from 'lucide-react';
+import { ArrowLeftToLine, ExternalLink } from 'lucide-react';
 import { useSandpack, UnstyledOpenInCodeSandboxButton } from '@codesandbox/sandpack-react';
 
 const Container = styled.div`
@@ -54,7 +54,7 @@ export const PlaygroundHeader = ({ title }: PlaygroundHeaderProps) => {
     <Container>
       <Title>{title}</Title>
       <Button onClick={reloadCode}>
-        <RefreshCw height={16} width={16} />
+        <ArrowLeftToLine height={16} width={16} />
       </Button>
       <CodeSandboxButton>
         <ExternalLink height={16} width={16} />
