@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkhyunmoahn_github_io=self.webpackChunkhyunmoahn_github_io||[]).push([[8083],{6022:a=>{a.exports=JSON.parse('{"label":"callback function","permalink":"/en/tags/callback-function","allTagsPath":"/en/tags","count":1}')}}]);
