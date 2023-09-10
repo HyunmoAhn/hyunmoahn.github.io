@@ -3,7 +3,7 @@ import { SandpackProvider, SandpackCodeEditor } from '@codesandbox/sandpack-reac
 import { useColorMode } from '@docusaurus/theme-common';
 import { SandpackBundlerFiles } from '@codesandbox/sandpack-client';
 import styled from 'styled-components';
-import { PlaygroundOutput } from './PlaygroundOutput';
+import { PlaygroundOutput, OutputMode } from './PlaygroundOutput';
 import { PlaygroundHeader } from './PlaygroundHeader';
 
 const CodeEditorContainer = styled.div`
@@ -13,19 +13,36 @@ const CodeEditorContainer = styled.div`
   border: 3px solid var(--ifm-color-emphasis-200);
   border-radius: 5px;
   height: 600px;
+
+  margin-bottom: 30px;
 `;
 
 export interface PlaygroundProps {
   title?: string;
+  defaultOutput?: OutputMode;
   files: SandpackBundlerFiles;
+  strict?: boolean;
 }
 
-export const Playground = ({ files, title }: PlaygroundProps) => {
+const strictOff = {
+  '/index.js': {
+    hidden: true,
+    code: `import React from "react";
+import { createRoot } from "react-dom/client";
+import "./styles.css";
+import App from "./App";
+const root = createRoot(document.getElementById("root"));
+root.render(<App />);
+`,
+  },
+};
+
+export const Playground = ({ files, title, strict = false, defaultOutput }: PlaygroundProps) => {
   const { colorMode } = useColorMode();
 
   return (
     <SandpackProvider
-      files={files}
+      files={{ ...files, ...(!strict && strictOff) }}
       theme={colorMode}
       template="react"
       options={{ autorun: true, autoReload: true }}
@@ -39,7 +56,7 @@ export const Playground = ({ files, title }: PlaygroundProps) => {
           showLineNumbers
           wrapContent
         />
-        <PlaygroundOutput />
+        <PlaygroundOutput defaultValue={defaultOutput} />
       </CodeEditorContainer>
     </SandpackProvider>
   );

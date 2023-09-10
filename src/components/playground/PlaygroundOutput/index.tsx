@@ -8,8 +8,10 @@ import React from 'react';
 import styled from 'styled-components';
 import { RefreshCw } from 'lucide-react';
 
+export type OutputMode = 'result' | 'console';
+
 interface PlaygroundOutputProps {
-  defaultValue?: 'result' | 'console';
+  defaultValue?: OutputMode;
 }
 
 const TabRoot = styled(Tabs.Root)``;
@@ -75,7 +77,7 @@ export const PlaygroundOutput = ({ defaultValue = 'result' }: PlaygroundOutputPr
         <SandpackPreview showOpenInCodeSandbox={false} showRefreshButton={false} />
       </TabContent>
       <TabContent value="console" forceMount>
-        <SandpackConsole resetOnPreviewRestart />
+        <SandpackConsole standalone resetOnPreviewRestart />
       </TabContent>
     </TabRoot>
   );
