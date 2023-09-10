@@ -146,7 +146,7 @@ const ChildComponent = ({ onCallback }) => {
   return <>Child</>;
 };
 ```
-App.js에서의 변경점은 없고, `useCallback`을 사용하는 `ChildComponent` 내부 로직에 변화가 있었다.
+App.js에서의 변경점은 없고, `onCallback`을 사용하는 `ChildComponent` 내부 로직에 변화가 있었다.
 `useCallbackRef`를 사용해서 props로 주입 받은 `onCallback`을 한번 감싸고 나온 `handleCallback`을 사용하며 useEffect의 dependency에도 `handleCallback`을 사용하고 있다.
 
 그렇다면 `useCallbackRef`의 내부는 어떨까?
@@ -173,7 +173,7 @@ export function useCallbackRef(callback) {
 
 잘 보면, `L7-L9`에서 dependency 없이 매 callback이 업데이트 되면 `callbackRef`에 갱신한다.
 
-2. callbackRef에 저장 된 callback을 호출하는 리턴한다.
+2. callbackRef에 저장 된 callback을 호출하는 함수를 리턴한다.
 
 여기서는 `useMemo`를 사용해서 return 값이 갱신이 되지 않도록 메모이제이션을 하면서 return 값이 호출시에 `callbackRef` 값을 가져와 호출하므로
 항상 최신의 callback을 호출 할 수 있다.
@@ -190,7 +190,7 @@ flowchart LR
 flowchart LR
     Second["App \ndata: [1, 2, 3]\n handleCallback`"] -- After update data --> SecondChildren["ChildComponent\n callbackRef: handleCallback`\n MemoCallback"] --x Emit["Emit Second"]
 ```
-두번째 흐름에서 달라지게 되는데, data가 업데이트 되어 handleCallback이 ``handleCallback` ``으로 새롭게 생성되어 `ChildComponent`로 전달을 하고 callbackRef는 이를 새롭게 갱신하지만,
+두번째 흐름에서 달라지게 되는데, data가 업데이트 되어 handleCallback이 ``handleCallback` ``으로 새롭게 생성되어 `ChildComponent`로 전달을 하고 `callbackRef`는 이를 새롭게 갱신하지만,
 컴포넌트 내부에서 사용하고 있는 `MemoCallback`는 reference가 바뀌지 않으므로 2번째 호출이 발생하지 않는다.
 
 이러한 방법은 특히 Component를 설계 할 때 외부에 memoization을 해야한다는 규칙을 부여하지 않고 내부적으로 최적화를 할 수 있기 때문에 공통 컴포넌트를 설계 할 때에도 유용하게 쓰일 수 있는 방법이라고 생각한다.
