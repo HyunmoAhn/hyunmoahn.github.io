@@ -18,6 +18,10 @@ module.exports = {
     defaultLocale: 'ko',
     locales: ['ko', 'en'],
   },
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
   themeConfig: {
     image: 'img/dark-room-computer.jpeg',
     metadata: [
