@@ -88,7 +88,7 @@ LINE Plus employees work with colleagues from around the world in areas such as 
         name: 'Modusign Service',
         description: 'A web service that support to online contract',
         period: 'December 2016 to February 2018',
-        tech: 'Vue2, vuex, vue-cli',
+        tech: 'React, Redux, Redux-thunk, webpack',
         imageUrl: modusignIcon,
       },
     ] as ProjectInfo[],
