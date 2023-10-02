@@ -5,15 +5,33 @@ import linebankIdIcon from '@site/static/icon/line-bank-id.png';
 import modusignIcon from '@site/static/icon/modusign.png';
 import investIcon from '@site/static/icon/invest.png';
 import lineMonaryIcon from '@site/static/icon/line-monary.jpeg';
+import lineIcon from '@site/static/icon/line-brand.png';
 
 import Experience, { ExperienceInfo, ProjectInfo } from '../../components/about/Experience';
 import style from '../index.module.css';
 
 const EXPERIENCE_INFO: ExperienceInfo[] = [
   {
+    name: 'LINE+',
+    role: 'Frontend Developer',
+    period: 'October 2023 to Present',
+    description: `LINE Plus Corporation was established in March 2013 in South Korea to support LINE's global business development and expansion.
+LINE Plus employees work with colleagues from around the world in areas such as engineering, planning, design, sales and marketing, and communications`,
+    projects: [
+      {
+        name: 'Line Wallet',
+        description:
+          'Role to development about web service on wallet part of line messenger app like Line Monary, Line Receipt etc.',
+        period: 'October 2023 to Present',
+        tech: 'Typescript, NextJS, React, SWR, Nx',
+        imageUrl: lineIcon,
+      },
+    ],
+  },
+  {
     name: 'LINE Biz+',
     role: 'Frontend Developer',
-    period: 'June 2019 to Present',
+    period: 'June 2019 to September 2023',
     description:
       'LINE Corporation service messenger application. It is mainly used in Southeast Asian\n' +
       'countries such as Japan, Thailand, and Taiwan. LINE Biz have a goal to provide\n' +
@@ -22,7 +40,7 @@ const EXPERIENCE_INFO: ExperienceInfo[] = [
       {
         name: 'LINE Monary',
         description: 'Content delivery that deepens knowledge of a wide range about money',
-        period: 'April 2023 to Present',
+        period: 'April 2023 to September 2023',
         tech: 'Typescript, NextJS, SWR',
         imageUrl: lineMonaryIcon,
       },
