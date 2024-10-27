@@ -12,6 +12,7 @@ export type OutputMode = 'result' | 'console';
 
 interface PlaygroundOutputProps {
   defaultValue?: OutputMode;
+  outputHeight?: number;
 }
 
 const TabRoot = styled(Tabs.Root)``;
@@ -47,9 +48,9 @@ const Button = styled.button`
   border: none;
 `;
 
-const TabContent = styled(Tabs.Content)`
+const TabContent = styled(Tabs.Content)<{ height?: number }>`
   display: none;
-  height: 160px;
+  height: ${(props) => (props.height ? `${props.height}px` : '160px')};
   overflow: scroll;
 
   &[data-state='active'] {
@@ -57,7 +58,10 @@ const TabContent = styled(Tabs.Content)`
   }
 `;
 
-export const PlaygroundOutput = ({ defaultValue = 'result' }: PlaygroundOutputProps) => {
+export const PlaygroundOutput = ({
+  defaultValue = 'result',
+  outputHeight,
+}: PlaygroundOutputProps) => {
   const { refresh } = useSandpackNavigation();
 
   const refreshPage = () => refresh();
@@ -73,11 +77,15 @@ export const PlaygroundOutput = ({ defaultValue = 'result' }: PlaygroundOutputPr
           <RefreshCw height={18} width={18} />
         </Button>
       </TabListWrapper>
-      <TabContent value="result" forceMount>
-        <SandpackPreview showOpenInCodeSandbox={false} showRefreshButton={false} />
+      <TabContent value="result" forceMount height={outputHeight}>
+        <SandpackPreview
+          style={{ height: '100%' }}
+          showOpenInCodeSandbox={false}
+          showRefreshButton={false}
+        />
       </TabContent>
-      <TabContent value="console" forceMount>
-        <SandpackConsole standalone resetOnPreviewRestart />
+      <TabContent value="console" forceMount height={outputHeight}>
+        <SandpackConsole style={{ height: '100%' }} standalone resetOnPreviewRestart />
       </TabContent>
     </TabRoot>
   );

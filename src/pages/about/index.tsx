@@ -19,6 +19,15 @@ const EXPERIENCE_INFO: ExperienceInfo[] = [
 LINE Plus employees work with colleagues from around the world in areas such as engineering, planning, design, sales and marketing, and communications`,
     projects: [
       {
+        name: 'GCS - General Content Service',
+        description:
+          'Managing tools to Server Driven UI on LINE messenger app. UI design also edit on out tools like Figma',
+        period: 'December 2023 to Present',
+        tech: 'Typescript, NextJS(App Router), React, SWR, Nx',
+        imageUrl: lineIcon,
+      },
+
+      {
         name: 'Line Wallet',
         description:
           'Role to development about web service on wallet part of line messenger app like Line Monary, Line Receipt etc.',

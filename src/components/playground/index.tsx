@@ -22,6 +22,7 @@ export interface PlaygroundProps {
   defaultOutput?: OutputMode;
   files: SandpackBundlerFiles;
   strict?: boolean;
+  outputHeight?: number;
 }
 
 const strictOff = {
@@ -37,7 +38,13 @@ root.render(<App />);
   },
 };
 
-export const Playground = ({ files, title, strict = false, defaultOutput }: PlaygroundProps) => {
+export const Playground = ({
+  files,
+  title,
+  strict = false,
+  defaultOutput,
+  outputHeight,
+}: PlaygroundProps) => {
   const { colorMode } = useColorMode();
 
   return (
@@ -56,7 +63,7 @@ export const Playground = ({ files, title, strict = false, defaultOutput }: Play
           showLineNumbers
           wrapContent
         />
-        <PlaygroundOutput defaultValue={defaultOutput} />
+        <PlaygroundOutput defaultValue={defaultOutput} outputHeight={outputHeight} />
       </CodeEditorContainer>
     </SandpackProvider>
   );

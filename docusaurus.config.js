@@ -45,6 +45,7 @@ module.exports = {
       },
       hideOnScroll: true,
       items: [
+        { to: '/trouble-shooting', label: 'Trouble Shooting', position: 'left' },
         { to: '/about', label: 'About', position: 'left' },
         { to: '/tags', label: 'Tags', position: 'left' },
         {
@@ -69,6 +70,10 @@ module.exports = {
               to: '/',
             },
             {
+              label: 'Trouble Shooting',
+              to: '/trouble-shooting',
+            },
+            {
               label: 'About',
               to: '/about',
             },
@@ -84,6 +89,24 @@ module.exports = {
     prism: {
       theme: lightCodeTheme,
       darkTheme: darkCodeTheme,
+      magicComments: [
+        // Remember to extend the default highlight class name as well!
+        {
+          className: 'theme-code-block-highlighted-line',
+          line: 'highlight-next-line',
+          block: { start: 'highlight-start', end: 'highlight-end' },
+        },
+        {
+          className: 'code-block-error-line',
+          line: 'error-next-line',
+          block: { start: 'error-start', end: 'error-end' },
+        },
+        {
+          className: 'code-block-good-line',
+          line: 'good-next-line',
+          block: { start: 'good-start', end: 'good-end' },
+        },
+      ],
     },
     algolia: {
       appId: 'LJWMP0KD7V',
@@ -117,6 +140,14 @@ module.exports = {
     ],
   ],
   plugins: [
+    [
+      '@docusaurus/plugin-content-blog',
+      {
+        id: 'trouble-shooting',
+        routeBasePath: 'trouble-shooting',
+        path: './troubleShooting',
+      },
+    ],
     [
       '@docusaurus/plugin-pwa',
       {
