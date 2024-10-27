@@ -29,7 +29,14 @@ function ProjectCard({ name, description, imageUrl, tech, period }: ProjectInfo)
             <b>{name}</b> <br />
             <small>{period}</small>
           </p>
-          <p>{description}</p>
+          <p>
+            {description.split('\n').map((chunk) => (
+              <>
+                {chunk}
+                <br />
+              </>
+            ))}
+          </p>
         </div>
         <div className="card__footer">
           <small>
