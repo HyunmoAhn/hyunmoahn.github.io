@@ -45,6 +45,7 @@ module.exports = {
       },
       hideOnScroll: true,
       items: [
+        { to: '/trouble-shooting', label: 'Trouble Shooting', position: 'left' },
         { to: '/about', label: 'About', position: 'left' },
         { to: '/tags', label: 'Tags', position: 'left' },
         {
@@ -67,6 +68,10 @@ module.exports = {
             {
               label: 'Blog',
               to: '/',
+            },
+            {
+              label: 'Trouble Shooting',
+              to: '/trouble-shooting',
             },
             {
               label: 'About',
@@ -117,6 +122,14 @@ module.exports = {
     ],
   ],
   plugins: [
+    [
+      '@docusaurus/plugin-content-blog',
+      {
+        id: 'trouble-shooting',
+        routeBasePath: 'trouble-shooting',
+        path: './troubleShooting',
+      },
+    ],
     [
       '@docusaurus/plugin-pwa',
       {
