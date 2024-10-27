@@ -1,0 +1,161 @@
+---
+slug: avoid-nested-component
+title: nested component를 피해야 하는 이유
+description: React에서 nested component를 사용하는 것을 피해야 하는 이유에 대해서 설명한다.
+keywords:
+  - react
+  - nested component
+  - component
+  - re-render
+  - web
+authors: HyunmoAhn
+tags: [react, web, nested-component, re-render, trouble-shooting, issue]
+---
+
+## Introduction
+
+프로젝트를 진행하면서 불필요하게 re-render가 발생하는 문제를 만났다.
+
+단순히 render를 하는 것 뿐 아니라 매 render시마다 DOM을 새롭게 다시 그리고 있던 것이 문제였는데,
+원인은 nested component로 사용한 코드였다.
+
+따라서 이 글에서는 nested component를 사용하는 것을 피해야 하는 이유를 설명하고자 한다.
+
+## Cheat Sheet
+
+```tsx
+// error-next-line
+// Bad
+const List = ({ hasWrapper, borderStyle, children }) => {
+  // highlight-start
+  const Border = () => {
+    return <p style={borderStyle}>{children}</p>;
+  }
+  // highlight-end
+
+  if (hasWrapper) {
+    return (
+      <Wrapper>
+        <Border />
+      </Wrapper>
+    );
+  }
+
+  return <Border/>;
+};
+```
+
+```tsx
+// good-next-line
+// Good
+const List = ({ hasWrapper, borderStyle, children }) => {
+  if (hasWrapper) {
+    return (
+      <Wrapper>
+        // highlight-start
+        <Border borderStyle={borderStyle}>
+          {children}
+        </Border>
+        // highlight-end
+      </Wrapper>
+    );
+  }
+
+  return (
+    // highlight-start
+    <Border borderStyle={borderStyle}>
+      {children}
+    </Border>
+    // highlight-end
+  );
+};
+
+// highlight-start
+const Border = ({ borderStyle, children }) => {
+  return <p style={borderStyle}>{children}</p>;
+}
+// highlight-end
+
+```
+
+위와 같이 `Border`의 코드를 재사용하고, `List`의 props를 재사용하기 위해 nested component를 사용하게 될 수 있다.
+하지만 이런 경우 children은 불필요하게 매 render시마다 새롭게 DOM이 그려지게 된다.
+
+<!--truncate-->
+import { Playground } from '@site/src/components/playground/index.tsx'
+import { badCaseSnippet, goodCaseSnippet } from '@site/src/code-snippet/avoidInlineComponent/index.js'
+
+## 문제 케이스
+
+<Playground title="Problem Case" files={badCaseSnippet} defaultOutput="result" outputHeight={250} />
+
+문제 케이스는 같은 image url에서 다른 image를 보여주는 [https://picsum.photos/200/200](https://picsum.photos/200/200)의 특성을 이용해서 DOM이 매번 새로 그려지는지 확인하고 있는 에시 코드이다.
+
+코드를 보았을 때 `App` 컴포넌트에서 매 5초마다 count를 증가하고 있고, List 컴포넌트에는 영향을 끼치지 않는다. 하지만 React의 특성상 children이 re-render 되는건 당연하다.
+
+하지만 여기서 주목할 점은 DOM까지 새롭게 그려지고 있는 것이다. React는 Virtual DOM을 사용해서 변경점이 없다면 browser paint를 스킵해야한다. 하지만 예시 코드는 그렇지 않은 것을 볼 수 있다.
+
+원인은 `Border` 컴포넌트 때문이다. `Border` 컴포넌트는 nested component로 사용되고 있어서 매 render시마다 새로운 결과물을 만들고, `children`이 새롭게 만들어지므로 React에서는 DOM이 동일한 것을 인지하지 못하고 업데이트 하는 것이다.
+
+```tsx
+export const List = ({ children }) => {
+  // error-start
+  // Every render, children is newly created.
+  const Border = () => {
+    return <div>{children}</div>;
+  };
+  // error-end
+
+  return (
+    <ul>
+      <Border>{children}</Border>
+    </ul>
+  );
+};
+```
+
+## 해결 케이스
+<Playground title="Resolved Case" files={goodCaseSnippet} defaultOutput="result" outputHeight={250} />
+
+해결 케이스는 `Border` 컴포넌트를 `List` 컴포넌트 밖으로 빼내어 선언하는 것이다.
+
+```tsx
+export const List = ({ children }) => {
+  return (
+    <ul>
+      <Border>{children}</Border>
+    </ul>
+  );
+};
+
+// good-start
+// Border is not re-render by List's render.
+export const Border = ({ children }) => {
+  return <div>{children}</div>;
+};
+// good-end
+```
+
+## 재발방지책
+
+실수로 nested component를 사용하는 것을 방지하기 위해 eslint를 사용해도 좋다.
+
+[react/no-unstable-nested-components](https://github.com/jsx-eslint/eslint-plugin-react/blob/master/docs/rules/no-unstable-nested-components.md) 룰이 이를 검증해준다.
+
+```json
+{
+  "rules": {
+    "react/no-unstable-nested-components": "error"
+  }
+}
+```
+
+해당 룰을 사용하는 이유도 정확하게 이 글에서 설명한 이유와 동일하다. 기회가 되면 rules에서 서술하는 내용도 같이 읽어보길 바란다.
+
+## 결론
+
+프로젝트에 코드를 작성하며 nested component를 사용을 지양해야하는 것을 놓치고 사용해서 문제를 발생시켰다.
+코드 중복을 줄이고, 여러 props를 선언하지 않기 위해 nested component를 컴포넌트 내부에 선언해서 사용하였는데, 이는 DOM을 새로그리는 문제를 야기한다.
+
+실제로 DOM이 새로 그려진다는 것도 chrome devtools를 키고 cache를 무효화하기 전까지 모르고 있었으므로 놓치기 쉬운 문제라고 생각한다.
+React에서 사용을 지양해야하는 패턴을 새롭게 알게되었고, eslint rule 설정을 통해 앞으로의 이슈도 방지 할 수 있을 것이다.
