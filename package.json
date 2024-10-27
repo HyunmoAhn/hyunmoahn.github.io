@@ -27,17 +27,17 @@
   },
   "dependencies": {
     "@codesandbox/sandpack-react": "^2.6.9",
-    "@docusaurus/core": "2.4.1",
-    "@docusaurus/plugin-pwa": "2.4.1",
-    "@docusaurus/preset-classic": "2.4.1",
-    "@docusaurus/theme-mermaid": "^2.4.1",
-    "@mdx-js/react": "^1.6.22",
+    "@docusaurus/core": "3.5.2",
+    "@docusaurus/plugin-pwa": "3.5.2",
+    "@docusaurus/preset-classic": "3.5.2",
+    "@docusaurus/theme-mermaid": "^3.5.2",
+    "@mdx-js/react": "^3.1.0",
     "@radix-ui/react-tabs": "^1.0.4",
     "@svgr/webpack": "^8.0.1",
     "clsx": "^2.0.0",
     "file-loader": "^6.2.0",
     "lucide-react": "^0.274.0",
-    "prism-react-renderer": "^2.0.6",
+    "prism-react-renderer": "^2.4.0",
     "raw-loader": "^4.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -45,8 +45,8 @@
     "url-loader": "^4.1.1"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "2.4.1",
-    "@tsconfig/docusaurus": "^2.0.0",
+    "@docusaurus/module-type-aliases": "3.5.2",
+    "@tsconfig/docusaurus": "^2.0.3",
     "@types/react": "^18.2.21",
     "@typescript-eslint/eslint-plugin": "^6.3.0",
     "@typescript-eslint/parser": "^6.3.0",
@@ -60,7 +60,7 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.2.3",
     "prettier": "^3.0.1",
-    "typescript": "^5.1.6"
+    "typescript": "^5.6.3"
   },
   "browserslist": {
     "production": [
@@ -73,5 +73,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "packageManager": "yarn@4.1.1+sha512.ec40d0639bb307441b945d9467139cbb88d14394baac760b52eca038b330d16542d66fef61574271534ace5a200518dabf3b53a85f1f9e4bfa37141b538a9590"
 }
