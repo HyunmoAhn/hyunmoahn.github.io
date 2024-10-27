@@ -1,0 +1,163 @@
+---
+slug: avoid-nested-component
+title: Reasons to Avoid Nested Components
+description: Explanation on why nested components should be avoided in React.
+keywords:
+  - react
+  - nested component
+  - component
+  - re-render
+  - web
+authors: HyunmoAhn
+tags: [react, web, nested-component, re-render, trouble-shooting, issue]
+---
+
+## Introduction
+
+During a project, I encountered an issue where unnecessary re-renders were occurring.
+
+The problem was not just rendering, but the fact that the DOM was being completely redrawn with each render. The culprit was the use of nested components in the code.
+
+In this article, I will explain why you should avoid using nested components.
+
+## Cheat Sheet
+
+```tsx
+// error-next-line
+// Bad
+const List = ({ hasWrapper, borderStyle, children }) => {
+  // highlight-start
+  const Border = () => {
+    return <p style={borderStyle}>{children}</p>;
+  }
+  // highlight-end
+
+  if (hasWrapper) {
+    return (
+      <Wrapper>
+        <Border />
+      </Wrapper>
+    );
+  }
+
+  return <Border/>;
+};
+```
+
+```tsx
+// good-next-line
+// Good
+const List = ({ hasWrapper, borderStyle, children }) => {
+  if (hasWrapper) {
+    return (
+      <Wrapper>
+        // highlight-start
+        <Border borderStyle={borderStyle}>
+          {children}
+        </Border>
+        // highlight-end
+      </Wrapper>
+    );
+  }
+
+  return (
+    // highlight-start
+    <Border borderStyle={borderStyle}>
+      {children}
+    </Border>
+    // highlight-end
+  );
+};
+
+// highlight-start
+const Border = ({ borderStyle, children }) => {
+  return <p style={borderStyle}>{children}</p>;
+}
+// highlight-end
+
+```
+
+As shown above, you might use a nested component to reuse the code for Border and the props of List.
+However, in such cases, the children are unnecessarily repaint in the DOM with each render.
+
+<!--truncate-->
+import { Playground } from '@site/src/components/playground/index.tsx'
+import { badCaseSnippet, goodCaseSnippet } from '@site/src/code-snippet/avoidInlineComponent/index.js'
+
+## Problem Case
+
+<Playground title="Problem Case" files={badCaseSnippet} defaultOutput="result" outputHeight={250} />
+
+The problem case uses the same image URL to display different images [https://picsum.photos/200/200](https://picsum.photos/200/200) to check if the DOM is redrawn each time.
+
+When looking at the code, the `App` component increases the count every 5 seconds, which does not affect the List component. However, it is natural for React to re-render the children.
+
+What is noteworthy here is that the DOM is being repaint. React uses the Virtual DOM to skip browser paint if there are no changes. However, the example code shows otherwise.
+
+The cause is the Border component. Because Border is used as a nested component, it creates a new result with each render, and since the children are newly created, React doesn't recognize the DOM as the same and updates it.
+
+```tsx
+export const List = ({ children }) => {
+  // error-start
+  // Every render, children is newly created.
+  const Border = () => {
+    return <div>{children}</div>;
+  };
+  // error-end
+
+  return (
+    <ul>
+      <Border>{children}</Border>
+    </ul>
+  );
+};
+```
+
+## Resolved Case
+<Playground title="Resolved Case" files={goodCaseSnippet} defaultOutput="result" outputHeight={250} />
+
+The resolved case declares the Border component outside of the List component.
+
+```tsx
+export const List = ({ children }) => {
+  return (
+    <ul>
+      <Border>{children}</Border>
+    </ul>
+  );
+};
+
+// good-start
+// Border is not re-render by List's render.
+export const Border = ({ children }) => {
+  return <div>{children}</div>;
+};
+// good-end
+```
+
+## Prevention
+
+To prevent the accidental use of nested components, using ESLint is a good option.
+
+[react/no-unstable-nested-components](https://github.com/jsx-eslint/eslint-plugin-react/blob/master/docs/rules/no-unstable-nested-components.md) rule checks for this.
+
+```json
+{
+  "rules": {
+    "react/no-unstable-nested-components": "error"
+  }
+}
+```
+
+The reason for using this rule is exactly what is explained in this article.
+If you have the curiosity, I recommend reading the content described in the rules as well.
+
+## Conclusion
+
+While writing code for a project, I overlooked avoiding the use of nested components, which led to a problem.
+To reduce code duplication and avoid declaring multiple props, I declared a nested component inside another component,
+which caused the issue of the DOM being redrawn.
+
+I only realized the DOM was being redrawn after enabling Chrome DevTools and invalidating the cache, which suggests it's an easy problem to overlook.
+I've learned about a pattern to avoid in React, and with the ESLint rule settings,
+I can prevent similar issues in the future.
