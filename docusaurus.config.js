@@ -47,7 +47,6 @@ module.exports = {
       items: [
         { to: '/trouble-shooting', label: 'Trouble Shooting', position: 'left' },
         { to: '/about', label: 'About', position: 'left' },
-        { to: '/tags', label: 'Tags', position: 'left' },
         {
           type: 'localeDropdown',
           position: 'right',
@@ -80,6 +79,19 @@ module.exports = {
             {
               label: 'GitHub',
               href: 'https://github.com/HyunmoAhn',
+            },
+          ],
+        },
+        {
+          title: 'Tags',
+          items: [
+            {
+              label: 'Blog',
+              to: '/tags',
+            },
+            {
+              label: 'Trouble Shooting',
+              to: '/trouble-shooting/tags',
             },
           ],
         },
