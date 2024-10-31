@@ -126,6 +126,7 @@ module.exports = {
           path: './blog',
           routeBasePath: '/',
           showReadingTime: true,
+          authorsMapPath: '../authors.yml',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -146,6 +147,7 @@ module.exports = {
         id: 'trouble-shooting',
         routeBasePath: 'trouble-shooting',
         path: './troubleShooting',
+        authorsMapPath: '../authors.yml',
       },
     ],
     [
