@@ -8,6 +8,6 @@
     },
     "skipLibCheck": true
   },
-  "include": ["src", "*.js"],
+  "include": ["src", "argos", "*.config.ts", "*.js"],
   "exclude": ["node_modules"]
 }
