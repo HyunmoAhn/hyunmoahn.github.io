@@ -12,7 +12,7 @@ authors: HyunmoAhn
 tags: [react, web, nested-component, re-render, trouble-shooting, issue]
 ---
 
-## Introduction
+# Introduction
 
 프로젝트를 진행하면서 불필요하게 re-render가 발생하는 문제를 만났다.
 
@@ -89,9 +89,7 @@ import { badCaseSnippet, goodCaseSnippet } from '@site/src/code-snippet/avoidInl
 
 <Playground title="Problem Case" files={badCaseSnippet} defaultOutput="result" outputHeight={250} />
 
-문제 케이스는 같은 image url에서 다른 image를 보여주는 [https://picsum.photos/200/200](https://picsum.photos/200/200)의 특성을 이용해서 DOM이 매번 새로 그려지는지 확인하고 있는 에시 코드이다.
-
-코드를 보았을 때 `App` 컴포넌트에서 매 5초마다 count를 증가하고 있고, List 컴포넌트에는 영향을 끼치지 않는다. 하지만 React의 특성상 children이 re-render 되는건 당연하다.
+문제 케이스는 같은 imag포넌트에서 매 5초마다 count를 증가하고 있고, List 컴포넌트에는 영향을 끼치지 않는다. 하지만 React의 특성상 children이 re-render 되는건 당연하다.
 
 하지만 여기서 주목할 점은 DOM까지 새롭게 그려지고 있는 것이다. React는 Virtual DOM을 사용해서 변경점이 없다면 browser paint를 스킵해야한다. 하지만 예시 코드는 그렇지 않은 것을 볼 수 있다.
 
