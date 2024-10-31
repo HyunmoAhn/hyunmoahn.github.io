@@ -52,3 +52,7 @@
   border-left: 3px solid rgb(37, 194, 160);
   font-weight: 600;
 }
+
+.radix-themes {
+ color: var(--ifm-font-color-base);
+}

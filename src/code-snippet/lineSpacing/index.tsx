@@ -1,6 +1,6 @@
 import cx from 'classnames';
 import { useState, useId } from 'react';
-import * as Select from '@radix-ui/react-select';
+import { Select } from '@radix-ui/themes';
 import * as Label from '@radix-ui/react-label';
 import style from './lineSpacing.module.scss';
 
@@ -100,10 +100,9 @@ export const SpacingSelect = ({
     <div>
       <Label.Root htmlFor={id}>Spacing</Label.Root>
       <Select.Root value={String(value)} onValueChange={onChange}>
-        <Select.Trigger id={id}>
-          <Select.Value />
-        </Select.Trigger>
+        <Select.Trigger id={id} />
         <Select.Content>
+          <Select.Item value="0">0</Select.Item>
           <Select.Item value="5">5</Select.Item>
           <Select.Item value="10">10</Select.Item>
           <Select.Item value="15">15</Select.Item>
@@ -117,7 +116,7 @@ export const SpacingSelect = ({
 };
 
 export const LinePlayground = () => {
-  const [value, setState] = useState(15);
+  const [value, setState] = useState(0);
 
   return (
     <div className={style.linePlaygroundWrapper}>

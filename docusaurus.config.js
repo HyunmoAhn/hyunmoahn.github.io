@@ -141,7 +141,10 @@ module.exports = {
           authorsMapPath: '../authors.yml',
         },
         theme: {
-          customCss: require.resolve('./src/css/custom.css'),
+          customCss: [
+            require.resolve('@radix-ui/themes/styles.css'),
+            require.resolve('./src/css/custom.css'),
+          ],
         },
         googleAnalytics: {
           trackingID: 'UA-206743648-1',
