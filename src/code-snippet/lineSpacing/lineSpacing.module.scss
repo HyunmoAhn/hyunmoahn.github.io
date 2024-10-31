@@ -84,6 +84,9 @@
 
 .select {
   display: flex;
-  padding: 15px;
-  background-color: var(--dark-background-color)
+  justify-content: flex-start;
+  align-items: center;
+  column-gap: 10px;
+  background-color: var(--dark-background-color);
+  margin-bottom: 10px;
 }

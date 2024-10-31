@@ -57,6 +57,7 @@ export const LineSpacingPlayground = ({ lineSpacing }: { lineSpacing: number }) 
 
   return (
     <div>
+      <h3>Line Spacing {lineSpacing}px</h3>
       <div className={style.playgroundBorder}>
         <p
           className={style.playground}
@@ -77,6 +78,7 @@ export const LineSpacingPlayground = ({ lineSpacing }: { lineSpacing: number }) 
 export const LineHeightPlayground = ({ lineHeight }: { lineHeight: number }) => {
   return (
     <div>
+      <h3>Line Height ({lineHeight}px + fontSize)</h3>
       <div className={style.playgroundBorder}>
         <p className={style.playground} style={{ lineHeight: `${lineHeight + 26}px` }}>
           {TEXT_SAMPLE}
@@ -97,18 +99,18 @@ export const SpacingSelect = ({
   const id = useId();
 
   return (
-    <div>
-      <Label.Root htmlFor={id}>Spacing</Label.Root>
+    <div className={style.select}>
+      <Label.Root htmlFor={id}>Select Spacing</Label.Root>
       <Select.Root value={String(value)} onValueChange={onChange}>
         <Select.Trigger id={id} />
         <Select.Content>
-          <Select.Item value="0">0</Select.Item>
-          <Select.Item value="5">5</Select.Item>
-          <Select.Item value="10">10</Select.Item>
-          <Select.Item value="15">15</Select.Item>
-          <Select.Item value="25">25</Select.Item>
-          <Select.Item value="30">30</Select.Item>
-          <Select.Item value="40">40</Select.Item>
+          <Select.Item value="0">0px</Select.Item>
+          <Select.Item value="5">5px</Select.Item>
+          <Select.Item value="10">10px</Select.Item>
+          <Select.Item value="15">15px</Select.Item>
+          <Select.Item value="25">25px</Select.Item>
+          <Select.Item value="30">30px</Select.Item>
+          <Select.Item value="40">40px</Select.Item>
         </Select.Content>
       </Select.Root>
     </div>
