@@ -78,11 +78,7 @@ export const PlaygroundOutput = ({
         </Button>
       </TabListWrapper>
       <TabContent value="result" forceMount height={outputHeight}>
-        <SandpackPreview
-          style={{ height: '100%' }}
-          showOpenInCodeSandbox={false}
-          showRefreshButton={false}
-        />
+        <SandpackPreview style={{ height: '100%' }} showRefreshButton={false} />
       </TabContent>
       <TabContent value="console" forceMount height={outputHeight}>
         <SandpackConsole style={{ height: '100%' }} standalone resetOnPreviewRestart />

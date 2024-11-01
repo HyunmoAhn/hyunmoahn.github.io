@@ -26,18 +26,36 @@ export interface PlaygroundProps {
   outputHeight?: number;
 }
 
-const strictOff = {
+const strictOff = (theme: 'dark' | 'light') => ({
   '/index.js': {
     hidden: true,
     code: `import React from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
+import "./theme.css";
 import App from "./App";
 const root = createRoot(document.getElementById("root"));
 root.render(<App />);
 `,
   },
-};
+  '/theme.css': {
+    hidden: true,
+    code:
+      theme === 'dark'
+        ? `
+    html {
+      color: #e3e3e3;
+      background-color: #1c1e21;
+    }
+    `
+        : `
+    html {
+      color: #1c1e21;
+      background-color: transparent;
+    }
+    `,
+  },
+});
 
 export const Playground = ({
   files,
@@ -51,7 +69,7 @@ export const Playground = ({
 
   return (
     <SandpackProvider
-      files={{ ...files, ...(!strict && strictOff) }}
+      files={{ ...files, ...(!strict && strictOff(colorMode)) }}
       theme={colorMode}
       template="react"
       options={{ autorun: true, autoReload: true }}
