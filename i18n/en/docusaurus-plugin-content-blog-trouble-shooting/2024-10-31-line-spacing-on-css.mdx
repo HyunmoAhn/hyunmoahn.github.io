@@ -1,0 +1,77 @@
+---
+slug: line-spacing-on-css
+title: How to implement line-spacing in CSS
+description: Explains how to implement line spacing in CSS
+keywords:
+  - css
+  - web
+authors: HyunmoAhn
+tags: [css, line-spacing, web, issue, trouble-shooting, line-height]
+---
+
+## Introduction
+
+In CSS, line-height is used to adjust line spacing. However, in a project I worked on,
+there was a requirement to support line-spacing. This article explains how to implement line-spacing using CSS.
+
+import { LinePaddingExample, LinePlayground } from '@site/src/code-snippet/lineSpacing/index.tsx'
+
+<LinePaddingExample />
+
+## Cheat Sheet
+
+Unlike line-height, which applies padding both above and below the text, line-spacing applies padding only between lines.
+The difference here is that line-spacing does not add padding at the beginning and end of the text block.
+
+You can implement line-spacing using margins.
+
+```tsx
+const lineHeight = 20; // origin line-height
+const lineSpacing = 10;
+const margin = - (lineSpacing / 2);
+
+const LineSpacingText = () => {
+  return (
+    <p style={{
+      // highlight-start
+      marginTop: `${margin}px`,
+      marginBottom: `${margin}px`,
+      lineHeight: `${lineHeight + lineSpacing}px`,
+      // highlight-end
+    }}>
+      Hello, World!
+    </p>
+  );
+};
+```
+
+
+## Playground
+<LinePlayground />
+
+<!--truncate-->
+
+## Additional Story
+
+There isn't much more to say about the topic of line-spacing.
+If you have the idea of "Can it be implemented in CSS?", it's a difficulty level that can be sufficiently implemented.
+
+The key to this idea is that while `line-height` applies padding both above and below, `line-spacing` applies padding only between lines.
+Therefore, even in the case of `line-height`, the spacing between lines is the same as the `line-spacing` padding,
+and the difference is the presence or absence of padding on the first and last lines.
+To bridge this difference, you use margins to reduce the value by `line-spacing / 2`.
+
+In general web development, if such a `line-spacing` requirement comes up,
+it is better to somehow persuade in another direction or propose an alternative.
+In my case, although it was on the web, I had to create a design tool that perfectly matched a screen developed native,
+and I had to satisfy the special specification of `line-spacing`, so I used this method.
+It is not recommended to use this method simply to meet design requirements.
+Nevertheless, I hope this article helps developers who need to meet similar requirements.
+
+import { Playground } from '@site/src/components/playground/index.tsx'
+import { codeSnippet } from '@site/src/code-snippet/lineSpacing/index.tsx'
+
+
+## Code Playground
+
+<Playground title={'line-spacing'} files={codeSnippet} height={900} outputHeight={400} />

@@ -1,0 +1,72 @@
+---
+slug: line-spacing-on-css
+title: CSS로 line-spacing을 구현하는 방법
+description: CSS에서 line-spacing을 구현하는 방법에 대해서 설명한다.
+keywords:
+  - css
+  - web
+authors: HyunmoAhn
+tags: [css, line-spacing, web, issue, trouble-shooting, line-height]
+---
+
+## Introduction
+
+CSS에서는 줄 간격을 조정하는데 line-height를 사용한다. 하지만 내가 경험했던 프로젝트에서 line-spacing을 지원해야하는 요구사항이 있었다.
+이에 대해 CSS로 line-spacing을 구현하는 방법에 대해서 설명하고자 한다.
+
+import { LinePaddingExample, LinePlayground } from '@site/src/code-snippet/lineSpacing/index.tsx'
+
+<LinePaddingExample />
+
+## Cheat Sheet
+
+여백이 위, 아래로 나눠서 적용되는 `line-height`와 달리, `line-spacing`은 줄 사이에만 여백을 적용한다.
+이 때, `line-height`와의 차이는 줄의 처음과 끝의 여백이 들어가지 않는다는 점이다.
+
+이를 이용해서 margin을 이용하여 line-spacing을 구현할 수 있다.
+
+```tsx
+const lineHeight = 20; // origin line-height
+const lineSpacing = 10;
+const margin = - (lineSpacing / 2);
+
+const LineSpacingText = () => {
+  return (
+    <p style={{
+      // highlight-start
+      marginTop: `${margin}px`,
+      marginBottom: `${margin}px`,
+      lineHeight: `${lineHeight + lineSpacing}px`,
+      // highlight-end
+    }}>
+      Hello, World!
+    </p>
+  );
+};
+```
+
+
+## Playground
+<LinePlayground />
+
+<!--truncate-->
+
+## Additional Story
+
+line-spacing 주제는 추가로 이야기 할 내용은 없다. "CSS로 구현 할 수 있는가"에 아이디어가 있다면 충분히 구현할 수 있는 난이도이기 때문이다.
+
+이 아이디어의 핵심은 `line-height`는 여백이 위 아래로 나누어 적용되는 반면 `line-spacing`은 줄 사이에만 여백을 적용한다는 것이다.
+따라서 `line-height` 케이스에서도 줄과 줄 사이의 간격은 `line-spacing` 여백과 동일하게 되고 다른 점은 첫 줄과 마지막 줄의 여백 유무이다.
+이 차이를 메꾸기 위해 margin을 사용해서 `line-spacing / 2` 값을 줄여주는 것이다.
+
+물론 일반적인 웹 개발에서 이런 `line-spacing` 요구사항이 들어온다면 어떻게든 다른 방향으로 설득하거나 대안을 제시하는 것이 좋다.
+나의 경우는 web이지만 native로 개발되어 있는 화면과 100% 일치하는 디자인 도구를 만들어야 했고, `line-spacing`이라는 특수한 스펙을 만족시켜야하는 상황에 놓였기 때문에 이런 방식을 사용하였다.
+단순 디자인 요구사항을 만족하기 위해서 이런 방식을 사용하는 것은 권장하지 않는다. 그럼에도 비슷한 요구사항을 만족해야하는 개발자들에게 이 글이 도움이 되었으면 한다.
+
+import { Playground } from '@site/src/components/playground/index.tsx'
+import { codeSnippet } from '@site/src/code-snippet/lineSpacing/index.tsx'
+
+
+## Code Playground
+
+<Playground title={'line-spacing'} files={codeSnippet} height={900} outputHeight={400} />

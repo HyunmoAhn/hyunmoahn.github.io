@@ -6,13 +6,13 @@ import styled from 'styled-components';
 import { PlaygroundOutput, OutputMode } from './PlaygroundOutput';
 import { PlaygroundHeader } from './PlaygroundHeader';
 
-const CodeEditorContainer = styled.div`
+const CodeEditorContainer = styled.div<{ height?: number }>`
   display: flex;
   flex-direction: column;
 
   border: 3px solid var(--ifm-color-emphasis-200);
   border-radius: 5px;
-  height: 600px;
+  height: ${(props) => (props.height ? `${props.height}px` : '600px')};
 
   margin-bottom: 30px;
 `;
@@ -22,39 +22,59 @@ export interface PlaygroundProps {
   defaultOutput?: OutputMode;
   files: SandpackBundlerFiles;
   strict?: boolean;
+  height?: number;
   outputHeight?: number;
 }
 
-const strictOff = {
+const strictOff = (theme: 'dark' | 'light') => ({
   '/index.js': {
     hidden: true,
     code: `import React from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
+import "./theme.css";
 import App from "./App";
 const root = createRoot(document.getElementById("root"));
 root.render(<App />);
 `,
   },
-};
+  '/theme.css': {
+    hidden: true,
+    code:
+      theme === 'dark'
+        ? `
+    html {
+      color: #e3e3e3;
+      background-color: #1c1e21;
+    }
+    `
+        : `
+    html {
+      color: #1c1e21;
+      background-color: transparent;
+    }
+    `,
+  },
+});
 
 export const Playground = ({
   files,
   title,
   strict = false,
   defaultOutput,
+  height,
   outputHeight,
 }: PlaygroundProps) => {
   const { colorMode } = useColorMode();
 
   return (
     <SandpackProvider
-      files={{ ...files, ...(!strict && strictOff) }}
+      files={{ ...files, ...(!strict && strictOff(colorMode)) }}
       theme={colorMode}
       template="react"
       options={{ autorun: true, autoReload: true }}
     >
-      <CodeEditorContainer>
+      <CodeEditorContainer height={height}>
         <PlaygroundHeader title={title} />
         <SandpackCodeEditor
           style={{ flex: 7, overflow: 'scroll' }}
