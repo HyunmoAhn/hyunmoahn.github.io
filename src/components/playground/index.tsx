@@ -6,13 +6,13 @@ import styled from 'styled-components';
 import { PlaygroundOutput, OutputMode } from './PlaygroundOutput';
 import { PlaygroundHeader } from './PlaygroundHeader';
 
-const CodeEditorContainer = styled.div`
+const CodeEditorContainer = styled.div<{ height?: number }>`
   display: flex;
   flex-direction: column;
 
   border: 3px solid var(--ifm-color-emphasis-200);
   border-radius: 5px;
-  height: 600px;
+  height: ${(props) => (props.height ? `${props.height}px` : '600px')};
 
   margin-bottom: 30px;
 `;
@@ -22,6 +22,7 @@ export interface PlaygroundProps {
   defaultOutput?: OutputMode;
   files: SandpackBundlerFiles;
   strict?: boolean;
+  height?: number;
   outputHeight?: number;
 }
 
@@ -43,6 +44,7 @@ export const Playground = ({
   title,
   strict = false,
   defaultOutput,
+  height,
   outputHeight,
 }: PlaygroundProps) => {
   const { colorMode } = useColorMode();
@@ -54,7 +56,7 @@ export const Playground = ({
       template="react"
       options={{ autorun: true, autoReload: true }}
     >
-      <CodeEditorContainer>
+      <CodeEditorContainer height={height}>
         <PlaygroundHeader title={title} />
         <SandpackCodeEditor
           style={{ flex: 7, overflow: 'scroll' }}

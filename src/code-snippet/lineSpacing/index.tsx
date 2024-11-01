@@ -3,6 +3,7 @@ import { useState, useId } from 'react';
 import { Select } from '@radix-ui/themes';
 import * as Label from '@radix-ui/react-label';
 import style from './lineSpacing.module.scss';
+import lineSpacingSnippet from '!!raw-loader!./lineSpacingSnippet';
 
 const TEXT_SAMPLE =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.';
@@ -129,4 +130,8 @@ export const LinePlayground = () => {
       </div>
     </div>
   );
+};
+
+export const codeSnippet = {
+  '/App.js': lineSpacingSnippet,
 };
