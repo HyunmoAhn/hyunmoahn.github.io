@@ -45,7 +45,7 @@ module.exports = {
       },
       hideOnScroll: true,
       items: [
-        { to: '/trouble-shooting', label: 'Trouble Shooting', position: 'left' },
+        { to: '/tags/trouble-shooting', label: 'Trouble Shooting', position: 'left' },
         { to: '/about', label: 'About', position: 'left' },
         {
           type: 'localeDropdown',
@@ -70,7 +70,7 @@ module.exports = {
             },
             {
               label: 'Trouble Shooting',
-              to: '/trouble-shooting',
+              to: '/tags/trouble-shooting',
             },
             {
               label: 'About',
@@ -139,6 +139,7 @@ module.exports = {
           routeBasePath: '/',
           showReadingTime: true,
           authorsMapPath: '../authors.yml',
+          blogSidebarCount: 'ALL',
         },
         theme: {
           customCss: [
@@ -157,15 +158,6 @@ module.exports = {
   ],
   plugins: [
     'docusaurus-plugin-sass',
-    [
-      '@docusaurus/plugin-content-blog',
-      {
-        id: 'trouble-shooting',
-        routeBasePath: 'trouble-shooting',
-        path: './troubleShooting',
-        authorsMapPath: '../authors.yml',
-      },
-    ],
     [
       '@docusaurus/plugin-pwa',
       {
