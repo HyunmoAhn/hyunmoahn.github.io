@@ -1,0 +1,158 @@
+---
+slug: next-server-action-sequence
+title: Nextjs에서 server action은 순차적으로 실행된다
+description: Nextjs에서 server action은 순차적으로 실행되어 사용에 유의해야한다.
+keywords:
+  - nextjs
+  - server-action
+  - web
+authors: HyunmoAhn
+tags: [nextjs, server-action, web, issue, trouble-shooting]
+---
+
+## Introduction
+
+nextjs에서 server action은 client 환경에서도 server를 통해 함수를 호출하기 위한 방법으로 사용된다.
+이 때, server action은 순차적으로 실행되어 여러 함수를 호출하더라도 하나씩 실행되므로 사용에 유의해야한다.
+
+## Behavior
+
+간략하게 요약 된 예시를 보자. 예시는 두가지 함수가 존재한다.
+```tsx
+'use server';
+import { format } from 'date-fns';
+
+export const callServerFn = async (count)=> {
+  return new Promise((resolve) => setTimeout(() => {
+    const time = format(new Date(), 'HH:mm:SS.sss');
+    console.log(`Server Call #${count}: `, time);
+    resolve(count)
+  }, 1000));
+}
+```
+
+`callServerFn` 함수는 응답에 1초가 걸리는 함수이고, `'use server'`를 사용하며 server action으로 사용된다.
+해당 로직은 next server 에서 이루어진다. 서버 응답 타이밍을 확인하기 위해 log를 찍고있다.
+
+```tsx
+// client.tsx
+'use client';
+
+export const CallButton = () => {
+  const handleClick = async () => {
+    const result = await Promise.all([
+      callServer(1),
+      callServer(2),
+      callServer(3),
+    ])
+  }
+
+  return (<button onClick={handleClick}>Hello World</button>);
+}
+```
+
+`CallButton` 컴포넌트는 버튼을 클릭하면 `callServer` 함수를 3번 호출하고, 모든 함수가 완료되면 결과를 반환한다.
+
+```shell
+Server Call #1:  01:23:22.010
+Server Call #2:  01:23:24.011
+Server Call #3:  01:23:25.012
+```
+
+버튼을 눌렀을 때 분명 3개의 호출이 동시에 이루어졌지만, log 결과는 하나씩 순차적으로 1초에 한번씩 호출되는 것을 확인 할 수 있다.
+<!--truncate-->
+
+## Detail Behavior
+
+위 코드의 실행을 자세히 살펴보자면 아래와 같다.
+<img src="/assets/nextjs-server-action-is-sequence/nextjs-server-action-sequence.gif" width="100%" />
+
+분명 button을 눌러서 `callServer`를 동시에 3번 호출했고, client 환경 로그에서는 3개의 호출이 동시에 이루어진 것을 확인 할 수 있다.
+하지만 서버 환경에서의 로그는 순차적으로 1초에 한번씩 호출되는 것을 확인 할 수 있다.
+
+server action이 호출되는 network 정보를 보면 server action을 실행하는 API 요청(POST)이 순차적으로 실행 되는 것을 볼 수 있다.
+
+<img src="/assets/nextjs-server-action-is-sequence/nextjs-server-action-sequence-network.gif" width="100%" />
+
+## Why?
+
+순차적으로 호출 되는 이유는 nextjs 문서에서는 찾지 못하였고, react의 [server-action 문서](https://react.dev/reference/rsc/use-server#caveats)에서 가이드를 찾을 수 있었다.
+
+:::note[React Docs]
+
+Accordingly, frameworks implementing **Server Actions typically process one action at a time** and do not have a way to cache the return value.
+
+:::
+
+React에서 가이드하는 내용은 server actions는 한번에 하나의 action만 처리하며, return 값을 캐시할 수 있는 방법이 없다고 한다.
+실제 구현은 Framework에 맡기는 듯 하지만, 적어도 nextjs는 이 방식을 따르고 있는 것으로 보인다.
+
+따라서 server action을 사용할 때는 순차적으로 호출되는 것을 염두해두고 사용해야한다.
+
+사용자가 응답을 기다려야하는 시나리오라면 async 함수를 순차적으로 처리하는 건 사용자 경험에 좋지 않으므로 다른 방법으로 접근하는 것이 필요할지도 모른다.
+
+## Workaround
+
+위의 예시의 대안은 server action을 나눠서 호출하는게 아니라 한번에 호출하는 방식을 사용할 수 있다.
+
+```tsx
+'use server';
+import { format } from 'date-fns';
+
+export const callServerFn = async (count)=> {
+  return new Promise((resolve) => setTimeout(() => {
+    const time = format(new Date(), 'HH:mm:SS.sss');
+    console.log(`Server Call #${count}: `, time);
+    resolve(count)
+  }, 1000));
+}
+
+export const callMultipleServerFn = async (counts) => {
+  return Promise.all(
+    counts.map(async (count) => callServerFn(count)),
+  )
+}
+```
+server action에서는 `callMultipleServerFn` 함수를 추가하여 한번에 여러 함수를 호출할 수 있도록 구현한다.
+
+```tsx
+// client.tsx
+'use client';
+
+export const CallButton = () => {
+  const handleClick = async () => {
+    const result = await callMultipleServerFn([1, 2, 3]);
+  }
+
+  return (<button onClick={handleClick}>Hello World</button>);
+}
+```
+client에서는 `callMultipleServerFn` 함수를 호출하여 한번에 여러 함수를 호출할 수 있도록 구현하면 server action의 순차 호출과 무관하게 모든 로직을 한번에 처리 할 수 있다.
+
+실행 결과는 다음과 같다.
+
+<img src="/assets/nextjs-server-action-is-sequence/nextjs-server-action-sequence-workaround.gif" width="100%" />
+
+이 방법을 해결책이 아니라 대안이라고 한 것은 모든 케이스에 해결책이 될 수 없기 때문이고, server action을 사용하는 목적이 잘못되었을 수도 있기 때문이다.
+
+예를들어, 각 요청에 대한 응답을 모두 기다리는게 아니라 각 응답이 올때 마다 처리를 해야한다면 이 방법은 모든 응답을 기다리기 때문에 해결책이 될 수 없다.
+또한, server action의 목적이라고 표현한 이유는 위에서 제시했던 [react server action 문서](https://react.dev/reference/rsc/use-server#caveats)에 있다.
+
+
+:::note[React Docs]
+
+Server Actions are designed for mutations that update server-side state; they are **not recommended for data fetching**.
+
+:::
+
+server action의 의도는 server side의 데이터를 업데이트 하는 목적을 가지고 있고, data fetching 용도로는 권장하지 않는다고 가이드하고 있기 때문이다.
+따라서 server action을 사용해야만 하는 이유가 무엇인지 고민해보는 것도 좋은 방향이라 생각한다.
+
+## Conclusion
+
+이번 글은 응답 시간이 긴 API 응답을 동시에 호출을 하며, 각 응답을 개별로 처리해야하는 케이스에서 발견하였다.
+server action을 사용하는데, 서버 요청이 순차적으로 호출되는 것을 확인하였고, 그 이유를 찾다가 [react docs](https://react.dev/reference/rsc/use-server#caveats)를 발견하게 된 것이다.
+nextjs server action 문서만 보고 사용 했을 때에는 모르고 있었고, 놓치기 쉬운 주제라고 생각하여 여러 이미지와 sample code를 곁들여 작성하게 되었다.
+안타깝게도 이 블로그에 server side는 존재하지 않아 nextjs의 코드 구현을 글에서 재현 할 수 없어 여러 gif를 통해서 설명하려고 노력하였다.
+
+이 글에서 말하고자 하는 바는 server action은 동시에 실행되지 않는다는 점이므로 그 점만 기억해두면 이 글의 목적은 달성된 것이라 생각한다.
