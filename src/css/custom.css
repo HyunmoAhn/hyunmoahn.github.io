@@ -18,6 +18,8 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
   --docusaurus-error-code-line-bg: #ffccc080;
   --docusaurus-good-code-line-bg: #25a38940;
+
+  --ifm-container-width-xl: 1520px;
 }
 
 /* If you have a different syntax highlighting theme for dark mode. */
