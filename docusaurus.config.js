@@ -77,21 +77,12 @@ module.exports = {
               to: '/about',
             },
             {
-              label: 'GitHub',
-              href: 'https://github.com/HyunmoAhn',
-            },
-          ],
-        },
-        {
-          title: 'Tags',
-          items: [
-            {
-              label: 'Blog',
+              label: 'Tag',
               to: '/tags',
             },
             {
-              label: 'Trouble Shooting',
-              to: '/trouble-shooting/tags',
+              label: 'GitHub',
+              href: 'https://github.com/HyunmoAhn',
             },
           ],
         },
