@@ -1,0 +1,162 @@
+---
+slug: next-server-action-sequence
+title: Server Actions in Next.js are executed sequentially
+description: In Next.js, server actions are executed sequentially, so caution is needed when using them.
+keywords:
+  - nextjs
+  - server-action
+  - web
+authors: HyunmoAhn
+tags: [nextjs, server-action, web, issue, trouble-shooting]
+---
+
+## Introduction
+
+In Next.js, server actions are used as a way to call functions via the server, even in a client environment.
+Server actions are executed sequentially, meaning that even if multiple functions are called, they are executed one at a time, so caution is needed when using them.
+
+## Behavior
+
+Let's look at a brief example. There are two functions in this example.
+```tsx
+'use server';
+import { format } from 'date-fns';
+
+export const callServerFn = async (count)=> {
+  return new Promise((resolve) => setTimeout(() => {
+    const time = format(new Date(), 'HH:mm:SS.sss');
+    console.log(`Server Call #${count}: `, time);
+    resolve(count)
+  }, 1000));
+}
+```
+
+The `callServerFn` function takes 1 second to respond and is used as a server action with `'use server'`.
+This logic is executed on the Next server. Logs are used to check the server response timing.
+
+```tsx
+// client.tsx
+'use client';
+
+export const CallButton = () => {
+  const handleClick = async () => {
+    const result = await Promise.all([
+      callServer(1),
+      callServer(2),
+      callServer(3),
+    ])
+  }
+
+  return (<button onClick={handleClick}>Hello World</button>);
+}
+```
+
+The `CallButton` component calls the `callServer` function three times when the button is clicked and returns the result when all functions are completed.
+
+```shell
+Server Call #1:  01:23:22.010
+Server Call #2:  01:23:24.011
+Server Call #3:  01:23:25.012
+```
+
+When the button is pressed, three calls are made simultaneously, but the log results show that they are called sequentially, once every second.
+
+<!--truncate-->
+
+## Detail Behavior
+
+Let's take a closer look at the execution of the code above.
+<img src="/assets/nextjs-server-action-is-sequence/nextjs-server-action-sequence.gif" width="100%" />
+
+Clearly, the `callServer` function was called three times simultaneously by pressing the button, and the client environment logs confirm that three calls were made simultaneously.
+However, the server environment logs show that the calls are made sequentially, once every second.
+
+If you look at the network information where the server action is called, you can see that the API requests (POST) executing the server action are executed sequentially.
+
+<img src="/assets/nextjs-server-action-is-sequence/nextjs-server-action-sequence-network.gif" width="100%" />
+
+## Why?
+
+The reason for sequential execution was not found in the Next.js documentation, but a guide was found in the [React server-action documentation](https://react.dev/reference/rsc/use-server#caveats).
+
+:::note[React Docs]
+
+Accordingly, frameworks implementing **Server Actions typically process one action at a time** and do not have a way to cache the return value.
+
+:::
+
+The guide from React states that server actions process only one action at a time and do not have a way to cache the return value.
+The actual implementation seems to be left to the framework, but at least Next.js appears to follow this approach.
+
+Therefore, when using server actions, you should keep in mind that they are called sequentially.
+
+If the scenario requires the user to wait for a response, processing async functions sequentially may not be good for user experience, and alternative approaches may be needed.
+
+
+## Workaround
+
+An alternative to the above example is to call server actions all at once instead of separately.
+
+```tsx
+'use server';
+import { format } from 'date-fns';
+
+export const callServerFn = async (count)=> {
+  return new Promise((resolve) => setTimeout(() => {
+    const time = format(new Date(), 'HH:mm:SS.sss');
+    console.log(`Server Call #${count}: `, time);
+    resolve(count)
+  }, 1000));
+}
+
+export const callMultipleServerFn = async (counts) => {
+  return Promise.all(
+    counts.map(async (count) => callServerFn(count)),
+  )
+}
+```
+In the server action, add the callMultipleServerFn function to allow multiple functions to be called at once.
+
+```tsx
+// client.tsx
+'use client';
+
+export const CallButton = () => {
+  const handleClick = async () => {
+    const result = await callMultipleServerFn([1, 2, 3]);
+  }
+
+  return (<button onClick={handleClick}>Hello World</button>);
+}
+```
+On the client side, by calling the `callMultipleServerFn` function, you can execute all logic at once, regardless of the sequential call of server actions.
+
+The execution result is as follows:
+
+<img src="/assets/nextjs-server-action-is-sequence/nextjs-server-action-sequence-workaround.gif" width="100%" />
+
+This is called an alternative rather than a solution because it may not be suitable for all cases, and the purpose of using server actions may be incorrect.
+
+For example, if you need to handle each response as it arrives rather than waiting for all responses, this method may not be a solution as it waits for all responses.
+Furthermore, the reason for the purpose of server actions is mentioned in the [React server action documentation](https://react.dev/reference/rsc/use-server#caveats).
+
+:::note[React Docs]
+
+Server Actions are designed for mutations that update server-side state; they are **not recommended for data fetching**.
+
+:::
+
+The intention of server actions is to update server-side data, and they are not recommended for data fetching.
+Therefore, considering why you need to use server actions might be a good direction.
+
+## Conclusion
+
+This article was discovered in a case where API responses with long response times were called simultaneously,
+and each response needed to be processed individually.
+It was confirmed that server requests were called sequentially when using server actions,
+and the reason was found through the [React documentation](https://react.dev/reference/rsc/use-server#caveats).
+When using only the Next.js server action documentation, this was not known and was considered an easy topic to overlook,
+so it was written with several images and sample code.
+Unfortunately, there is no server side in this blog, so I couldn't reproduce the Next.js code implementation in the article and tried to explain it through several gifs.
+
+The main point of this article is that server actions are not executed simultaneously, and remembering that point would achieve the purpose of this article.
