@@ -37,5 +37,6 @@
     "import/extensions": "off",
     "react/jsx-filename-extension": "off",
     "implicit-arrow-linebreak": "off",
+    "no-colsole": "off"
   }
 }

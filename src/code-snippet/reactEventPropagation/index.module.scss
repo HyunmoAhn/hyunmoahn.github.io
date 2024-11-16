@@ -1,0 +1,20 @@
+.radioRoot {
+  display: flex;
+  flex-direction: row;
+  column-gap: 10px;
+  margin-bottom: 20px;
+}
+
+.eventPanel {
+  display: flex;
+  flex-direction: column;
+  row-gap: 10px;
+  padding: 30px;
+
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+
+  background-color: var(--docusaurus-highlighted-code-line-bg)
+  //background-color: var(--docusaurus-good-code-line-bg)
+}
