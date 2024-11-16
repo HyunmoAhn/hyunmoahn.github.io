@@ -15,5 +15,85 @@ import { DisplayEventPropagation } from '@site/src/code-snippet/reactEventPropag
 
 
 ## Introduction
+React 이벤트 핸들러 방식과 vanilla Javascript의 이벤트 핸들러 방식을 혼용해서 사용할 때 이벤트 전파가 의도한대로 동작하지 않을 수 있다.
+예를 들면 아래와 같이 button1, button2 구조에서 button2를 클릭했을 때 button1의 이벤트 핸들러도 실행되는 문제가 발생한다.
+
+```tsx
+const buttonEl = document.getElementById('button1');
+buttonEl.addEventListener('click', () => {
+  console.log('button1 clicked');
+});
+
+const handleClick = (e) => {
+  e.stopPropagation();
+  console.log('button2 clicked');
+};
+
+return (
+  <button id='button1'>
+    <button id='button2' onClick={handleClick}>Click me</button>
+  </button>
+);
+```
+
+```
+// When button2 is clicked
+button2 clicked
+button1 clicked
+```
+
+## Behavior
+
+React에서 이벤트 전파는 vanilla Javascript에서 사용하는 이벤트 전파와 다르다.
+React에서 이벤트 전파를 delegation 방식으로 처리하기 때문이다. ([comment](https://github.com/facebook/react/issues/13635))
+
+React에서는 ([React 17 이후로](https://legacy.reactjs.org/blog/2020/10/20/react-v17.html#changes-to-event-delegation)) 이벤트 리스너를 rootDOM에 등록해서 사용한다.
+따라서 React끼리의 event listener는 생각한 대로 DOM 구조에 따라 이벤트가 전파가 전달되지만 vanilla Javascript의 이벤트 전파는 생각대로 동작하지 않는다.
+
+가능하다면 두가지 이벤트를 섞어서 쓰지 않는 방향이 좋겠지만, 3rd party library를 사용하거나 제어하지 못하는 부분의 이벤트는 제어하기 힘들기 때문에 동작 방식에 따라 맞춰서 이벤트 전파를 막아야한다.
+
+```tsx
+// Unify event listener to vanilla Javascript
+const buttonEl = document.getElementById('button1');
+buttonEl.addEventListener('click', () => {
+  console.log('button1 clicked');
+});
+
+const button2El = document.getElementById('button2');
+button2El.addEventListener('click', (e) => {
+  e.stopPropagation();
+  console.log('button2 clicked');
+});
+
+return (
+  <button id='button1'>
+    <button id='button2'>Click me</button>
+  </button>
+);
+
+// Or
+// Unify event listener to React
+const handleClick1 = (e) => {
+  console.log('button1 clicked');
+};
+
+const handleClick = (e) => {
+  e.stopPropagation();
+  console.log('button2 clicked');
+};
+
+return (
+  <button id='button1' onClick={handleClick1}>
+    <button id='button2' onClick={handleClick}>Click me</button>
+  </button>
+);
+```
+<!--truncate-->
+
+## Example
 
 <DisplayEventPropagation />
+
+## Playground
+
+

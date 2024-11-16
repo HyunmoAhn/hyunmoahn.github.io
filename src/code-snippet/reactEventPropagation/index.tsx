@@ -1,5 +1,5 @@
 import { ReactNode, useCallback, useEffect, useId, useState } from 'react';
-import { RadioGroup } from '@radix-ui/themes';
+import { RadioGroup, Switch } from '@radix-ui/themes';
 import style from './index.module.scss';
 
 export interface EventPropagationPanelProps {
@@ -10,6 +10,7 @@ export interface EventPropagationPanelProps {
 
 export const EventPropagationPanel = ({ label, type, children }: EventPropagationPanelProps) => {
   const id = useId();
+  const [lock, setLock] = useState(false);
   const handleReactClick = useCallback(() => {
     console.log('React clicked');
   }, []);
@@ -35,7 +36,8 @@ export const EventPropagationPanel = ({ label, type, children }: EventPropagatio
       onClick={type === 'bubble' ? handleReactClick : () => {}}
       onClickCapture={type === 'capture' ? handleReactClick : () => {}}
     >
-      <h3>Event Propagation({label})</h3>
+      <h3>{label}</h3>
+      <SwitchComponent checked={lock} setCheck={setLock} />
       {children}
     </button>
   );
@@ -54,11 +56,28 @@ export const DisplayEventPropagation = () => {
         <RadioGroup.Item value="bubble">Bubble</RadioGroup.Item>
         <RadioGroup.Item value="capture">Capture</RadioGroup.Item>
       </RadioGroup.Root>
-      <EventPropagationPanel type={eventType} label="First">
-        <EventPropagationPanel type={eventType} label="Second">
-          <EventPropagationPanel type={eventType} label="Third" />
+      <EventPropagationPanel type={eventType} label="Grand Parent">
+        <EventPropagationPanel type={eventType} label="Parent">
+          <EventPropagationPanel type={eventType} label="Child" />
         </EventPropagationPanel>
       </EventPropagationPanel>
+    </div>
+  );
+};
+
+export const SwitchComponent = ({
+  checked,
+  setCheck,
+  label = 'Stop Propagation',
+}: {
+  checked: boolean;
+  setCheck: (value: boolean) => void;
+  label?: string;
+}) => {
+  return (
+    <div className={style.switch}>
+      <Switch color="teal" checked={checked} onCheckedChange={(value) => setCheck(value)} />
+      {label}
     </div>
   );
 };
