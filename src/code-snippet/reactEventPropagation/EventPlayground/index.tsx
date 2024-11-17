@@ -1,7 +1,25 @@
-import { useId, useEffect, useState, ReactNode, MouseEvent } from 'react';
+import {
+  useId,
+  useEffect,
+  useState,
+  ReactNode,
+  MouseEvent,
+  createContext,
+  useContext,
+} from 'react';
 import cx from 'classnames';
 import style from './EventPlayground.module.scss';
-import { reactEventController, vanillaEventController, timeout, DELAY } from './utils';
+import { timeout, DELAY, createController } from './utils';
+
+export const ReactEventPlaygroundContext = createContext(createController());
+export const VanillaEventPlaygroundContext = createContext(createController());
+export const EventPlaygroundProvider = ({ children }: { children: ReactNode }) => (
+  <ReactEventPlaygroundContext.Provider value={createController()}>
+    <VanillaEventPlaygroundContext.Provider value={createController()}>
+      {children}
+    </VanillaEventPlaygroundContext.Provider>
+  </ReactEventPlaygroundContext.Provider>
+);
 
 interface EventPlaygroundProps {
   label?: string;
@@ -27,6 +45,8 @@ export const EventPlayground = ({
   vanillaStopCapture,
 }: EventPlaygroundProps) => {
   const id = useId();
+  const reactEventController = useContext(ReactEventPlaygroundContext);
+  const vanillaEventController = useContext(VanillaEventPlaygroundContext);
   const [reactEvent, setReactEvent] = useState(false);
   const [vanillaEvent, setVanillaEvent] = useState(false);
 

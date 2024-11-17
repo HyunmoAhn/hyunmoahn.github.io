@@ -1,4 +1,4 @@
-export const DELAY = 800;
+export const DELAY = 600;
 
 export function timeout(ns: number) {
   return new Promise((resolve) => {
@@ -32,6 +32,3 @@ export const createController = () => {
     clear,
   };
 };
-
-export const reactEventController = createController();
-export const vanillaEventController = createController();
