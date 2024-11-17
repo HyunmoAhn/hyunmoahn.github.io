@@ -135,7 +135,7 @@ module.exports = {
         theme: {
           customCss: [
             require.resolve('@radix-ui/themes/styles.css'),
-            require.resolve('./src/css/custom.css'),
+            require.resolve('./src/css/custom.scss'),
           ],
         },
         googleAnalytics: {
