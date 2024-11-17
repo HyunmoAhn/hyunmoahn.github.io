@@ -2,6 +2,8 @@ import { ReactNode, useCallback, useEffect, useId, useState } from 'react';
 import { RadioGroup, Switch } from '@radix-ui/themes';
 import style from './index.module.scss';
 
+export { EventPlayground } from './EventPlayground';
+
 export interface EventPropagationPanelProps {
   label?: string;
   type: 'bubble' | 'capture';
