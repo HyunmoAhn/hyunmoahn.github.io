@@ -1,4 +1,4 @@
-export const DELAY = 600;
+export const DELAY = 800;
 
 export function timeout(ns: number) {
   return new Promise((resolve) => {

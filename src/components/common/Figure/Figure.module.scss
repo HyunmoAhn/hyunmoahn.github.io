@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   column-gap: 5px;
   padding: 10px;
 
@@ -10,9 +10,9 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    column-gap: 5px;
+    column-gap: 10px;
     cursor: default;
-    margin: 5px 0;
+    margin: 10px 0 15px;
 
     .indexing {
       font-weight: 700;

@@ -12,6 +12,7 @@ tags: [react, event, event-propagation, web, issue, trouble-shooting]
 ---
 
 import { EventPlayground } from '@site/src/code-snippet/reactEventPropagation/index.tsx'
+import { Figure } from '@site/src/components/common/Figure'
 
 
 ## Introduction
@@ -92,12 +93,45 @@ return (
 
 ## Example
 
-<EventPlayground label={'#1'} reset >
-  <EventPlayground label={'#2'} >
-    <EventPlayground label={'#3'} />
+<Figure index={1} title="No Stop Propagation" >
+  <EventPlayground label={'#1'} reset >
+    <EventPlayground label={'#2'} >
+      <EventPlayground label={'#3'} />
+    </EventPlayground>
   </EventPlayground>
-</EventPlayground>
+</Figure>
 
+<Figure index={1} title="Vanilla Click Only" >
+  <EventPlayground label={'#1'} reset reactStopCapture>
+    <EventPlayground label={'#2'} >
+      <EventPlayground label={'#3'} />
+    </EventPlayground>
+  </EventPlayground>
+</Figure>
+
+<Figure index={1} title="React Click Only" >
+  <EventPlayground label={'#1'} reset vanillaStopCapture>
+    <EventPlayground label={'#2'} >
+      <EventPlayground label={'#3'} />
+    </EventPlayground>
+  </EventPlayground>
+</Figure>
+
+<Figure index={2} title="#3 React Stop Propagation (Click It!)" >
+  <EventPlayground label={'#1'} reset>
+    <EventPlayground label={'#2'} >
+      <EventPlayground label={'#3'} reactStopBubble/>
+    </EventPlayground>
+  </EventPlayground>
+</Figure>
+
+<Figure index={3} title="#3 Vanilla Stop Propagation (Click It!)" >
+  <EventPlayground label={'#1'} reset>
+    <EventPlayground label={'#2'} >
+      <EventPlayground label={'#3'} vanillaStopBubble/>
+    </EventPlayground>
+  </EventPlayground>
+</Figure>
 
 ## Playground
 

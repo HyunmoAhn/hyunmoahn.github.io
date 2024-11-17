@@ -7,13 +7,21 @@ interface EventPlaygroundProps {
   label?: string;
   children?: ReactNode;
   reset?: boolean;
-  onReactClick?: (e: MouseEvent<HTMLDivElement>) => void;
-  onVanillaClick?: (e: Event) => void;
-  onReactClickCapture?: (e: MouseEvent<HTMLDivElement>) => void;
-  onVanillaClickCapture?: (e: Event) => void;
+  reactStopBubble?: boolean;
+  reactStopCapture?: boolean;
+  vanillaStopBubble?: boolean;
+  vanillaStopCapture?: boolean;
 }
 
-export const EventPlayground = ({ label, children, reset }: EventPlaygroundProps) => {
+export const EventPlayground = ({
+  label,
+  children,
+  reset,
+  reactStopBubble,
+  reactStopCapture,
+  vanillaStopBubble,
+  vanillaStopCapture,
+}: EventPlaygroundProps) => {
   const id = useId();
   const [reactEvent, setReactEvent] = useState(false);
   const [vanillaEvent, setVanillaEvent] = useState(false);
@@ -34,15 +42,17 @@ export const EventPlayground = ({ label, children, reset }: EventPlaygroundProps
     if (reset) {
       reactEventController.clear();
     }
+    reactStopCapture && e.stopPropagation();
     handleReactClick();
   };
 
   const handleReactClickBubble = (e: MouseEvent<HTMLDivElement>) => {
+    reactStopBubble && e.stopPropagation();
     handleReactClick();
   };
 
   useEffect(() => {
-    const handleVanillaClick = () => {
+    const handleVanillaClick = (e: Event) => {
       vanillaEventController.register(() => {
         setVanillaEvent(true);
       });
@@ -53,15 +63,17 @@ export const EventPlayground = ({ label, children, reset }: EventPlaygroundProps
         setVanillaEvent(false);
       });
     };
-    const handleVanillaClickBubble = () => {
-      handleVanillaClick();
+    const handleVanillaClickBubble = (e: Event) => {
+      vanillaStopBubble && e.stopPropagation();
+      handleVanillaClick(e);
     };
 
-    const handleVanillaClickCapture = () => {
+    const handleVanillaClickCapture = (e: Event) => {
       if (reset) {
         vanillaEventController.clear();
       }
-      handleVanillaClick();
+      vanillaStopCapture && e.stopPropagation();
+      handleVanillaClick(e);
     };
 
     const button = document.getElementById(id);
