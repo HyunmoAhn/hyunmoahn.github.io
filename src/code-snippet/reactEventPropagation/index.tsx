@@ -43,3 +43,55 @@ export const BothEventPlayground = () => {
     </Figure>
   );
 };
+
+export const BothStopEventPlayground = () => {
+  return (
+    <div className={style.basicEventPlayground}>
+      <Figure index={4} title="#2 Stop Propagation Bubbling by React">
+        <EventPlaygroundProvider>
+          <EventPlayground label="#1" reset>
+            <EventPlayground label="#2" reactStopBubble>
+              <EventPlayground label="#3" />
+            </EventPlayground>
+          </EventPlayground>
+        </EventPlaygroundProvider>
+      </Figure>
+
+      <Figure index={5} title="#2 Stop Propagation Bubbling by Vanilla">
+        <EventPlaygroundProvider>
+          <EventPlayground label="#1" reset>
+            <EventPlayground label="#2" vanillaStopBubble>
+              <EventPlayground label="#3" />
+            </EventPlayground>
+          </EventPlayground>
+        </EventPlaygroundProvider>
+      </Figure>
+    </div>
+  );
+};
+
+export const BothStopCapturingEventPlayground = () => {
+  return (
+    <div className={style.basicEventPlayground}>
+      <Figure index={7} title="#2 Stop Propagation Capturing by React">
+        <EventPlaygroundProvider>
+          <EventPlayground label="#1" reset>
+            <EventPlayground label="#2" reactStopCapture>
+              <EventPlayground label="#3" />
+            </EventPlayground>
+          </EventPlayground>
+        </EventPlaygroundProvider>
+      </Figure>
+
+      <Figure index={8} title="#2 Stop Propagation Capturing by Vanilla">
+        <EventPlaygroundProvider>
+          <EventPlayground label="#1" reset>
+            <EventPlayground label="#2" vanillaStopCapture>
+              <EventPlayground label="#3" />
+            </EventPlayground>
+          </EventPlayground>
+        </EventPlaygroundProvider>
+      </Figure>
+    </div>
+  );
+};

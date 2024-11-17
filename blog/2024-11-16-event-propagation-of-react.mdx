@@ -44,7 +44,7 @@ button1 clicked
 ## Behavior
 
 React에서 이벤트 전파는 vanilla Javascript에서 사용하는 이벤트 전파와 다르다.
-React에서 이벤트 전파를 delegation 방식으로 처리하기 때문이다. ([comment](https://github.com/facebook/react/issues/13635))
+React에서 이벤트 전파를 delegation 방식으로 처리하기 때문이다. ([comment](https://github.com/facebook/react/issues/13635#issuecomment-421085767))
 
 React에서는 ([React 17 이후로](https://legacy.reactjs.org/blog/2020/10/20/react-v17.html#changes-to-event-delegation)) 이벤트 리스너를 rootDOM에 등록해서 사용한다.
 따라서 React끼리의 event listener는 생각한 대로 DOM 구조에 따라 이벤트가 전파가 전달되지만 vanilla Javascript의 이벤트 전파는 생각대로 동작하지 않는다.
@@ -88,8 +88,8 @@ return (
 );
 ```
 <!--truncate-->
-import { EventPlayground, BasicEventPlayground, BothEventPlayground } from '@site/src/code-snippet/reactEventPropagation/index.tsx'
-import { Figure } from '@site/src/components/common/Figure'
+import { BasicEventPlayground, BothEventPlayground, BothStopEventPlayground, BothStopCapturingEventPlayground } from '@site/src/code-snippet/reactEventPropagation/index.tsx'
+import { Figure } from '@site/src/components/common/Figure/index.tsx'
 
 ## Step by Step
 
@@ -111,22 +111,164 @@ React의 이벤트 전파를 이해하기 위해 아래와 같은 예제를 살�
 
 <BothEventPlayground />
 
-<Figure index={2} title="#3 React Stop Propagation (Click It!)" >
-  <EventPlayground label={'#1'} reset>
-    <EventPlayground label={'#2'} >
-      <EventPlayground label={'#3'} reactStopBubble/>
-    </EventPlayground>
-  </EventPlayground>
+`Figure 3`에서는 두 종류의 이벤트를 모두 설정해두어서 이벤트가 모두 발생하고, 색은 보라색으로 표시된다.
+
+이벤트의 발생 순서는 다음과 같다.
+
+| Order | Target | Vanilla | React | Type |
+| --- | --- | --- | --- | --- |
+| 1 | `#1` |  ✅ | ✅ | Capture |
+| 2 | `#2` | ✅ | ✅ | Capture |
+| 3 | `#3` | ✅ | ✅ | Capture |
+| 4 | `#3` | ✅ | ✅ | Bubble |
+| 5 | `#2` | ✅ | ✅ | Bubble |
+| 6 | `#1` | ✅ | ✅ | Bubble |
+
+이벤트 전파를 막지 않았기 때문에 이벤트가 모두 발생하고, 이벤트 전파가 일어난다.
+
+#1 -> #2 -> #3 순으로 capturing이 발생하고 #3 -> #2 -> #1 순으로 bubbling이 발생한다.
+
+그렇다면, 이벤트 전파를 막으면 어떻게 될까? `Figure 4,5`를 눌러보자.
+
+:::note
+전파를 막은 방식은 모두 동일하게 `e.stopPropagation()`으로 사용하였다.
+
+```tsx
+// React
+<button onClick={(e) => e.stopPropagation()}></button>
+
+// Vanilla
+button.addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+```
+
+:::
+
+
+`Figure 4`는 `#2` 의 React Event bubbling을 막은 경우이고, `Figure 5`는 `#2`의 Vanilla Event bubbling을 막은 경우이다.
+
+<BothStopEventPlayground/>
+
+두 예제의 동작은 다르게 나타난다. 결과를 정리해보자.
+
+<div style={{ display: 'flex', columnGap: '20px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+  <div>
+    <h3> Figure 4. #2 Stop Bubbling by React</h3>
+    | Order | Target | Vanilla | React | Type |
+    | --- | --- | --- | --- | --- |
+    | 1 | `#1` |  ✅ | ✅ | Capture |
+    | 2 | `#2` | ✅ | ✅ | Capture |
+    | 3 | `#3` | ✅ | ✅ | Capture |
+    | 4 | `#3` | ✅ | ✅ | Bubble |
+    | 5 | `#2` | ✅ | ✅ | Bubble |
+    | 6 | `#1` | ✅ | ❌ | Bubble |
+
+  </div>
+  <div>
+    <h3> Figure 5. #2 Stop Bubbling by Vanilla</h3>
+
+    | Order | Target | Vanilla | React | Type |
+    | --- | --- | --- | --- | --- |
+    | 1 | `#1` |  ✅ | ✅ | Capture |
+    | 2 | `#2` | ✅ | ✅ | Capture |
+    | 3 | `#3` | ✅ | ✅ | Capture |
+    | 4 | `#3` | ✅ | ❌ | Bubble |
+    | 5 | `#2` | ✅ | ❌ | Bubble |
+    | 6 | `#1` | ❌ | ❌ | Bubble |
+
+  </div>
+</div>
+
+결과가 복잡 할 수 있는데, 이벤트 전파를 막은 방식과 동일한 이벤트의 결과를 살펴보자.
+
+`Figure 4`은 React 방식으로 전파를 막았으므로 `Figure 4`의 React 방식은 `#1`의 이벤트만 발생하지 않았고,
+`Figure 5`는 Vanilla Javascript 방식으로 막았으므로 `Figure 5`의 Vanilla Javascript 방식도 `#1`의 이벤트만 발생하지 않았다.
+
+여기까지는 우리가 익히 아는 이벤트 전파 방식이다. 그러면 다른 방식의 이벤트 전파 결과를 살펴보자.
+
+`Figure 4`의 Vanilla 이벤트는 `#2`의 React bubble 전파를 막았음에도 이벤트가 발생하였다.
+이와 다르게 `Figure 5`의 React 이벤트는 `#2`의 Vanilla bubble 전파를 막았는데, #1, #2, #3 모두 이벤트가 발생하지 않았다.
+
+여기서 중요한 사실은 React의 이벤트 핸들러 방식은 node에 직접 이벤트를 등록하지 않고, `rootDOM`에 등록하여 사용한다는 것이다. ([docs](https://legacy.reactjs.org/blog/2020/10/20/react-v17.html#changes-to-event-delegation))
+
+<Figure index={6} title={'React event use event delegation'}>
+  <img src={'/assets/event-propagation-of-react/react-event-handle.png'} alt={'React event use event delegation'} />
 </Figure>
 
-<Figure index={3} title="#3 Vanilla Stop Propagation (Click It!)" >
-  <EventPlayground label={'#1'} reset>
-    <EventPlayground label={'#2'} >
-      <EventPlayground label={'#3'} vanillaStopBubble/>
-    </EventPlayground>
-  </EventPlayground>
-</Figure>
+이 사실을 기반하여 `Figure 4`와 `Figure 5`의 동작이 다른지 이해 할 수 있다.
+
+`Figure 4`는 React 이벤트의 전파를 막았기 때문에 실제 이벤트는 `rootDOM`에서 `stopPropagation`이 동작한다. 이는 실제로는 React 내부에서 이벤트 전파를 구현했다고 표현하는 게 맞을 것 같다.
+따라서 실제 이벤트는 다음과 같은 순서로 발생한다.
+
+1. `rootDOM`의 react event capturing
+2. `#1, #2, #3`에서의 vanilla javascript event capturing
+3. `#1, #2, #3`에서의 vanilla javascript event bubbling
+4. `rootDOM`의 react event bubbling
+
+따라서 `Figure 4`에서의 이벤트는 3번, `#1, #2, #3`에서의 event bubbling을 막지 못하여서 vanilla javascript의 이벤트가 모두 발생하였다.
+
+그렇다면 `Figure 5`는 어떻게 될까? `#2`에서 vanilla javascript의 이벤트를 막았기 때문에, 3번의 이벤트 중 `#2`에서 이벤트 전파가 중단 되었고 `#3`과 4번, rootDOM으로의 이벤트가 발생하지 않았다.
+따라서 `Figure 5`의 이벤트에서 React의 모든 bubbling 이벤트가 중단 된 것이다.
+
+그럼 다른 예제로 Capturing을 막는 건 어떨까? 아래 `Figure 7,8`을 살펴보자. 실행 전 동작을 예상해 보는 것도 재미있을 것 같다.
+두 예제 모두 `#2`에서의 event capturing을 막았다.
+
+<BothStopCapturingEventPlayground/>
+
+결과는 다음과 같다. <br/>
+
+<div style={{ display: 'flex', columnGap: '20px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+  <div>
+    <h3> Figure 7. #2 Stop Capturing by React</h3>
+    | Order | Target | Vanilla | React | Type |
+    | --- | --- | --- | --- | --- |
+    | 1 | `#1` |  ❌ | ✅ | Capture |
+    | 2 | `#2` | ❌ | ✅ | Capture |
+    | 3 | `#3` | ❌ | ❌ | Capture |
+    | 4 | `#3` | ❌ | ❌ | Bubble |
+    | 5 | `#2` | ❌ | ❌ | Bubble |
+    | 6 | `#1` | ❌ | ❌ | Bubble |
+
+  </div>
+  <div>
+    <h3> Figure 8. #2 Stop Capturing by Vanilla</h3>
+
+    | Order | Target | Vanilla | React | Type |
+    | --- | --- | --- | --- | --- |
+    | 1 | `#1` |  ✅ | ✅ | Capture |
+    | 2 | `#2` | ✅ | ✅ | Capture |
+    | 3 | `#3` | ❌ | ✅ | Capture |
+    | 4 | `#3` | ❌ | ❌ | Bubble |
+    | 5 | `#2` | ❌ | ❌ | Bubble |
+    | 6 | `#1` | ❌ | ❌ | Bubble |
+
+  </div>
+</div>
+
+혹시 정답을 맞췄을까?<br/>
+
+`Figure 7`은 React의 capturing을 막았고, 이는 rootDOM에서 일어난다. 따라서 `#1, #2`의 react capturing은 발생했다.
+하지만, vanilla javascript의 capturing은 rootDOM에서 중단되었기 때문에 이벤트가 모두 발생하지 않는다.
+
+`Figure 8`은 vanilla javascript의 capturing을 막았고, 이는 `#2`에서 일어난다. 따라서 `#1, #2`의 valina javascript의 capturing은 발생했다.
+하지만, React의 capturing은 rootDOM에서 일어나기 때문에 `#2`에서 이벤트를 막았음에도 불구하고 capturing 이벤트가 모두 발생한다.
+
+
+## Conclusion
+React는 React에서 등록하는 이벤트를 모두 rootDOM에 등록하여 내부적으로 이벤트 전파를 처리하므로, vanilla javascript와의 이벤트 전파와는 다르게 동작한다.
+일반적으로 이 내용을 자세히 알 필요는 없겠지만, React와 vanilla javascript의 이벤트를 혼용해서 처리 할 때 이벤트 전파에서 문제가 발생할 수 있다.
+
+이는 프로젝트 내부에서 관리하는 코드 뿐 아니라 3rd party library를 사용 할 때도 동일하게 적용되므로 예상치 못한 부분에서 이슈가 발생 할 수 있다.
+필자도 React 환경에서 `swiper` 라이브러리를 사용할 때 이 이슈로 인해 문제가 발생한 적이 있어서 원인 분석을 하는 과정에서 이런 현상을 알게 되었다.
+
+따라서 React에서의 이벤트 등록 방식을 한번 더 인지하고 사용하는 것을 추천한다.
 
 ## Playground
 
+
+
+## Reference
+- https://github.com/facebook/react/issues/13635#issuecomment-421085767
+- https://legacy.reactjs.org/blog/2020/10/20/react-v17.html#changes-to-event-delegation
 
