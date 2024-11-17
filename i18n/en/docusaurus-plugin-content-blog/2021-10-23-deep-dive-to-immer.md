@@ -162,7 +162,7 @@ console.log(nonPrimitive)
 When comparing whether the data is the same, `shallow equality checking` doesn't check whether the inside of the data has changed,
 but rather determines that the reference of the data has changed. If it is the same, it has not changed.
 
-If using `deep eqaulity checking`, we suffer performance losses because all object have to be compared one by one.
+If using `deep equality checking`, we suffer performance losses because all object have to be compared one by one.
 So, when we changed the object, we used immutable data that guarantees that the reference is also changed, 
 and we use `immer` because it guarantees that the object is immutable with any changes. 
 
