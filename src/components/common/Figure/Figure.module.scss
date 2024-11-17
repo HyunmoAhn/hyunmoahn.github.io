@@ -1,0 +1,27 @@
+.figureContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  column-gap: 5px;
+  padding: 10px;
+
+  .titleContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    column-gap: 5px;
+    cursor: default;
+    margin: 5px 0;
+
+    .indexing {
+      font-weight: 700;
+      color: var(--color-gray-darker);
+    }
+
+    .title {
+      font-style: italic;
+      color: var(--ifm-color-primary-light);
+    }
+  }
+}
