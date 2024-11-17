@@ -15,7 +15,7 @@ tags: [react, event, event-propagation, web, issue, trouble-shooting]
 
 ## Introduction
 React 이벤트 핸들러 방식과 vanilla Javascript의 이벤트 핸들러 방식을 혼용해서 사용할 때 이벤트 전파가 의도한대로 동작하지 않을 수 있다.
-예를 들면 아래와 같이 button1, button2 구조에서 button2를 클릭했을 때 button1의 이벤트 핸들러도 실행되는 문제가 발생한다.
+예를 들면 아래와 같이 `button1`, `button2` 구조에서 `button2`를 클릭했을 때 `button1의` 이벤트 핸들러도 실행되는 문제가 발생한다.
 
 ```tsx
 const buttonEl = document.getElementById('button1');
@@ -41,7 +41,7 @@ button2 clicked
 button1 clicked
 ```
 
-## Behavior
+## Solution
 
 React에서 이벤트 전파는 vanilla Javascript에서 사용하는 이벤트 전파와 다르다.
 React에서 이벤트 전파를 delegation 방식으로 처리하기 때문이다. ([comment](https://github.com/facebook/react/issues/13635#issuecomment-421085767))
@@ -49,7 +49,7 @@ React에서 이벤트 전파를 delegation 방식으로 처리하기 때문이�
 React에서는 ([React 17 이후로](https://legacy.reactjs.org/blog/2020/10/20/react-v17.html#changes-to-event-delegation)) 이벤트 리스너를 rootDOM에 등록해서 사용한다.
 따라서 React끼리의 event listener는 생각한 대로 DOM 구조에 따라 이벤트가 전파가 전달되지만 vanilla Javascript의 이벤트 전파는 생각대로 동작하지 않는다.
 
-가능하다면 두가지 이벤트를 섞어서 쓰지 않는 방향이 좋겠지만, 3rd party library를 사용하거나 제어하지 못하는 부분의 이벤트는 제어하기 힘들기 때문에 동작 방식에 따라 맞춰서 이벤트 전파를 막아야한다.
+가능하다면 두가지 이벤트를 섞어서 쓰지 않는 방향이 좋겠지만, 3rd party library를 사용하거나 제어하지 못하는 부분의 이벤트는 제어하기 힘들기 때문에 동작 방식에 맞춰 이벤트 전파를 막아야한다.
 
 ```tsx
 // Unify event listener to vanilla Javascript
@@ -263,9 +263,6 @@ React는 React에서 등록하는 이벤트를 모두 rootDOM에 등록하여 �
 필자도 React 환경에서 `swiper` 라이브러리를 사용할 때 이 이슈로 인해 문제가 발생한 적이 있어서 원인 분석을 하는 과정에서 이런 현상을 알게 되었다.
 
 따라서 React에서의 이벤트 등록 방식을 한번 더 인지하고 사용하는 것을 추천한다.
-
-## Playground
-
 
 
 ## Reference
