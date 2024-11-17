@@ -1,6 +1,7 @@
 import { useId, useEffect, useState } from 'react';
 import cx from 'classnames';
 import style from './EventPlayground.module.scss';
+import { reactEventController, vanillaEventController, timeout, DELAY } from './utils';
 
 interface EventPlaygroundProps {
   label?: string;
@@ -12,14 +13,20 @@ export const EventPlayground = ({ label }: EventPlaygroundProps) => {
   const [vanillaEvent, setVanillaEvent] = useState(false);
 
   const handleReactClick = () => {
-    console.log('React clicked');
-    setReactEvent(true);
+    reactEventController.register(async () => {
+      setReactEvent(true);
+      await timeout(DELAY);
+      setReactEvent(false);
+    });
   };
 
   useEffect(() => {
     const handleVanillaClick = () => {
-      console.log('Vanilla clicked');
-      setVanillaEvent(true);
+      vanillaEventController.register(async () => {
+        setVanillaEvent(true);
+        await timeout(DELAY);
+        setVanillaEvent(false);
+      });
     };
 
     const button = document.getElementById(id);
@@ -37,8 +44,9 @@ export const EventPlayground = ({ label }: EventPlaygroundProps) => {
   }, [id]);
 
   return (
-    <button
-      type="button"
+    // eslint-disable-next-line max-len
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
+    <div
       id={id}
       className={style.container}
       onClick={handleReactClick}
@@ -59,6 +67,6 @@ export const EventPlayground = ({ label }: EventPlaygroundProps) => {
           </>
         )}
       </div>
-    </button>
+    </div>
   );
 };
