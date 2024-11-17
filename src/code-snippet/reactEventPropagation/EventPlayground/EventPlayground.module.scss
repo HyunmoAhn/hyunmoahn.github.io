@@ -1,0 +1,44 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 30px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  overflow: hidden;
+  background-color: var(--docusaurus-highlighted-code-line-bg);
+  width: 100%;
+}
+
+.highlightContainer {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 5px;
+  margin: 5px;
+  margin-bottom: 20px;
+  min-height: 25px;
+}
+
+.highlight {
+  display: flex;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  &.react {
+    background-color: color-mix(in srgb, var(--color-blue) 70%, transparent);
+  }
+
+  &.vanilla {
+    background-color: color-mix(in srgb, var(--color-red) 50%, transparent);
+  }
+}
+
+.text {
+  z-index: 1;
+}

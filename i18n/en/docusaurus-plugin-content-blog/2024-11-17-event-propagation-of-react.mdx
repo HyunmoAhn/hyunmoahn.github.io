@@ -1,0 +1,291 @@
+---
+slug: event-propagation-of-react
+title: Event Propagation in React
+description: Event propagation in React differs from Javascript
+keywords:
+  - react
+  - event
+  - event-propagation
+  - web
+authors: HyunmoAhn
+tags: [react, event, event-propagation, web, issue, trouble-shooting]
+---
+
+
+
+## Introduction
+When mixing React's event handler method with vanilla Javascript's event handler method, event propagation may not work as intended.
+For example, in a structure like `button1`, `button2`, clicking `button2` can trigger the event handler of `button1` as well.
+
+```tsx
+const buttonEl = document.getElementById('button1');
+buttonEl.addEventListener('click', () => {
+  console.log('button1 clicked');
+});
+
+const handleClick = (e) => {
+  e.stopPropagation();
+  console.log('button2 clicked');
+};
+
+return (
+  <button id='button1'>
+    <button id='button2' onClick={handleClick}>Click me</button>
+  </button>
+);
+```
+
+```
+// When button2 is clicked
+button2 clicked
+button1 clicked
+```
+
+## Solution
+
+Event propagation in React differs from that in vanilla Javascript
+because React handles event propagation using a delegation method. ([comment](https://github.com/facebook/react/issues/13635#issuecomment-421085767))
+
+In React ([post React 17](https://legacy.reactjs.org/blog/2020/10/20/react-v17.html#changes-to-event-delegation)),
+event listeners are registered on the rootDOM.
+Therefore, event listeners within React propagate as expected according to the DOM structure,
+but vanilla Javascript event propagation may not behave as anticipated.
+
+While it's best to avoid mixing the two types of events,
+sometimes it's unavoidable when using third-party libraries or handling parts of the code you can't control.
+In such cases, you must block event propagation according to the behavior of each method.
+
+```tsx
+// Unify event listener to vanilla Javascript
+const buttonEl = document.getElementById('button1');
+buttonEl.addEventListener('click', () => {
+  console.log('button1 clicked');
+});
+
+const button2El = document.getElementById('button2');
+button2El.addEventListener('click', (e) => {
+  e.stopPropagation();
+  console.log('button2 clicked');
+});
+
+return (
+  <button id='button1'>
+    <button id='button2'>Click me</button>
+  </button>
+);
+
+// Or
+// Unify event listener to React
+const handleClick1 = (e) => {
+  console.log('button1 clicked');
+};
+
+const handleClick = (e) => {
+  e.stopPropagation();
+  console.log('button2 clicked');
+};
+
+return (
+  <button id='button1' onClick={handleClick1}>
+    <button id='button2' onClick={handleClick}>Click me</button>
+  </button>
+);
+```
+<!--truncate-->
+import { BasicEventPlayground, BothEventPlayground, BothStopEventPlayground, BothStopCapturingEventPlayground } from '@site/src/code-snippet/reactEventPropagation/index.tsx'
+import { Figure } from '@site/src/components/common/Figure/index.tsx'
+
+## Step by Step
+
+:::note
+This explanation assumes you have an understanding of Javascript's Event Bubbling & Capturing. <br/>
+If you're not familiar with it, refer to MDN.
+:::
+
+To understand event propagation in React, let's look at the following example.
+`Figure 1,2` show the UI when event propagation is set in each method. Try clicking anywhere on `#1,2,3`.
+
+
+<BasicEventPlayground />
+
+In `Figure 1`, only vanilla Javascript events are set, so the event propagates in red.
+Similarly, in `Figure 2`, only React events are set, so the event propagates in blue.
+
+What happens if both types of events are set? Click `Figure 3`.
+
+<BothEventPlayground />
+
+In `Figure 3`, both types of events are set, so both events occur, and the color is indicated in purple.
+
+The order of event occurrence is as follows:
+
+| Order | Target | Vanilla | React | Type |
+| --- | --- | --- | --- | --- |
+| 1 | `#1` |  ✅ | ✅ | Capture |
+| 2 | `#2` | ✅ | ✅ | Capture |
+| 3 | `#3` | ✅ | ✅ | Capture |
+| 4 | `#3` | ✅ | ✅ | Bubble |
+| 5 | `#2` | ✅ | ✅ | Bubble |
+| 6 | `#1` | ✅ | ✅ | Bubble |
+
+Since event propagation wasn't blocked, all events occurred, and propagation took place.
+
+Capturing occurs in the order of #1 -> #2 -> #3, and bubbling occurs in the order of #3 -> #2 -> #1.
+
+What happens if we block event propagation? Click `Figure 4,5`.
+
+:::note
+The method used to block propagation is the same, using e.stopPropagation().
+
+```tsx
+// React
+<button onClick={(e) => e.stopPropagation()}></button>
+
+// Vanilla
+button.addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+```
+
+:::
+
+`Figure 4` blocks React Event bubbling on `#2`, and `Figure 5` blocks Vanilla Event bubbling on `#2`.
+
+<BothStopEventPlayground/>
+
+The behavior of the two examples is different. Let's summarize the results.
+
+<div style={{ display: 'flex', columnGap: '20px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+  <div>
+    <h3> Figure 4. #2 Stop Bubbling by React</h3>
+    | Order | Target | Vanilla | React | Type |
+    | --- | --- | --- | --- | --- |
+    | 1 | `#1` |  ✅ | ✅ | Capture |
+    | 2 | `#2` | ✅ | ✅ | Capture |
+    | 3 | `#3` | ✅ | ✅ | Capture |
+    | 4 | `#3` | ✅ | ✅ | Bubble |
+    | 5 | `#2` | ✅ | ✅ | Bubble |
+    | 6 | `#1` | ✅ | ❌ | Bubble |
+
+  </div>
+  <div>
+    <h3> Figure 5. #2 Stop Bubbling by Vanilla</h3>
+
+    | Order | Target | Vanilla | React | Type |
+    | --- | --- | --- | --- | --- |
+    | 1 | `#1` |  ✅ | ✅ | Capture |
+    | 2 | `#2` | ✅ | ✅ | Capture |
+    | 3 | `#3` | ✅ | ✅ | Capture |
+    | 4 | `#3` | ✅ | ❌ | Bubble |
+    | 5 | `#2` | ✅ | ❌ | Bubble |
+    | 6 | `#1` | ❌ | ❌ | Bubble |
+
+  </div>
+</div>
+
+The results might seem complex, but let's focus on the event propagation method that was blocked.
+
+In `Figure 4`, the React method was used to block propagation,
+so only the React method in `Figure 4` did not trigger the event on `#1`.
+In `Figure 5`, the Vanilla Javascript method was used to block propagation,
+so only the Vanilla Javascript method in `Figure 5` did not trigger the event on `#1`.
+
+Up to this point, this is the event propagation method we are familiar with.
+Now, let's look at the results of the other method's event propagation.
+
+In `Figure 4`, the Vanilla event occurred even though the React bubble propagation on `#2` was blocked.
+Conversely, in `Figure 5`, the React event did not occur on #1, #2, or #3,
+even though the Vanilla bubble propagation on `#2` was blocked.
+
+The key point here is that React's event handler method doesn't directly register events on nodes
+but uses event delegation by registering them on the `rootDOM` ([docs](https://legacy.reactjs.org/blog/2020/10/20/react-v17.html#changes-to-event-delegation))
+
+<Figure index={6} title={'React event use event delegation'}>
+  <img src={'/assets/event-propagation-of-react/react-event-handle.png'} alt={'React event use event delegation'} />
+</Figure>
+
+Based on this fact, we can understand why the behavior of `Figure 4` and `Figure 5` differs.
+
+In `Figure 4`, React event propagation was blocked, so the actual event propagation occurs at the `rootDOM`.
+This means the event propagation is actually implemented within React.
+Therefore, the actual event occurs in the following order:
+
+1. React event capturing at `rootDOM`
+2. Vanilla javascript event capturing at `#1, #2, #3`
+3. Vanilla javascript event bubbling at `#1, #2, #3`
+4. React event bubbling at `rootDOM`
+
+Therefore, in `Figure 4`, the event propagation wasn't blocked during the 3rd step, the bubbling at `#1, #2, #3`,
+so all vanilla javascript events occurred.
+
+So what about `Figure 5`?
+Since vanilla javascript's event was blocked at `#2`,
+the event propagation was interrupted on `#2` during the 3rd step,
+and no events occurred at `#3` or during the 4th step, at the rootDOM.
+Therefore, all React bubbling events in `Figure 5` were interrupted.
+
+What about blocking Capturing in another example?
+Let's look at `Figure 7,8`. It might be interesting to predict the behavior before running it.
+Both examples blocked event capturing at `#2`.
+
+
+<BothStopCapturingEventPlayground/>
+
+The results are as follows. <br/>
+
+<div style={{ display: 'flex', columnGap: '20px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+  <div>
+    <h3> Figure 7. #2 Stop Capturing by React</h3>
+    | Order | Target | Vanilla | React | Type |
+    | --- | --- | --- | --- | --- |
+    | 1 | `#1` |  ❌ | ✅ | Capture |
+    | 2 | `#2` | ❌ | ✅ | Capture |
+    | 3 | `#3` | ❌ | ❌ | Capture |
+    | 4 | `#3` | ❌ | ❌ | Bubble |
+    | 5 | `#2` | ❌ | ❌ | Bubble |
+    | 6 | `#1` | ❌ | ❌ | Bubble |
+
+  </div>
+  <div>
+    <h3> Figure 8. #2 Stop Capturing by Vanilla</h3>
+
+    | Order | Target | Vanilla | React | Type |
+    | --- | --- | --- | --- | --- |
+    | 1 | `#1` |  ✅ | ✅ | Capture |
+    | 2 | `#2` | ✅ | ✅ | Capture |
+    | 3 | `#3` | ❌ | ✅ | Capture |
+    | 4 | `#3` | ❌ | ❌ | Bubble |
+    | 5 | `#2` | ❌ | ❌ | Bubble |
+    | 6 | `#1` | ❌ | ❌ | Bubble |
+
+  </div>
+</div>
+
+Did you get the answer right?<br/>
+
+In `Figure 7`, React capturing was blocked, which occurs at the rootDOM.
+Therefore, React capturing occurred at `#1, #2`.
+However, vanilla javascript capturing was interrupted at the rootDOM, so no events occurred.
+
+In `Figure 8`, vanilla javascript capturing was blocked, which occurs at `#2`.
+Therefore, vanilla javascript capturing occurred at `#1, #2`.
+However, React capturing occurs at the rootDOM, so even though the event was blocked at `#2`,
+all capturing events occurred.
+
+## Conclusion
+React registers events on the rootDOM and handles event propagation internally,
+so it behaves differently from vanilla javascript event propagation.
+Generally, there's no need to know this in detail,
+but when mixing React and vanilla javascript events, issues can arise in event propagation.
+
+This applies not only to code managed within the project
+but also when using third-party libraries, so unexpected issues can occur.
+The author encountered this issue when using the swiper library in a React environment,
+leading to this discovery during root cause analysis.
+
+Therefore, it's recommended to be aware of React's event registration method when using it.
+
+## Reference
+- https://github.com/facebook/react/issues/13635#issuecomment-421085767
+- https://legacy.reactjs.org/blog/2020/10/20/react-v17.html#changes-to-event-delegation
+
