@@ -8,17 +8,16 @@
   cursor: pointer;
   overflow: hidden;
   background-color: var(--docusaurus-highlighted-code-line-bg);
-  min-height: 100px;
-  min-width: 200px;
 }
 
 .highlightContainer {
   display: flex;
-  flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
   gap: 5px;
   margin: 5px;
+  margin-bottom: 20px;
+  min-height: 25px;
 }
 
 .highlight {

@@ -1,4 +1,4 @@
-export const DELAY = 1000;
+export const DELAY = 600;
 
 export function timeout(ns: number) {
   return new Promise((resolve) => {
@@ -8,7 +8,7 @@ export function timeout(ns: number) {
 
 const createController = () => {
   let events: (() => void)[] = [];
-  let processor = eventProcessor();
+  const processor = eventProcessor();
 
   const register = async (cb: () => void) => {
     events.push(cb);
@@ -18,15 +18,13 @@ const createController = () => {
   async function* eventProcessor() {
     while (true) {
       const event = events.shift();
-      if (event) {
-        yield event();
-      }
+      yield event?.();
     }
   }
 
   const clear = () => {
+    events.forEach((event) => event());
     events = [];
-    processor = eventProcessor();
   };
 
   return {
