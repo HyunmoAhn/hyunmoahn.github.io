@@ -11,8 +11,6 @@ authors: HyunmoAhn
 tags: [react, event, event-propagation, web, issue, trouble-shooting]
 ---
 
-import { EventPlayground } from '@site/src/code-snippet/reactEventPropagation/index.tsx'
-import { Figure } from '@site/src/components/common/Figure'
 
 
 ## Introduction
@@ -90,32 +88,28 @@ return (
 );
 ```
 <!--truncate-->
+import { EventPlayground, BasicEventPlayground, BothEventPlayground } from '@site/src/code-snippet/reactEventPropagation/index.tsx'
+import { Figure } from '@site/src/components/common/Figure'
 
-## Example
+## Step by Step
 
-<Figure index={1} title="No Stop Propagation" >
-  <EventPlayground label={'#1'} reset >
-    <EventPlayground label={'#2'} >
-      <EventPlayground label={'#3'} />
-    </EventPlayground>
-  </EventPlayground>
-</Figure>
+:::note
+이 내용은 Javascript의 Event Bubbling & Capturing을 이해하고 있다는 가정하에 설명한다. <br/>
+만약 이해가 안된다면 [MDN](https://developer.mozilla.org/ko/docs/Learn/JavaScript/Building_blocks/Event_bubbling)을 참고하자.
+:::
 
-<Figure index={1} title="Vanilla Click Only" >
-  <EventPlayground label={'#1'} reset reactStopCapture>
-    <EventPlayground label={'#2'} >
-      <EventPlayground label={'#3'} />
-    </EventPlayground>
-  </EventPlayground>
-</Figure>
+React의 이벤트 전파를 이해하기 위해 아래와 같은 예제를 살펴보자.
+`Figure 1,2`는 각각의 방식으로 이벤트 전파를 설정하였을 때 UI를 보여준다. `#1,2,3` 아무 곳이나 클릭해보자.
 
-<Figure index={1} title="React Click Only" >
-  <EventPlayground label={'#1'} reset vanillaStopCapture>
-    <EventPlayground label={'#2'} >
-      <EventPlayground label={'#3'} />
-    </EventPlayground>
-  </EventPlayground>
-</Figure>
+
+<BasicEventPlayground />
+
+`Figure 1`에서는 Vanilla Javascript의 이벤트만 설정하였기 때문에 붉은 색으로 이벤트 전파가 일어난다.
+마찬가지로 `Figure 2`에서는 React의 이벤트만 설정하였기 때문에 파란 색으로 이벤트 전파가 일어난다.
+
+그렇다면 두 종류의 이벤트를 모두 설정한다면 어떻게 될까? `Figure 3`을 눌러보자.
+
+<BothEventPlayground />
 
 <Figure index={2} title="#3 React Stop Propagation (Click It!)" >
   <EventPlayground label={'#1'} reset>

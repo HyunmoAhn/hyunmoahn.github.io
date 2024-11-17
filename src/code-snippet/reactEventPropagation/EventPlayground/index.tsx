@@ -7,6 +7,8 @@ interface EventPlaygroundProps {
   label?: string;
   children?: ReactNode;
   reset?: boolean;
+  skipReact?: boolean;
+  skipVanilla?: boolean;
   reactStopBubble?: boolean;
   reactStopCapture?: boolean;
   vanillaStopBubble?: boolean;
@@ -17,6 +19,8 @@ export const EventPlayground = ({
   label,
   children,
   reset,
+  skipReact,
+  skipVanilla,
   reactStopBubble,
   reactStopCapture,
   vanillaStopBubble,
@@ -27,15 +31,17 @@ export const EventPlayground = ({
   const [vanillaEvent, setVanillaEvent] = useState(false);
 
   const handleReactClick = () => {
-    reactEventController.register(() => {
-      setReactEvent(true);
-    });
-    reactEventController.register(async () => {
-      await timeout(DELAY);
-    });
-    reactEventController.register(() => {
-      setReactEvent(false);
-    });
+    if (!skipReact) {
+      reactEventController.register(() => {
+        setReactEvent(true);
+      });
+      reactEventController.register(async () => {
+        await timeout(DELAY);
+      });
+      reactEventController.register(() => {
+        setReactEvent(false);
+      });
+    }
   };
 
   const handleReactClickCapture = (e: MouseEvent<HTMLDivElement>) => {
@@ -53,15 +59,17 @@ export const EventPlayground = ({
 
   useEffect(() => {
     const handleVanillaClick = (e: Event) => {
-      vanillaEventController.register(() => {
-        setVanillaEvent(true);
-      });
-      vanillaEventController.register(async () => {
-        await timeout(DELAY);
-      });
-      vanillaEventController.register(() => {
-        setVanillaEvent(false);
-      });
+      if (!skipVanilla) {
+        vanillaEventController.register(() => {
+          setVanillaEvent(true);
+        });
+        vanillaEventController.register(async () => {
+          await timeout(DELAY);
+        });
+        vanillaEventController.register(() => {
+          setVanillaEvent(false);
+        });
+      }
     };
     const handleVanillaClickBubble = (e: Event) => {
       vanillaStopBubble && e.stopPropagation();
@@ -88,7 +96,7 @@ export const EventPlayground = ({
         capture: false,
       });
     };
-  }, [id]);
+  }, [id, reset, skipVanilla, vanillaStopBubble, vanillaStopCapture]);
 
   return (
     // eslint-disable-next-line max-len

@@ -6,7 +6,7 @@ export function timeout(ns: number) {
   });
 }
 
-const createController = () => {
+export const createController = () => {
   let events: (() => void)[] = [];
   const processor = eventProcessor();
 
