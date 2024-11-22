@@ -8,7 +8,7 @@ keywords:
   - web
   - Template Literal Types
 authors: HyunmoAhn
-tags: [i18n, typescript, template literal type]
+tags: [i18n, typescript, template literal type, blog]
 ---
 
 ## Intro
@@ -37,11 +37,11 @@ tFunction('values-example', [15]) // I need to show 15 value
 tFunction('line-break-example') // Hello <br /> I am FE developer
 ```
 두번째로 `tFunction`를 사용해서 i18n key를 집어 넣어서 key에 맞는 string을 가져오며, 케이스에 따라서는 `values-example`과 같이 변수를 넣어 Text별로 맞는 value를 포함한 string을 리턴하는 경우도 있다.
-마지막 `line-break-example`에서는 `\n` 줄바꿈 문자를 인식하여 `<br/>` 태그로 변환해서 React에서 줄바꿈을 할 수 있도록 사용하고 있다. 
+마지막 `line-break-example`에서는 `\n` 줄바꿈 문자를 인식하여 `<br/>` 태그로 변환해서 React에서 줄바꿈을 할 수 있도록 사용하고 있다.
 
 :::caution
-본 article은 i18n을 적용하기 위한 방법으로 `tFunction`이라는 함수를 가져다 쓴다. 
-JS로직이 아닌, Type 레벨에서의 내용을 주로 다루기 때문에 실제 내부 로직이 어떻게 되는지는 다루지 않을 예정이다. 
+본 article은 i18n을 적용하기 위한 방법으로 `tFunction`이라는 함수를 가져다 쓴다.
+JS로직이 아닌, Type 레벨에서의 내용을 주로 다루기 때문에 실제 내부 로직이 어떻게 되는지는 다루지 않을 예정이다.
 [i18next.t](https://www.i18next.com/overview/api#t)와 같은 함수와 같은 역할을 한다고 보면 될 것이다.
 :::
 
@@ -73,11 +73,11 @@ L3, L6는 string 타입이라고 보아도 무방하다. 하지만 L9에서는 i
 ```tsx
 import tFunction from 'utils';
 
-tFunction('values-example', [15]) 
+tFunction('values-example', [15])
 // I need to show 15 value
 // string
 
-tFunction('values-example', [<a href="/about">more</a>]) 
+tFunction('values-example', [<a href="/about">more</a>])
 // I need to show <a href="/about">more</a> value
 // ReactElement
 ```
@@ -94,9 +94,9 @@ tFunction('values-example', [<a href="/about">more</a>])
 여기서 type이 적절히 추론되지 않는다면 어떤 문제가 있을까?
 
 ```tsx
-<input 
-  type='input' 
-  placeholder={tFunction('line-break-example')} // type error  
+<input
+  type='input'
+  placeholder={tFunction('line-break-example')} // type error
 />
 ```
 여러가지 경우가 있겠지만, 대표적으로는 HTML tag를 사용할 때 string으로 정의 된 attribute에 string이 아닌 i18n 값이 포함 될 수 있다. 이러면, placeholder에 xlt text 대신 `[object Object]`가 보이게 된다.
@@ -159,7 +159,7 @@ tFunction('twoValue', [tFunction('unit', [500]), 3])
 ```
 
 #### 링크
-만약 i18n text에 링크를 포함하고 싶을때도 변수와 같은 방식을 사용한다. `{}`를 감싸서 사용하고, link에 보여줄 text는 별도의 i18n text로 만들어서 사용한다.  
+만약 i18n text에 링크를 포함하고 싶을때도 변수와 같은 방식을 사용한다. `{}`를 감싸서 사용하고, link에 보여줄 text는 별도의 i18n text로 만들어서 사용한다.
 ```json
 // i18n text json
 {
@@ -171,7 +171,7 @@ tFunction('twoValue', [tFunction('unit', [500]), 3])
 import tFunction from 'utils';
 
 tFunction('linkText', [<a href="/more">{tFunction('link')}</a>])
-// <a href="/more">click</a> to show more information 
+// <a href="/more">click</a> to show more information
 ```
 
 ### I18n Return Type
@@ -189,14 +189,14 @@ const i18nJson = {
   "linkText": "{0} to show more information"
 } as const;
 
-tFunction('lineBreak') 
+tFunction('lineBreak')
 // Hello <br /> I am FE developer
 tFunction('oneValue', [tFunction('unit', [1000])])
 // This product is $1000.
 tFunction('twoValue', [tFunction('unit', [500]), 3])
 // This product is $500 and it will be delivered after 3 days
 tFunction('linkText', [<a href="/more">{tFunction('link')}</a>])
-// <a href="/more">click</a> to show more information 
+// <a href="/more">click</a> to show more information
 ```
 L12은 `<br />`을 포함하고 있기 때문에 일반 string으로 추론되면 안된다. 따라서 i18n text에 `\n` 같은 줄바꿈이 있다면 `ReactElement`로 타입이 추론되어야 한다.
 
@@ -235,7 +235,7 @@ type I18nKey = keyof I18nJson;
 
 type TFunction = (key: I18nKey, values?: any) => string
 
-const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key]; 
+const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key];
 
 const simple = tFunction('simple'); // string
 const lineBreak = tFunction('lineBreak'); // string
@@ -335,7 +335,7 @@ type TFunction = <Key extends I18nKey,>(key: Key, values?: any) =>
 // highlight-end
 ```
 `typescript`에서 `extends`는 interface에서 사용할때는 상속의 의미이지만, [Conditional Types](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html)로 활용할 수도 있다.
-따라서, i18n Text, `I18nJson[Key]`가 `LineBreakFormat`이면 ReactElement로 리턴하고, 아니라면 string 타입으로 리턴한다. 
+따라서, i18n Text, `I18nJson[Key]`가 `LineBreakFormat`이면 ReactElement로 리턴하고, 아니라면 string 타입으로 리턴한다.
 
 여기서, `I18nJson[Key]`의 Key는 run-time에 사용되는 Literal Type 이다.
 
@@ -384,7 +384,7 @@ type TFunction = <Params extends any[],>(key: I18nKey, values?: Params) =>
   Params extends (string | number)[]
   ? string : ReactElement
 ```
-위 코드에서 `values`의 타입을 [type inference](https://www.typescriptlang.org/docs/handbook/2/functions.html#inference)를 사용하기 위해서 Generic type으로 추출하고 
+위 코드에서 `values`의 타입을 [type inference](https://www.typescriptlang.org/docs/handbook/2/functions.html#inference)를 사용하기 위해서 Generic type으로 추출하고
 `tFunction` 호출시에 아무런 Generic을 사용하지 않는다. 그렇다면 우리는 `Params`의 타입으로 condition type을 사용할 수 있다.
 
 `Params`가 number, string으로만 이루어진 배열이라면 자동으로 string으로 타입 추론이 되고, 다른 값(ReactElement)가 포함되어있다면 ReactElement로 리턴된다.
@@ -421,7 +421,7 @@ const normal = tFunction('normal', [100]);
 이를 위해서는 조금 더 복잡한 타입 선언이 필요하게 되는데, 다음 문단을 이어서 보자.
 
 ### 변수 개수 확인하기
-자, 이제 우리는 i18n text에 `{}`가 감싸진 문자열이 몇개가 되는지 찾아야한다. 이전에 줄바꿈에서 사용한대로 [Template Literal Type](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)을 
+자, 이제 우리는 i18n text에 `{}`가 감싸진 문자열이 몇개가 되는지 찾아야한다. 이전에 줄바꿈에서 사용한대로 [Template Literal Type](https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html)을
 사용할테지만, 그것만으로는 부족하다.
 
 #### [Recursive Conditional Types](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#recursive-conditional-types)
@@ -503,7 +503,7 @@ type TFunction = <
 >(key: Key, values?: Params) => string
 // highlight-end
 
-const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any; 
+const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any;
 
 const oneValue = tFunction('oneValue'); // Error?
 const twoValue = tFunction('twoValue', [100]); // Type Error!
@@ -526,9 +526,9 @@ L19의 `TFunction`에서 `Parmas`에 `ValuesArray`를 적용시켰다. `ValuesAr
 
 조금만 더 완성도를 높여보자.
 
-#### [Rest Parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments) 
+#### [Rest Parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments)
 
-함수에서 arguments의 개수를 동적으로 설정하기 위해서 사용하는건 `Rest Parameters`이다. 
+함수에서 arguments의 개수를 동적으로 설정하기 위해서 사용하는건 `Rest Parameters`이다.
 ```tsx showLineNumbers
 // highlight-start
 type TFunction = <

@@ -45,6 +45,7 @@ module.exports = {
       },
       hideOnScroll: true,
       items: [
+        { to: '/tags/blog', label: 'Blog', position: 'left' },
         { to: '/tags/trouble-shooting', label: 'Trouble Shooting', position: 'left' },
         { to: '/about', label: 'About', position: 'left' },
         {
@@ -65,8 +66,12 @@ module.exports = {
           title: 'More',
           items: [
             {
-              label: 'Blog',
+              label: 'Home',
               to: '/',
+            },
+            {
+              label: 'Blog',
+              to: '/tags/blog',
             },
             {
               label: 'Trouble Shooting',

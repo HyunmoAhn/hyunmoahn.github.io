@@ -12,7 +12,7 @@ keywords:
   - how-to-work
   - web
 authors: HyunmoAhn
-tags: [redux, redux-toolkit, immer, library, how-to-work, deep-dive, javascript, web, immutable]
+tags: [redux, redux-toolkit, immer, library, how-to-work, deep-dive, javascript, web, immutable, blog]
 ---
 
 This article basically takes time to learn about immer [immer](https://immerjs.github.io/immer/).

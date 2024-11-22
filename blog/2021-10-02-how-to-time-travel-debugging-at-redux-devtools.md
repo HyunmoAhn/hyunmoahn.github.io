@@ -8,7 +8,7 @@ keywords:
   - time-travel
   - javascript
 authors: HyunmoAhn
-tags: [redux, redux-devtools, time-travel, library, how-to-work, javascript, web]
+tags: [redux, redux-devtools, time-travel, library, how-to-work, javascript, web, blog]
 ---
 
 ## 목적

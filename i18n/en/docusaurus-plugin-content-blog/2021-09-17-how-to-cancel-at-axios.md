@@ -9,7 +9,7 @@ keywords:
   - cancel
   - abort 
 authors: HyunmoAhn
-tags: [axios, library, how-to-work, javascript, web]
+tags: [axios, library, how-to-work, javascript, web, blog]
 ---
 
 ## Purpose

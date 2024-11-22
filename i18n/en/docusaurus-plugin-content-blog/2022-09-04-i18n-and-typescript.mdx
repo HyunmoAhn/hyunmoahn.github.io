@@ -8,7 +8,7 @@ keywords:
   - web
   - Template Literal Types
 authors: HyunmoAhn
-tags: [i18n, typescript, template literal type]
+tags: [i18n, typescript, template literal type, blog]
 ---
 
 ## Intro
@@ -77,11 +77,11 @@ If the variable `values-example` contains JSX such as atag instead of `15`, the 
 ```tsx
 import tFunction from 'utils';
 
-tFunction('values-example', [15]) 
+tFunction('values-example', [15])
 // I need to show 15 value
 // string
 
-tFunction('values-example', [<a href="/about">more</a>]) 
+tFunction('values-example', [<a href="/about">more</a>])
 // I need to show <a href="/about">more</a> value
 // ReactElement
 ```
@@ -98,9 +98,9 @@ So what is the problem?
 What is the problem if the type is not properly inferred here?
 
 ```tsx
-<input 
-  type='input' 
-  placeholder={tFunction('line-break-example')} // type error  
+<input
+  type='input'
+  placeholder={tFunction('line-break-example')} // type error
 />
 ```
 In many cases, typically when using HTML tags, attributes defined as strings may contain i18n values rather than strings.
@@ -181,7 +181,7 @@ If you want to include a link in the i18n text, you use the same way as the vari
 import tFunction from 'utils';
 
 tFunction('linkText', [<a href="/more">{tFunction('link')}</a>])
-// <a href="/more">click</a> to show more information 
+// <a href="/more">click</a> to show more information
 ```
 
 ### I18n Return Type
@@ -199,14 +199,14 @@ const i18nJson = {
   "linkText": "{0} to show more information"
 } as const;
 
-tFunction('lineBreak') 
+tFunction('lineBreak')
 // Hello <br /> I am FE developer
 tFunction('oneValue', [tFunction('unit', [1000])])
 // This product is $1000.
 tFunction('twoValue', [tFunction('unit', [500]), 3])
 // This product is $500 and it will be delivered after 3 days
 tFunction('linkText', [<a href="/more">{tFunction('link')}</a>])
-// <a href="/more">click</a> to show more information 
+// <a href="/more">click</a> to show more information
 ```
 Since L12 contains `<br />`, it should not be inferred as a normal string.
 Therefore, if there is a line change such as `\n` in i18n text, the type should be inferred as `ReactElement`.
@@ -247,7 +247,7 @@ type I18nKey = keyof I18nJson;
 
 type TFunction = (key: I18nKey, values?: any) => string
 
-const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key]; 
+const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key];
 
 const simple = tFunction('simple'); // string
 const lineBreak = tFunction('lineBreak'); // string
@@ -532,7 +532,7 @@ type TFunction = <
 >(key: Key, values?: Params) => string
 // highlight-end
 
-const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any; 
+const tFunction: TFunction = (key: I18nKey, values: any) => i18nJson[key] as any;
 
 const oneValue = tFunction('oneValue'); // Error?
 const twoValue = tFunction('twoValue', [100]); // Type Error!
@@ -556,7 +556,7 @@ However, L26 does not generate an error because the variable is not included, wh
 
 Let's increase the level of perfection a little.
 
-#### [Rest Parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments) 
+#### [Rest Parameters](https://www.typescriptlang.org/docs/handbook/2/functions.html#rest-parameters-and-arguments)
 
 `Rest Parameters` is used to dynamically set the number of arguments in the function.
 ```tsx showLineNumbers

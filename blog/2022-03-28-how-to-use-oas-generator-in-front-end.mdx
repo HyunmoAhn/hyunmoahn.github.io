@@ -10,7 +10,7 @@ keywords:
   - how-to-use
   - web
 authors: HyunmoAhn
-tags: [OAS, OAS-generator, typescript, typescript-axios, how-to-use, web]
+tags: [OAS, OAS-generator, typescript, typescript-axios, how-to-use, web, blog]
 ---
 
 최근 프로젝트에 OAS-generator를 도입해서 사용하고 있다. 사용하기로 결정할 때 고민이나 확인이 필요한 점이 많았고,
@@ -28,7 +28,7 @@ tags: [OAS, OAS-generator, typescript, typescript-axios, how-to-use, web]
 - 최적화
 
 :::info 사전지식
-- Rest API로 Front-end 개발을 진행해 본 경험 
+- Rest API로 Front-end 개발을 진행해 본 경험
 - Mustache [문법](https://github.com/janl/mustache.js)을 읽을 수 있는 지식 (Optional)
   - 글을 이해하는데는 필요없지만 실제로 사용한다면 꼭 알아야한다.
 :::
@@ -43,10 +43,10 @@ OAS는 Open Api Specification의 약자이다.
 
 > The OpenAPI Specification (OAS) is a vendor neutral description format for HTTP-based remote APIs.
 
-[OAS에 대한 문서](https://oai.github.io/Documentation/introduction.html) 를 보면 
+[OAS에 대한 문서](https://oai.github.io/Documentation/introduction.html) 를 보면
 OAS는 HTTP 기반 API에 대해서 기계, 사람이 모두 이해할 수 있는 문서를 작성하는 규칙을 명명한 것이라고 한다.
 예를 들어, [swagger 문서](https://petstore.swagger.io/)에서 아래 이미지처럼 링크를 누르면
-[OAS 문서](https://petstore.swagger.io/v2/swagger.json)로 연결된다. Text로 구성되어 있는 [JSON](https://petstore.swagger.io/v2/swagger.json) 혹은 yaml파일이 
+[OAS 문서](https://petstore.swagger.io/v2/swagger.json)로 연결된다. Text로 구성되어 있는 [JSON](https://petstore.swagger.io/v2/swagger.json) 혹은 yaml파일이
 OAS(Open Api Specification)가 되는 것이다.
 
 ![swagger-to-oas-docs](/assets/oas-generator/swagger.png)
@@ -112,7 +112,7 @@ request, response에 대해서 매칭시켜준다.
 우리는 개발을 하면서 API를 연계한다. OAS Generator를 사용하지 않으면 위처럼 "AS-IS"의
 순서로 개발을 진행한다. API 문서를 체크해서 URL, method 등을 확인하고 Request, Response에 대한 type을 정의한다.
 그리곤, axios와 관련 된 함수를 생성해서 프로젝트 내부의 API call 로직에 사용한다.
-이 과정에서 method를 잘못 확인한다거나, Request / Response type을 하나씩 옮겨야한다는 등 실수가 발생 할 수 있고 
+이 과정에서 method를 잘못 확인한다거나, Request / Response type을 하나씩 옮겨야한다는 등 실수가 발생 할 수 있고
 번거로움이 발생하기도 한다. 또한 API 문서가 업데이트된다면 API가 업데이트 되었음을 인지하고, 변경 내용을 따라가서 수정해야하는
 노력도 필요하다.
 
@@ -128,21 +128,21 @@ request, response에 대해서 매칭시켜준다.
 
 #### 1. API 문서로부터 yaml파일을 추출 할 수 있어야한다.
 
-회사 별, 프로젝트 별 API문서를 관리하는 방식은 천차만별이라고 생각한다. 위에 든 예시로는 swagger를 사용하는 것을 전제로 하였고 
-다른 다양한 방법으로 API 문서를 공유하거나 API 문서 없이 개발을 진행 할 수도 있을 것이다. 
+회사 별, 프로젝트 별 API문서를 관리하는 방식은 천차만별이라고 생각한다. 위에 든 예시로는 swagger를 사용하는 것을 전제로 하였고
+다른 다양한 방법으로 API 문서를 공유하거나 API 문서 없이 개발을 진행 할 수도 있을 것이다.
 만약, API문서가 yaml파일을 생성하는 것이 불가능하다면 아마도 OAS Generator는 유효하게 쓰일 수 있는 대안이 아닐 수도 있다.
 
 #### 2. API 문서는 정확해야한다.
 
 OAS Generator는 API 문서를 기반으로 코드를 생성하기 때문에 API 문서가 정확하지 않다면 자동 생성 코드도 정확하지 않게 된다.
-예를 들어서, Request params에 필드들이 모두 optional로 붙어있다면 자동 생성 타입이 모두 optional로 생성되고 
+예를 들어서, Request params에 필드들이 모두 optional로 붙어있다면 자동 생성 타입이 모두 optional로 생성되고
 무분별하게 optional이 남발되는 상황이 발생하여 type check의 이점을 잃어버릴 수 있다.
 또한, 실제 Server는 업데이트 되었지만 API 문서가 업데이트 되지 않은 상황이라면 OAS Generator는
 오히려 프로젝트를 복잡하게 만들어버린다. API 문서를 통해 코드를 생성하는만큼 API 문서는 정확해야한다.
 
 #### 3. 중복 코드, bundle size 증가.
 
-OAS Generator는 API 문서와 template을 이용해서 코드를 자동 생성하는 방식을 사용한다. 
+OAS Generator는 API 문서와 template을 이용해서 코드를 자동 생성하는 방식을 사용한다.
 따라서 template의 특정 패턴이 반복되고 이는 자연스럽게 중복코드를 만든다. 이는 확실한 bundle size의 증가로 이어진다.
 프로젝트 개발이 편해지고, 유지보수가 좋아진다고 한들, 퍼포먼스에 악영향을 준다면 사용이 꺼려질 수 밖에 없다.
 이 글의 말미에도 optimize에 대해서 후술 하겠지만, OAS Generator 적용 전, 후에 대해서 bundle size 비교는 필요한 사항이다.
@@ -153,7 +153,7 @@ OAS Generator를 적용하면서 느꼈던 것은 초기 설정 값이 복잡하
 프로젝트에 맞게 여러 설정 및 템플릿을 커스텀하게 되었다. 커스텀하는 부분이 있다는 소리는 앞으로의 프로젝트 운영에
 알아야하는 점이 많아진다는 것이므로 문서화나 팀 내부에 충분히 공유를 하는 등 여러 단계들이 필요하다는 점이다.
 
-특히, 3번에서 서술하였다시피 프로젝트 퍼포먼스를 위해서 Optimization을 진행하였다면 이에 대한 히스토리 공유도 필요할 것이다. 
+특히, 3번에서 서술하였다시피 프로젝트 퍼포먼스를 위해서 Optimization을 진행하였다면 이에 대한 히스토리 공유도 필요할 것이다.
 
 ### Next
 자, 여기까지가 OAS Generator를 사용하면 어떤 장점, 단점이 있는지 대략적인 설명이 되었으리라 생각한다.
@@ -180,11 +180,11 @@ openapi-generator-cli generate -g typescript-axios -i ./src/yaml/petstore.yaml -
 ```
 위와 같이 [openapi-generator-cli](https://github.com/OpenAPITools/openapi-generator-cli)에 대한 의존성을 추가하고,
 `openapi-generator-cli`를 실행한다.
-- `-g`는 generator를 설정하는 옵션이며 여기서는 `typescript-axios`를 사용한다. 
+- `-g`는 generator를 설정하는 옵션이며 여기서는 `typescript-axios`를 사용한다.
 - `-i`는 input을 의미하며 타겟이 되는 yaml파일 위치를 지정한다.
 - `-o`는 코드를 생성할 위치를 지정한다.
 
-위 코드를 실행하면 아래와 같이 `src/generate` 디렉토리 내부에 코드들이 자동생성된다. 
+위 코드를 실행하면 아래와 같이 `src/generate` 디렉토리 내부에 코드들이 자동생성된다.
 ![usage-2.png](/assets/oas-generator/usage-2.png)
 
 `api.ts` 내부에는 api request와 response 타입을 포함하고 있는 axios util 함수와, type이 함께 생성된다.
@@ -193,8 +193,8 @@ openapi-generator-cli generate -g typescript-axios -i ./src/yaml/petstore.yaml -
 이제는 generate 된 코드를 사용하면 된다.
 ![usage-3.png](/assets/oas-generator/usage-3.png)
 
-typescript를 기반으로 생성된 코드이기 때문에 request와 response의 타입체크는 성공적으로 진행된다. 
-`data` 객체를 참조했을 때 `Pet` 내부 타입인 id, name, category 등을 알려준다. 
+typescript를 기반으로 생성된 코드이기 때문에 request와 response의 타입체크는 성공적으로 진행된다.
+`data` 객체를 참조했을 때 `Pet` 내부 타입인 id, name, category 등을 알려준다.
 
 ### Next
 사용 방법을 간단히 요약하면 다음과 같이 간단하다.
@@ -237,19 +237,19 @@ CLI는 `generate` 명령어를 사용하며 옵션은 크게 5가지를 사용�
   "useSingleRequestParameter": false
 }
 ```
-이 설정 파일은 CLI 옵션에서 `-c`에 들어가는 파일이며, 주로 generator의 설정 값이 들어간다. 
+이 설정 파일은 CLI 옵션에서 `-c`에 들어가는 파일이며, 주로 generator의 설정 값이 들어간다.
 이 예시에서는 `typescript-axios`를 사용하며 자세한 옵션은 [이쪽](https://openapi-generator.tech/docs/generators/typescript-axios/) 을 참고하자.
 
 ## OAS Generator Template
-범용성을 띄고 만들어진 설정인 기본 설정을 그대로 사용하면 좋겠지만, 실제 프로젝트에 사용한다면 상황에 맞게 
+범용성을 띄고 만들어진 설정인 기본 설정을 그대로 사용하면 좋겠지만, 실제 프로젝트에 사용한다면 상황에 맞게
 수정을 해야하는 부분이 존재한다. [문서 Customization 가이드](https://openapi-generator.tech/docs/customization) 항목도 있지만,
-이 중에 가장 직접적으로 도움이 되었던 항목은 [Retrieving Templates](https://openapi-generator.tech/docs/templating#retrieving-templates), 
+이 중에 가장 직접적으로 도움이 되었던 항목은 [Retrieving Templates](https://openapi-generator.tech/docs/templating#retrieving-templates),
 즉, 기본으로 등록되어 있는 Template을 가져와서 프로젝트에 맞게 수정해서 사용하는 것이다.
 지금 설명하는 방식은 CLI에서 기재한 `-t` 옵션에 들어가는 템플릿과 크게 연관되어있다.
 
 ### Custom Template은 언제 사용할까?
 기본 설정을 사용하는 Template을 사용하지 않고, 이를 수정해서 사용하고 싶을 떄 사용하는 방법이다.
-예를 들면, 아래와 같이 `addPet`이나 `deletePet` 메소드 명 뒤에 `Axios` 같은 suffix를 붙이고 싶다면 
+예를 들면, 아래와 같이 `addPet`이나 `deletePet` 메소드 명 뒤에 `Axios` 같은 suffix를 붙이고 싶다면
 template을 수정하면 된다.
 
 import Tabs from '@theme/Tabs';
@@ -301,7 +301,7 @@ import TabItem from '@theme/TabItem';
 여기서 Custom Template을 추가한다면 아래와 같은 느낌으로 flow가 변한다.
 
 ![generate-flow-with-custom.png](/assets/oas-generator/generate-flow-with-custom.png)
-OAS Generator는 yaml파일에서 JSON 데이터를 추출해낸다. 이 JSON 데이터는 path도 들어있고, method도 들어있고, 
+OAS Generator는 yaml파일에서 JSON 데이터를 추출해낸다. 이 JSON 데이터는 path도 들어있고, method도 들어있고,
 API에 대한 각종 정보들이 있다. 이 JSON 데이터들이 Template에 주입되고 Axios 함수로 생성된다.
 
 여기서 다룰 커스텀은 Template을 변경하는 방법에 대해서이다.
@@ -330,11 +330,11 @@ CLI에서 `-t` 옵션을 주지 않는다면 기본적으로 원격에 있는 �
 따라 과정을 진행하므로 관리 영역을 줄일 수 있다.
 
 ### Mustache Template
-이제 local로 가져온 mustache를 수정할 수 있게 되었다. 이 부분에서는 mustache 문법에 대한 간략한 이해가 필요하므로, 
-mustache에 익숙하지 않다면 [이 글](https://github.com/janl/mustache.js)을 잠시 확인하도록 하자. 
+이제 local로 가져온 mustache를 수정할 수 있게 되었다. 이 부분에서는 mustache 문법에 대한 간략한 이해가 필요하므로,
+mustache에 익숙하지 않다면 [이 글](https://github.com/janl/mustache.js)을 잠시 확인하도록 하자.
 이미 완성된 template을 수정하는 것이므로 변수, Section, Lists, Inverted Sections 정도만 읽을 수 있으면 된다.
 
-예를 들어 [위에 소개한 예시](#custom-template은-언제-사용할까)대로 생성된 classname에 Axios라는 suffix를 붙이고 싶다면, 
+예를 들어 [위에 소개한 예시](#custom-template은-언제-사용할까)대로 생성된 classname에 Axios라는 suffix를 붙이고 싶다면,
 아래와 같이 수정하면 된다.
 
 <Tabs>
@@ -368,21 +368,21 @@ mustache에 익숙하지 않다면 [이 글](https://github.com/janl/mustache.js
 그런 다음, 수정한 template 파일만 남겨두고 수정하지 않은 나머지 템플릿 파일을 삭제한다. 자동으로 로컬에 없는 파일은 원격의 기본 설정을 사용하여 generate한다.
 
 ### JSON Data 확인하기
-자 Template을 로컬로 가져오기도 했고, template을 수정하면 된다는 것도 알았다. 하지만 여전히 생기는 궁금증은 
+자 Template을 로컬로 가져오기도 했고, template을 수정하면 된다는 것도 알았다. 하지만 여전히 생기는 궁금증은
 위 template 이미지에서 `nickname`이나 `classname`변수에 어떤 값이 들어가는지 모르는 것이다.
 
 이제 [Flow of Custom Template](#flow-of-custom-template)에서 넘어갔던, JSON Data에 대해서 확인 해 볼 차례다.
-Template에 적절한 데이터를 사용하려면 yaml파일에서 어떤 데이터가 추출되고, 어떤 형식으로 template에 주입되는지 알아봐야한다. 
+Template에 적절한 데이터를 사용하려면 yaml파일에서 어떤 데이터가 추출되고, 어떤 형식으로 template에 주입되는지 알아봐야한다.
 
 ```shell
-openapi-generator-cli generate  \ 
+openapi-generator-cli generate  \
   -g typescript-axios  \
   -i ./src/yaml/petstore.yaml  \
   -o ./src/generate  \
   --global-property=debugModels,debugOperations \
   > output.txt
 ```
-여러 방법이 있을 것이라 생각하지만 위와 같이 CLI옵션에서 `--global-property=debugModels,debugOperations`를 주게 되면 
+여러 방법이 있을 것이라 생각하지만 위와 같이 CLI옵션에서 `--global-property=debugModels,debugOperations`를 주게 되면
 yaml파일로부터 어떤 데이터가 추출되는지 console에 출력된다. 따라서 `> output.txt` 를 통해서 text파일로 확인하는 방법을 사용했다.
 `operations`에 대해 추출한 내용은 대략적으로 아래와 같은 이미지 형식을 따르며, 템플릿에서 볼 수 있는 `operations`,
 `classname`, `path`, `httpMethod` 등 데이터가 포함되어 mustache template에 사용되는 것을 알 수 있다.

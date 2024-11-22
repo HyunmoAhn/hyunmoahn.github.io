@@ -12,7 +12,7 @@ keywords:
   - how-to-work
   - web
 authors: HyunmoAhn
-tags: [redux, redux-toolkit, immer, library, how-to-work, deep-dive, javascript, web, immutable]
+tags: [redux, redux-toolkit, immer, library, how-to-work, deep-dive, javascript, web, immutable, blog]
 ---
 
 이 글은 기본적으로 [immer](https://immerjs.github.io/immer/)에 대해서 알아보는 시간을 가진다. 만약 immer를 잘 모르는 분들은 [아래 챕터](#immer는-무엇이고-왜-사용하는걸까)를 먼저 읽어보는 것을 권장한다.
