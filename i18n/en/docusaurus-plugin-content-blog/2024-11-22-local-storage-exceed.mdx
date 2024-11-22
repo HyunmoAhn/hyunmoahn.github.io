@@ -1,0 +1,100 @@
+---
+slug: local-storage-exceed
+title: Exceeding Local Storage Capacity
+description: What happens when the Local Storage capacity is exceeded?
+keywords:
+  - localStorage
+  - storage
+  - exceed
+  - error
+  - try-catch
+  - web
+authors: HyunmoAhn
+tags: [localStorage, storage, exceed, error, try-catch, web, issue, trouble-shooting]
+---
+import { LocalStorageExceed, PerformanceDisplay } from '@site/src/code-snippet/localStorageExceed/index.tsx'
+import { Figure } from '@site/src/components/common/Figure/index.tsx'
+
+## Introduction
+
+Have you ever considered the capacity when using LocalStorage in your project?
+
+Depending on the purpose of localStorage, it might not be something you often think about.
+However, if you're storing data that accumulates over time, the data can exceed the localStorage capacity.
+
+What happens when it exceeds?
+초과하면 과연 어떻게 동작할까요?
+
+The answer is **It throws an error**.
+
+<Figure index={1} title="Local Storage Exceed Error">
+  <img src={'/assets/local-storage-exceed/exceed-error.jpg'}/>
+</Figure>
+
+## Solution
+
+When the error occurs, the `setStorage` statement terminates due to the throw, and the error propagation begins.
+
+If your project handles error propagation well, the error message will be logged, and if not, the project might stop.
+
+To prevent this situation, you should use a `try-catch` block to catch the error and add logic to handle it.
+
+```tsx
+const setStorage = (key, value) => {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch (e) {
+    // Stop Throw Error
+    console.error('Local Storage Exceed Error', e);
+  }
+}
+```
+
+Of course, an error indicates that the localStorage capacity has been exceeded, so the user will continue to encounter Local Storage Exceed Errors and won't be able to save data.
+
+Therefore, in addition to error handling, you should also include logic to clear the data.
+
+```tsx
+const setStorage = (key, value) => {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch (e) {
+    // Stop Throw Error
+    console.error('Local Storage Exceed Error', e);
+    window.localStorage.clear();
+  }
+}
+```
+<!--truncate-->
+
+
+## Try it yourself
+
+Now that you know localStorage has a capacity limit and how to handle errors, if you're curious, you can try filling up the localStorage yourself.
+
+Click the Play icon below to start filling localStorage with data.
+While it depends on the browser, it generally has a capacity of about 5MB.
+
+Click Play! It won't take more than a minute.
+
+<Figure index={2} title="Fill data on localStorage" align="center">
+  <LocalStorageExceed />
+</Figure>
+
+When you see the Local Storage Exceed Error in the gray console, it means the localStorage is full.
+You can also check the error object in the actual browser console by opening the developer tools.
+
+What if you use a different key? Does it have a different capacity per key?
+
+<Figure index={3} title="Fill another key on localStorage" align="center">
+  <LocalStorageExceed storageKey="ANOTHER_STORAGE_KEY" />
+</Figure>
+
+The result, unsurprisingly, is the same. The capacity of localStorage is managed per browser, so it remains the same.
+
+Even if you open a new tab in the same browser, the storage remains full, as it is shared across tabs.
+
+## Conclusion
+- LocalStorage has a capacity of about 5MB in Chrome.
+- Exceeding the localStorage capacity triggers a Local Storage Exceed Error.
+- You should add logic to catch and handle the error.
