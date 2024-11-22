@@ -12,7 +12,88 @@ keywords:
 authors: HyunmoAhn
 tags: [localStorage, storage, exceed, error, try-catch, web, issue, trouble-shooting]
 ---
-import { LocalStorageExceed } from '@site/src/code-snippet/localStorageExceed/index.tsx'
+import { LocalStorageExceed, PerformanceDisplay } from '@site/src/code-snippet/localStorageExceed/index.tsx'
+import { Figure } from '@site/src/components/common/Figure/index.tsx'
+
+## Introduction
+
+프로젝트에서 LocalStorage를 사용했을 때 용량을 고려한 적이 있나요?
+
+localStorage의 용도에 따라 다르겠지만, 대부분의 경우는 용량을 고려하지 않고 사용하게 됩니다.
+하지만, 데이터의 성격이 계속해서 쌓이는 구조의 데이터를 저장한다면 데이터는 localStorage의 용량을 초과할 수 있습니다.
+
+초과하면 과연 어떻게 동작할까요?
+
+정답은 **Throw 에러** 입니다.
+
+<Figure index={1} title="Local Storage Exceed Error">
+  <img src={'/assets/local-storage-exceed/exceed-error.jpg'}/>
+</Figure>
+
+## Solution
+
+위 에러가 발생하면, `setStorage` 구문은 throw로 인해 종료가 되고 에러 전파를 진행하게 됩니다.
+
+프로젝트에 에러 전파를 잘 처리하고 있다면, 에러 메세지와 함께 에러 로그가 수집 될 것이고 전파를 잘 처리 하지 않았다면 프로젝트가 멈출 수 있습니다.
+
+이러한 상황을 방지하기 위해서는 `try-catch` 구문을 사용해서 에러를 잡아내고, 에러를 처리하는 로직을 추가해야 합니다.
+
+```tsx
+const setStorage = (key, value) => {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch (e) {
+    // Stop Throw Error
+    console.error('Local Storage Exceed Error', e);
+  }
+}
+```
+
+물론 에러가 발생했다는 것은 LocalStorage의 용량을 초과했다는 것이므로 앞으로 사용자는 계속해서 Local Storage Exceed Error가 발생하고, 데이터를 저장하지 못할 것 입니다.
+
+따라서 에러처리 뿐 아니라 데이터를 지워주는 작업까지 추가해주어야합니다.
+
+```tsx
+const setStorage = (key, value) => {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch (e) {
+    // Stop Throw Error
+    console.error('Local Storage Exceed Error', e);
+    window.localStorage.clear();
+  }
+}
+```
+<!--truncate-->
 
 
-<LocalStorageExceed />
+## Try it yourself
+
+localStorage가 용량 제한이 있다는 것도 알았고, 에러처리도 알았지만, 더 궁금하다면 직접 localStorage를 가득 채워보자.
+
+아래 콘솔에서 `Play` 아이콘을 누르면 localStorage에 계속해서 데이터가 쌓이게 됩니다.
+브라우저마다 다를 것이라 생각하지만 일반적으로는 `5MB` 정도의 용량을 가지고 있습니다.
+
+`Play` 를 눌러보세요! 1분도 걸리지 않습니다.
+
+<Figure index={2} title="Fill data on localStorage" align="center">
+  <LocalStorageExceed />
+</Figure>
+
+회색 콘솔에 `Local Storage Exceed Error` 가 발생하면 localStorage가 가득 찼다는 것을 의미합니다. 실제 브라우저 콘솔에서 에러 객체도 찍고 있으니
+개발자 도구를 열어서 확인해봐도 좋습니다.
+
+만약, 다른 키를 사용하면 어떨까요? `key`별로 다른 용량을 가지고 있을까요?
+
+<Figure index={3} title="Fill another key on localStorage" align="center">
+  <LocalStorageExceed storageKey="ANOTHER_STORAGE_KEY" />
+</Figure>
+
+결과는 놀랍지 않게도 동일합니다. localStorage의 용량은 브라우저 단위로 관리되기 때문에 동일한 용량을 가지고 있습니다.
+
+같은 브라우저에서 새로운 탭을 열어도 공유되므로 새 창을 열어도 storage는 여전히 가득 차 있는 것을 확인 할 수 있습니다.
+
+## Conclusion
+- LocalStorage는 Chrome 기준으로 약 5MB 정도의 용량을 가지고 있습니다.
+- LocalStorage의 용량을 초과하면 `Local Storage Exceed Error` 가 발생합니다.
+- 에러를 잡아내고, 처리하는 로직을 추가해야합니다.

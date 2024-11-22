@@ -17,6 +17,20 @@ export const LogSection = ({ logs }: { logs: ReactNode[] }) => {
   );
 };
 
+export const PlayButton = ({ isLoading, onPlay }: { isLoading: boolean; onPlay: () => void }) => {
+  return (
+    <IconButton
+      loading={isLoading}
+      type="button"
+      className={style.play}
+      onClick={() => onPlay()}
+      disabled={isLoading}
+    >
+      <Play size={18} />
+    </IconButton>
+  );
+};
+
 export const ButtonSet = ({
   isPlay,
   onPlay,
@@ -38,6 +52,17 @@ export const ButtonSet = ({
       <IconButton type="button" className={style.trash} onClick={onReset}>
         <Trash2 size={18} />
       </IconButton>
+    </div>
+  );
+};
+
+export const PlainLog = ({ children }: { children: ReactNode }) => {
+  return (
+    <div className={style.log}>
+      <Badge color="gray" variant="soft" highContrast>
+        Info
+      </Badge>
+      <span>{children}</span>
     </div>
   );
 };
@@ -77,21 +102,25 @@ export const ExceedLog = () => {
 
 export type StorageStatus = 'remained' | 'exceed' | 'resize';
 
+const uuid = v4();
+let count = 0;
+export const getNextData = (_size: number) => {
+  let obj = {};
+
+  for (let index = 0; index < _size; index += 1) {
+    obj = {
+      ...obj,
+      // eslint-disable-next-line no-plusplus
+      [uuid + count++]: +new Date(),
+    };
+  }
+
+  return obj;
+};
+
 export const useSaveLocalStorage = (key: string) => {
   const [status, setStatus] = useState<StorageStatus>('remained');
   const [size, setSize] = useState(3000);
-
-  const getNextData = (_size: number) => {
-    return Array.from({ length: _size }, (_, index) => index).reduce(
-      (acc) => {
-        return {
-          ...(acc as Record<string, string>),
-          [v4()]: +new Date(),
-        };
-      },
-      {} as Record<string, string>,
-    );
-  };
 
   const storeData = useCallback(() => {
     const data = localStorage.getItem(key) || '';
@@ -107,6 +136,8 @@ export const useSaveLocalStorage = (key: string) => {
         setStatus('resize');
       } else {
         setStatus('exceed');
+        console.error(e);
+        console.dir(e);
       }
     }
   }, [key, size]);
