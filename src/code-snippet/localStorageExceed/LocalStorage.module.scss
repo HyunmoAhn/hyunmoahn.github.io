@@ -1,0 +1,41 @@
+.logSection {
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  border-radius: 5px;
+  background-color: rgb(40 42 54 / 0.3);
+  padding: 10px 20px;
+  font-size: 14px;
+  min-height: 168px;
+  row-gap: 2px;
+}
+
+.error {
+  color: var(--color-red);
+  font-weight: 700;
+}
+
+.buttonSet {
+  display: flex;
+  flex-direction: row;
+  column-gap: 5px;
+
+  .trash {
+    background-color: var(--color-red);
+  }
+
+  .play {
+    background-color: var(--color-blue);
+  }
+
+  .pause {
+    background-color: #f57f17;
+  }
+}
+
+.log {
+  display: flex;
+  flex-direction: row;
+  column-gap: 5px;
+  align-items: center;
+}

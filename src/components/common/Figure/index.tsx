@@ -5,11 +5,12 @@ export interface FigureProps {
   index: number;
   title: string;
   children: ReactNode;
+  align?: 'center' | 'left' | 'right';
 }
 
-export const Figure = ({ index, title, children }: FigureProps) => {
+export const Figure = ({ index, title, children, align }: FigureProps) => {
   return (
-    <div className={style.figureContainer}>
+    <div className={style.figureContainer} style={{ alignItems: align }}>
       {children}
       <div className={style.titleContainer}>
         <span className={style.indexing}>Figure {index}</span>
