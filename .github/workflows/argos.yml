@@ -26,7 +26,7 @@ jobs:
         run: yarn playwright install --with-deps chromium
 
       - name: Build the website
-        run: yarn docusaurus build
+        run: MODE=TEST yarn docusaurus build
 
       - name: Take screenshots with Playwright
         run: yarn playwright test
