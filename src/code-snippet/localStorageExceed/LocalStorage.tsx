@@ -1,16 +1,16 @@
 import cx from 'classnames';
 import { Pause, Play, Trash2 } from 'lucide-react';
 import { IconButton, Badge } from '@radix-ui/themes';
-import { ReactNode, useState, useEffect } from 'react';
+import { ReactNode, useState, useCallback } from 'react';
 import { v4 } from 'uuid';
 import style from './LocalStorage.module.scss';
 import { setLocalStorageExceed, dataSize } from './utils';
 
 export const LogSection = ({ logs }: { logs: ReactNode[] }) => {
-  console.log(logs);
+  const displayLogs = [...logs].slice(-10);
   return (
     <div className={style.logSection}>
-      {(logs || []).splice(-10).map((log, index) => (
+      {displayLogs.map((log, index) => (
         <div key={index}>{log}</div>
       ))}
     </div>
@@ -42,10 +42,44 @@ export const ButtonSet = ({
   );
 };
 
+export const SavedLog = ({ size, data, time }: { size: number; data: string; time: number }) => {
+  return (
+    <div className={style.log}>
+      <Badge color="gray" variant="soft" highContrast>
+        Saved
+      </Badge>
+      <span>
+        Save {size} items ({dataSize(data)}) - {new Date(time).toLocaleTimeString()}
+      </span>
+    </div>
+  );
+};
+
+export const ResizeLog = ({ size }: { size: number }) => {
+  return (
+    <div className={style.log}>
+      <Badge color="blue" variant="soft" highContrast>
+        Info
+      </Badge>
+      <span>Reduce size to {size}</span>
+    </div>
+  );
+};
+
+export const ExceedLog = () => {
+  return (
+    <div className={style.log}>
+      <Badge color="red">Error</Badge>
+      <span className={style.error}>Local Storage Exceed!</span>
+    </div>
+  );
+};
+
+export type StorageStatus = 'remained' | 'exceed' | 'resize';
+
 export const useSaveLocalStorage = (key: string) => {
-  const [log, setLog] = useState<ReactNode[]>([]);
-  const [dispatch, setDispatch] = useState({});
-  const [size, setSize] = useState(1000);
+  const [status, setStatus] = useState<StorageStatus>('remained');
+  const [size, setSize] = useState(3000);
 
   const getNextData = (_size: number) => {
     return Array.from({ length: _size }, (_, index) => index).reduce(
@@ -59,57 +93,27 @@ export const useSaveLocalStorage = (key: string) => {
     );
   };
 
-  useEffect(() => {
-    if (dispatch) {
-      const data = localStorage.getItem(key) || '';
-      const nextData = getNextData(size);
+  const storeData = useCallback(() => {
+    const data = localStorage.getItem(key) || '';
+    const nextData = getNextData(size / 2);
+    const nextDataStringify = JSON.stringify(nextData).repeat(2);
 
-      try {
-        setLocalStorageExceed(key, data + JSON.stringify(nextData));
-        setLog((prevLog) => {
-          console.log('setLog');
-          return [
-            ...prevLog,
-            <div>
-              <Badge color="gray" variant="soft" highContrast>
-                Saved
-              </Badge>
-              <span>
-                Save {size} items ({dataSize(data)})
-              </span>
-            </div>,
-          ].splice(-10);
-        });
-      } catch (e) {
-        if (size > 1) {
-          setSize((prevSize) => parseInt(String(prevSize / 2), 10));
-          setLog((prevLog) => [
-            ...prevLog,
-            <div>
-              <Badge color="gray" variant="soft" highContrast>
-                Info
-              </Badge>
-              <span>Reduce size to {size}</span>
-            </div>,
-          ]);
-          return;
-        }
-
-        setLog((prevLog) => [
-          ...prevLog,
-          <div>
-            <Badge color="red" variant="soft" highContrast>
-              Error
-            </Badge>
-            <span>Local Storage Exceed!</span>
-          </div>,
-        ]);
+    try {
+      setLocalStorageExceed(key, data + nextDataStringify);
+      return { size, data: nextDataStringify };
+    } catch (e) {
+      if (size > 1) {
+        setSize((prevSize) => parseInt(String(prevSize / 2), 10));
+        setStatus('resize');
+      } else {
+        setStatus('exceed');
       }
     }
-  }, [dispatch, key, size]);
+  }, [key, size]);
 
   return {
-    logs: log,
-    dispatch: () => setDispatch({}),
+    store: storeData,
+    status,
+    size,
   };
 };

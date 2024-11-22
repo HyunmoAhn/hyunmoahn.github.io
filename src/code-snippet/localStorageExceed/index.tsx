@@ -1,5 +1,12 @@
-import { useEffect, useState } from 'react';
-import { LogSection, ButtonSet, useSaveLocalStorage } from './LocalStorage';
+import { useEffect, useState, ReactNode } from 'react';
+import {
+  LogSection,
+  ButtonSet,
+  useSaveLocalStorage,
+  ExceedLog,
+  SavedLog,
+  ResizeLog,
+} from './LocalStorage';
 import {
   LOCAL_STORAGE_EXCEED,
   cleanLocalStorageExceed,
@@ -10,18 +17,41 @@ import style from './index.module.scss';
 
 export const LocalStorageExceed = () => {
   const [play, setPlay] = useState(false);
+  const [logs, setLogs] = useState<ReactNode[]>([]);
   const storageData = getLocalStorageExceed(LOCAL_STORAGE_EXCEED);
 
-  const { logs, dispatch } = useSaveLocalStorage(LOCAL_STORAGE_EXCEED);
+  const { size, store, status } = useSaveLocalStorage(LOCAL_STORAGE_EXCEED);
 
   useEffect(() => {
-    if (play && dispatch) {
-      console.log('dispatch');
-      setTimeout(() => {
-        dispatch();
-      }, 1000);
+    if (play) {
+      const tick = setTimeout(() => {
+        const result = store();
+
+        if (result) {
+          setLogs((prev) => [
+            ...prev,
+            <SavedLog data={result.data} size={result.size} time={+new Date()} />,
+          ]);
+        }
+      }, 300);
+
+      return () => clearTimeout(tick);
     }
-  }, [dispatch, play]);
+
+    return () => {};
+  }, [logs, play, store, setLogs]);
+
+  useEffect(() => {
+    if (status === 'exceed' && play) {
+      setPlay(false);
+      setLogs((prev) => [...prev, <ExceedLog />]);
+      return;
+    }
+
+    if (status === 'resize') {
+      setLogs((prev) => [...prev, <ResizeLog size={size} />]);
+    }
+  }, [play, size, status]);
 
   useEffect(() => () => cleanLocalStorageExceed(LOCAL_STORAGE_EXCEED), []);
 

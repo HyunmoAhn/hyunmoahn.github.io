@@ -3,14 +3,16 @@
   flex-direction: column;
   width: auto;
   border-radius: 5px;
-  background-color: rgb(40 42 54);
+  background-color: rgb(40 42 54 / 0.3);
   padding: 10px 20px;
   font-size: 14px;
   min-height: 168px;
+  row-gap: 2px;
 }
 
 .error {
   color: var(--color-red);
+  font-weight: 700;
 }
 
 .buttonSet {
@@ -27,7 +29,13 @@
   }
 
   .pause {
-    background-color: var(--color-yellow-dark);
-    color: var(--color-yellow--dark);
+    background-color: #f57f17;
   }
+}
+
+.log {
+  display: flex;
+  flex-direction: row;
+  column-gap: 5px;
+  align-items: center;
 }
