@@ -1,0 +1,33 @@
+.logSection {
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  border-radius: 5px;
+  background-color: rgb(40 42 54);
+  padding: 10px 20px;
+  font-size: 14px;
+  min-height: 168px;
+}
+
+.error {
+  color: var(--color-red);
+}
+
+.buttonSet {
+  display: flex;
+  flex-direction: row;
+  column-gap: 5px;
+
+  .trash {
+    background-color: var(--color-red);
+  }
+
+  .play {
+    background-color: var(--color-blue);
+  }
+
+  .pause {
+    background-color: var(--color-yellow-dark);
+    color: var(--color-yellow--dark);
+  }
+}
