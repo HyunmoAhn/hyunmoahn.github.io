@@ -39,7 +39,7 @@ export const LineHeightGuide = () => {
         <p>Line Gap</p>
         <p className={style.lineHeightGuide} style={{ backgroundColor: 'blue' }} />
       </div>
-      <p className={style.caption}>Line Height (5px)</p>
+      <p className={style.caption}>Line Height (fontSize + 5px)</p>
     </div>
   );
 };
