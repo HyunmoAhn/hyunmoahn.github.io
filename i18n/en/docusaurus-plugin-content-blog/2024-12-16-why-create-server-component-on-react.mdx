@@ -1,0 +1,346 @@
+---
+slug: recent-server-side-rendering
+title: Why Did React Introduce Server Components?
+description: Why was Server Side Rendering introduced in React 18?
+keywords:
+  - server-side-rendering
+  - react
+  - server-component
+  - suspense
+  - web
+authors: HyunmoAhn
+tags: [server-component, server-side-rendering, react, suspense, web]
+---
+
+## Purpose
+
+
+[React 18](https://react.dev/blog/2022/03/29/react-v18) was released in 2022,
+and the [Next.js App Router](https://nextjs.org/blog/next-13-4) was released in 2023, making this a somewhat outdated investigation.
+However, while using the Next.js page router and app router,
+I found an article explaining the differences and reasons for the changes,
+particularly why the app router was introduced. This document summarizes my understanding of that article.
+
+
+## Story
+
+Before reading the article, consider the following scenarios:
+
+Imagine you're at a job interview for a Frontend Developer position and are asked the following questions.
+Or perhaps you're in a meeting trying to convince your team to use the Next.js app router for a new or existing project.
+Or maybe you're contemplating which technology is more suitable between the Next.js page router and app router.
+
+While simply stating that the app router is a new technology and advocating
+for its use as a Frontend Developer can be persuasive,
+understanding the answers to the questions below can provide a more compelling argument.
+
+:::note[Question]
+- Q. What is the difference between SSR (Server Side Rendering) and CSR (Client Side Rendering)?
+- Q. What limitations in the existing method (Next.js page router) led to the development of the Next.js app router?
+- Q. Why is Suspense used in React?
+:::
+
+If you know the answers to these questions, you might not need to read the full text.
+However, if you want a more reliable source, you can refer to the [React 18 Architecture introduction](https://github.com/reactwg/react-18/discussions/37).
+If you only want the answers, you can skip to the [Result](/recent-server-side-rendering#result).
+
+The following text is a summary of my understanding, mixed with my opinions, after reading the Architecture article.
+
+<!--truncate-->
+
+## What is Server Side Rendering(SSR)?
+
+First, we need to distinguish what Server Side Rendering (SSR) is. Before SSR, we compare it with Client Side Rendering (CSR).
+So why was SSR needed in the first place?
+
+The operation of CSR works as follows:
+1. The user receives the HTML.
+2. The browser downloads the JS included in the HTML.
+3. The browser executes the downloaded JS and renders the screen.
+4. The user can interact with the completed page.
+
+The need for improvement in CSR arises from the fact
+that users see a blank screen until steps 1 to 3 are completed.
+While loading screens or splash images can be pre-inserted into the HTML,
+they are merely workarounds, and users still do not see the desired screen.
+
+SSR overcomes this limitation by pre-generating HTML on the server and delivering it to the user.
+The operation of SSR is as follows:
+1. When a user requests HTML, the server generates the HTML and delivers it to the user.
+2. The user can see the completed screen, and the browser downloads the JS included in the HTML.
+3. The browser executes the downloaded JS and attaches events to allow interaction with elements on the screen (hydration).
+4. The user can interact with the completed page.
+
+The advantage of SSR is that users can see the completed screen from step 1.
+Unlike CSR, where users cannot see the screen until JS is loaded and rendered,
+SSR allows users to see the screen from the beginning because the server pre-generates it.
+Although user interaction (clicks, text input, etc.) is not possible until hydration is complete,
+users can still see the screen, enhancing the user experience.
+
+In summary, SSR is a method of delivering HTML rendered on the server to overcome the limitation of needing to load JS to display the screen to users.
+
+So what limitations does this method have that led to the creation of a new SSR architecture?
+
+## What are the limitations of existing SSR?
+
+For a new design to emerge, there must be limitations in the existing design.
+By understanding these limitations, we can grasp the principles and intentions of the new design.
+Let's explore what limitations existed in the previous SSR approach.
+
+The existing SSR discussed here is precisely the characteristic of the Next.js page router.
+
+```tsx
+// pages/product/[id].js
+
+// Client / Server both run
+const Product = ({ product }) => {
+  return (
+    <div>
+      <h1>Product: {product.name}</h1>
+      <p>Price: ${product.price}</p>
+    </div>
+  );
+};
+
+// Server Only Part
+export async function getServerSideProps(context) {
+  const { id } = context.params;
+
+  const res = await fetch(`https://api.example.com/products/${id}`);
+  const product = await res.json();
+
+  return {
+    props: { product },
+  };
+}
+
+export default Product;
+```
+
+This code is used in the Next.js page router.
+If you're familiar with the Next.js page router, understanding the existing SSR logic should be straightforward.
+The difference between CSR and SSR arises from the `getServerSideProps` function, which only runs on the server.
+The server fetches data and passes it to the `Product` component as props,
+generating the HTML on the server and delivering it to the user.
+
+The limitation here is that "`getServerSideProps` can only be used at the page level."
+
+Since server operations can only be performed at the page level,
+the existing SSR process is carried out entirely at the page level.
+
+### HTML Generation
+HTML generation must also be done all at once.
+All data required for rendering must be ready before rendering can start.
+If any data is delayed, the entire page load is delayed.
+
+For instance, suppose three types of data are needed to render the screen, and each data fetch has different delays:
+- Article API (100ms - 300ms)
+- **Comment API (200ms - 1000ms)**
+- User API (300ms - 500ms)
+
+Even if all three APIs are called simultaneously,
+the longest delay from the Comment API must be waited for, resulting in a delay of up to 1 second.
+
+### JS Load
+JS loading must also be done all at once.
+If a particular screen area has a lot of JS logic, loading the JS for that area prevents hydration of other areas.
+
+- Article content (100KB)
+- **Comments (200KB)**
+- User information (50KB)
+
+Even if the JS resources for the article content and user information are small and loaded first,
+you must wait until all JS resources for comments are loaded.
+This is because hydration is designed to occur all at once.
+
+If you want to reduce the hydration delay caused by comments,
+you can exclude the comments area from the server area, but then the comments area will operate as CSR.
+Users will see a blank screen (or loading) in the comments area, returning to the limitation of CSR.
+
+### Hydration
+Similar to JS loading, hydration must be done all at once.
+Let's assume the time taken for hydration in each area is as follows (hydration time is abstract):
+
+- Article content (10ms)
+- **Comments (50ms)**
+- User information (20ms)
+
+If each is done separately, the article content and user information should already be interactive,
+but since the comments hydration is not complete, users cannot interact with all areas.
+Even if they want to click on user information instead of comments, they must wait until all areas of the page are complete.
+
+## Solution
+The limitations of existing SSR mostly stem from handling everything at once.
+This means fetching all data, loading all JS, and processing hydration all at once, causing issues.
+
+To overcome these limitations, React 18 introduces the following methods:
+- Streaming HTML
+- Selective Hydration
+
+As the names suggest, streaming involves sending HTML in parts, and selective hydration involves partial hydration.
+
+### Streaming HTML
+Streaming uses HTTP/1.1's [Chunked transfer encoding](https://en.wikipedia.org/wiki/Chunked_transfer_encoding).
+Since HTML is divided into multiple chunks for response,
+the server doesn't need to send all HTML at once and can send additional chunks later.
+
+import { Figure } from '@site/src/components/common/Figure/index.tsx'
+
+<Figure index={1} title="React Component Code">
+  ```tsx
+  <Layout>
+    <NavBar />
+    <Sidebar />
+    <RightPane>
+      <Post />
+      {/* Comments is expensive cost component */}
+      <Suspense fallback={<Spinner />}>
+        <Comments />
+      </Suspense>
+    </RightPane>
+  </Layout>
+  ```
+</Figure>
+
+
+<Figure index={2} title={<>Output to user (<a href="https://github.com/reactwg/react-18/discussions/37">Ref</a>)</>}>
+  <table>
+    <tr>
+      <td>**Type**</td>
+      <td>**Initial Page**</td>
+      <td>**After Load**</td>
+    </tr>
+    <tr>
+      <td>Displayed <br />HTML</td>
+      <td>
+
+        ```tsx
+        <Layout>
+          <NavBar />
+          <Sidebar />
+          <RightPane>
+            <Post />
+            {/* Before Loading Comments */}
+            <Spinner />
+          </RightPane>
+        </Layout>
+        ```
+
+</td>
+<td>
+```tsx
+<Layout>
+<NavBar />
+<Sidebar />
+<RightPane>
+<Post />
+{/* Complete load Comments */}
+<Comments />
+</RightPane>
+</Layout>
+```
+</td>
+</tr>
+<tr>
+<td>Wireframe</td>
+<td><img src={"/assets/why-create-server-component/loading-comment.png"} /></td>
+<td><img src={"/assets/why-create-server-component/complete-comment.png"} /></td>
+</tr>
+</table>
+
+</Figure>
+
+As shown above, the initial HTML quickly shows a `Spinner` in place of `Comments`.
+Later, instead of rendering `Comments` on the client, the server renders it and sends it to fill in the remaining Comments area.
+
+This is an advantage of `Streaming`, which allows responding with multiple chunks over the same HTTP connection,
+and it can fill the screen before loading JS on the client.
+
+### Selective Hydration
+The above discussion is about generating HTML on the server, and now we'll discuss hydration on the client.
+
+The order of completing a page in SSR is as follows:
+1. The server generates the HTML.
+2. The client loads the JS.
+3. The client performs hydration.
+
+Using Suspense and Lazy, steps 2 and 3 can be carried out partially.
+<Figure index={3} title="Lazy loading with Suspense">
+
+  ```tsx
+  import { lazy } from 'react';
+
+  const Comments = lazy(() => import('./Comments.js'));
+
+  // ...
+
+  <Suspense fallback={<Spinner />}>
+    <Comments />
+  </Suspense>
+  ```
+
+</Figure>
+
+Even without complex configurations, using `Suspense` and `Lazy` as shown above allows this to happen naturally.
+React naturally divides Comments into HTML generation and hydration.
+
+## The Role of Suspense
+
+This concludes the introduction of the new approach to Server Side Rendering in React 18.
+One more thing to discuss is the change in the role of `Suspense`.
+
+`Suspense` was introduced in [React 16.6](https://legacy.reactjs.org/blog/2018/11/27/react-16-roadmap.html#react-166-shipped-the-one-with-suspense-for-code-splitting) and was used for code-splitting.
+It allowed code to be split and loaded with a fallback loading screen specified during code loading.
+
+However, in React 18, all the features discussed above utilize `Suspense`.
+It serves as the boundary for HTML chunking on the server side and as the criterion for selective hydration.
+
+<Figure index={4} title="Changes roles of Suspense">
+
+  | React Version | Roles of `Suspense`  |
+  | --- | --- |
+  | Pre-React 18 | lazy loading |
+  | React 18 and later | lazy loading <br /> **Boundary of HTML chunk** <br /> **Selective Hydration** |
+
+</Figure>
+
+## Conclusion
+In conclusion, this document summarizes the new approach to Server Side Rendering in React 18.
+
+The key points are as follows:
+- The limitation of existing SSR was handling everything at the page level all at once.
+- As a result, HTML generation, JS loading, and hydration all had to be done simultaneously, causing delays.
+- React 18 aims to overcome these limitations with Streaming HTML and Selective Hydration.
+- Streaming HTML sends HTML in parts, allowing quicker partial screen rendering.
+- Selective Hydration performs JS loading and hydration partially, enabling partial screen interaction.
+- In React 18, `Suspense` is used not only for lazy loading but also as the boundary for HTML chunking and selective hydration.
+
+This investigation made me realize the increased importance of Suspense,
+and I plan to consider this in actual development.
+If you have time, I highly recommend reading [New Suspense SSR Architecture in React 18](https://github.com/reactwg/react-18/discussions/37).
+
+## Result
+Based on the explanations in this document, let's summarize the answers to the initial questions.
+:::note[Question]
+Q. What is the difference between SSR (Server Side Rendering) and CSR (Client Side Rendering)?
+:::
+:::tip[Answer]
+A. SSR is a method where the server generates HTML and delivers it to the user, while CSR is a method where the client loads JS to render the screen.
+:::
+:::note[Question]
+Q. What limitations in the existing method (Next.js page router) led to the development of the Next.js app router?
+:::
+:::tip[Answer]
+A. Existing SSR required handling everything at the page level all at once, causing HTML generation, JS loading, and hydration to be done simultaneously. React 18 uses Streaming HTML and Selective Hydration to overcome these limitations.
+:::
+:::note[Question]
+Q. Why is `Suspense` used in React?
+:::
+:::tip[Answer]
+A. Before React 18, Suspense was used for lazy loading, but in React 18, it is used not only for lazy loading but also as the boundary for HTML chunking and selective hydration.
+:::
+
+
+## Reference
+- https://github.com/reactwg/react-18/discussions/37
+
