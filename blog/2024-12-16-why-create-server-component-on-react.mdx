@@ -1,0 +1,325 @@
+---
+slug: recent-server-side-rendering
+title: 왜 React는 Server Component를 만들게 되었을까?
+description: React 18에서 Server Side Rendering은 왜 나오게 되었을까?
+keywords:
+  - server-side-rendering
+  - react
+  - server-component
+  - suspense
+  - web
+authors: HyunmoAhn
+tags: [server-component, server-side-rendering, react, suspense, web]
+---
+
+## Purpose
+
+[React 18](https://react.dev/blog/2022/03/29/react-v18)이 2022년에 출시되었고, [Nextjs App router](https://nextjs.org/blog/next-13-4)가 2023년에 출시되어 이미 캐캐묵은 조사이지만,
+nextjs page router와 app router를 쓰며 어떤 점이 달라졌고, 왜 달라졌는지 이유를 찾던 중 app router를 왜 사용하게 되었는지 이유를 찾게 된 글이 있다.
+그 글을 읽고 이해한 바를 정리하고자 한다.
+
+## Story
+
+글을 읽기 전에 다음과 같은 상황을 가정해보자.
+
+새로운 회사로 이직을 하기 위해 Frontend 개발자 면접자리에서 다음과 같은 질문을 받았다고 하자. <br/>
+아니면, 새로운 프로젝트 혹은 기존 프로젝트에서 nextjs app router를 사용하자고 팀원들을 설득을 하는 자리이거나, <br/>
+혼자서 nextjs의 page router와 app router 중 어떤 기술이 적합한지 고민하고 있는 상황이라고 하자.
+
+단순 app router가 새롭게 나온 기술이고, Frontend 개발자로써 app router를 사용해보자는 답안도 충분히 설득력이 있을 수 있다.
+하지만, 아래와 같은 질문의 답을 이해하고 있다면, 조금 더 설득력 있는 답변을 할 수 있을 것이다.
+
+:::note[Question]
+- Q. SSR(Server Side Rendering)과 CSR(Client Side Rendering)의 차이점은 무엇인가?
+- Q. 기존 방식 (nextjs page router)에서 어떤 한계가 nextjs app router 방식을 만들게 되었을까?
+- Q. React에서 `Suspense`를 사용하는 이유는 무엇일까?
+:::
+
+위 질문의 답을 알고 있다면, 본문을 읽지 않아도 무방할 것이고 조금 더 신뢰도가 있는 글을 원한다면 [React 18 Architecture](https://github.com/reactwg/react-18/discussions/37) 소개 글을 보아도 좋을 것이다.
+본문을 읽지 않고 답만 알고 싶다면 [Result](/recent-server-side-rendering#result)를 먼저 살펴보자.
+
+다음 본문은 Architecture 글을 읽고, 이해한 바를 필자의 의견을 섞어 정리한 글이다.
+
+<!--truncate-->
+
+## Server Side Rendering(SSR) 이란?
+
+먼저 Server Side Rendering(SSR)이 무엇인지 구분 할 필요가 있다. SSR 이전에 비교를 하게 되는건 Client Side Rendering(CSR)인데,
+그렇다면 먼저 왜 SSR이 필요하게 된 걸까?
+
+CSR의 동작 방식은 다음과 같다.
+1. 사용자는 HTML을 받아온다.
+2. Browser는 HTML에 포함되어 있는 JS를 다운로드 한다.
+3. JS를 다운로드 받은 브라우저는 JS를 실행하고, 화면을 그린다.
+4. 사용자는 완성 된 페이지를 보고 상호작용을 할 수 있다.
+
+CSR의 방식에서 개선이 필요하다고 생각하는 건 1번에서 3번이 끝나기 전까지 사용자는 빈 화면을 보게 된다는 점이다.
+빈 화면이 표시되기 전 미리 HTML에 로딩 화면이나, splash 이미지를 넣어주곤 했지만 workaround 일 뿐 유저가 원하는 화면을 보지 못한다는건 동일하다.
+
+이러한 한계를 극복하기 위해 사용되는게 SSR이다.
+SSR은 서버에서 미리 HTML을 만들어서 사용자에게 전달하는 방식이다.
+SSR의 동작 방식은 다음과 같다.
+1. 사용자가 HTML을 요청하면, 서버에서 HTML을 만들어서 사용자에게 전달한다.
+2. 사용자는 완성 된 화면을 볼 수 있고, Browser는 HTML에 포함 된 JS를 다운로드 한다.
+3. JS를 다운로드 받은 브라우저는 JS를 실행하고, 화면에 있는 요소에 상호작용을 할 수 있도록 이벤트를 붙인다(hydration).
+4. 사용자는 완성 된 페이지에서 상호작용을 할 수 있다.
+
+SSR의 방식은 1번에서 이미 완성된 화면을 볼 수 있다는 점이다.
+기존 CSR은 JS를 로드하고 화면을 그리기까지 화면을 볼 수 없던 반면, SSR은 미리 서버에서 완성된 화면을 보여주기 떄문에 처음부터 화면을 볼 수 있다.
+3번의 hydration을 진행하기 전까지는 유저의 상호작용(클릭, 텍스트 입력 등)이 불가능하지만 화면을 볼 수는 있기 떄문에 사용자 경험을 향상 시킬 수 있다.
+
+정리하면, 유저에게 화면을 보여주기 위해서 JS를 로드하는 한계를 극복하기 위해 서버에서 HTML을 그려주어서 사용자에게 전달하는 방식이 SSR이다.
+
+그렇다면 이 방식은 어떤 한계가 있어서 새로운 SSR architecture를 만들게 되었을까?
+
+## 기존 SSR의 한계는?
+
+새로운 설계가 나오기 위해서는 기존 설계의 한계가 있어야 한다. 그 한계를 알고 있다면, 새로운 설계의 원리 및 의도하는 바를 이해할 수 있으므로,
+먼저 어떤 부분이 한계로 동작했는지 알아보자.
+
+여기서 이야기하는 기존 SSR은 정확히 nextjs page router의 특징이기도 하다.
+
+```tsx
+// pages/product/[id].js
+
+// Client / Server both run
+const Product = ({ product }) => {
+  return (
+    <div>
+      <h1>Product: {product.name}</h1>
+      <p>Price: ${product.price}</p>
+    </div>
+  );
+};
+
+// Server Only Part
+export async function getServerSideProps(context) {
+  const { id } = context.params;
+
+  const res = await fetch(`https://api.example.com/products/${id}`);
+  const product = await res.json();
+
+  return {
+    props: { product },
+  };
+}
+
+export default Product;
+```
+
+위 코드는 nextjs의 page router에서 사용되는 코드이다. Nextjs의 page router에 익숙하다면 기존 SSR 로직을 이해하기 쉬울 텐데,
+기존 CSR과 SSR의 차이점이 발생하는 점이 `getServerSideProps`인데, 해당 함수는 Server에서만 동작한다.
+그리곤, Server에서 받아온 데이터를 `Product` 컴포넌트로 props로 넘겨주고, Product의 HTML을 server에서 만들어서 사용자에게 전달한다.
+
+이런 방식에서 한계가 드러나는데, "`getServerSideProps`는 page 단위로만 사용 가능하다." 라는 점이다.
+
+server 에서 이루어지는 작업이 page 단위로만 가능하기 때문에, 기존 SSR의 흐름은 page 단위로 통째로 이루어진다는 점이다.
+
+### HTML 생성
+HTML 생성시에도 모두 한번에 이루어져야한다. 화면을 그리기 위한 데이터가 모두 준비되어야 화면을 그리기 시작할 수 있고,
+여러 데이터 중 하나의 데이터만 준비가 늦어진다면 전체 화면 로드가 늦어진다.
+
+즉, 화면을 그리는데 아래 3가지 데이터를 필요로 하고 각각 데이터를 받아오는데 딜레이가 다르다고 가정하자.
+- Article API (100ms ~ 300ms)
+- **Comment API (200ms ~ 1000ms)**
+- User API (300ms ~ 500ms)
+
+이러한 경우 3종류의 API를 동시에 호출한다고 해도 가장 늦게 끝나는 Comment API를 기다려야하고, 최장 1초의 딜레이를 감수해야한다.
+
+### JS 로드
+JS 로드시에도 마찬가지로 모두 한번에 이루어져야한다. 화면의 특정 영역이 많은 JS 로직을 가지고 있다면, 해당 영역 JS를 로드한다고 다른 영역 모두 hydration을 진행하지 못한다.
+
+- 기사 본문 (100KB)
+- **댓글 (200KB)**
+- 사용자 정보 (50KB)
+
+이러한 경우 기사 본문, 사용자 정보의 JS 리소스가 적어서 먼저 로드되더라도 댓글의 JS 리소스를 모두 받아오기까지 기다려야한다.
+왜냐하면 hydration은 한번에 진행되는 설계로 이루어져있기 때문이다.
+
+만약, 댓글로 인한 hydration 딜레이를 줄인다면 댓글 영역을 Server 영역에서 제외하는 방법이 있지만 그렇다면 댓글 영역은 CSR로 동작하게 되어서,
+사용자는 CSR의 한계인 댓글 영역을 빈 화면(혹은 로딩)으로 보게되는 현상으로 돌아가게 된다.
+
+### Hydration
+JS 로드와 비슷하게, hydration 이 한번에 이루어지므로 JS 로드 뿐 아니라 hydration도 한번에 이루어져야한다.
+각 영역의 hydration이 이루어지는 시간이 아래와 같다고 가정하자. (hydration 시간은 추상적이다.)
+
+- 기사 본문 (10ms)
+- **댓글 (50ms)**
+- 사용자 정보 (20ms)
+
+각각을 따로 진행한다면 이미 기사 본문과 사용자 정보를 상호작용 할 수 있는 상태여야하지만, 댓글쪽 hydration이 끝나기 전이므로
+사용자는 모든 영역의 상호작용을 할 수 없다. 댓글이 아니라 유저 정보를 클릭하고 싶어도 페이지의 모든 영역이 끝날 떄까지 기다려야하는 것이다.
+
+## 해결
+기존 SSR의 한계는 대부분 작업을 한번에 처리하면서 발생하는 원인들이었다.
+즉, 데이터를 모두 불러와야하거나, JS를 모두 로드해야하거나, hydration을 한번에 처리해야해서 발생하는 문제들이다.
+
+따라서 위와 같은 한계를 극복하기 위해 React 18에서는 다음과 같은 방식을 사용한다.
+- Streaming HTML
+- Selective Hydration
+
+이름을 보면 대략 짐작이 갈 수 있지만, HTML을 나눠서 보내는 streaming, hydration을 부분적으로 하는 selective hydration이다.
+
+### Streaming HTML
+Streaming은 HTTP/1.1의 [Chunked transfer encoding](https://en.wikipedia.org/wiki/Chunked_transfer_encoding)을 사용하는 것이다.
+HTML을 여러 조각으로 나누어서 응답하기 때문에 Server에서는 모든 HTML을 한번에 내보내지 않아도 나중에 추가로 보낼 수 있다.
+
+import { Figure } from '@site/src/components/common/Figure/index.tsx'
+
+<Figure index={1} title="React Component Code">
+  ```tsx
+  <Layout>
+    <NavBar />
+    <Sidebar />
+    <RightPane>
+      <Post />
+      {/* Comments is expensive cost component */}
+      <Suspense fallback={<Spinner />}>
+        <Comments />
+      </Suspense>
+    </RightPane>
+  </Layout>
+  ```
+</Figure>
+
+
+<Figure index={2} title={<>Output to user (<a href="https://github.com/reactwg/react-18/discussions/37">Ref</a>)</>}>
+  <table>
+    <tr>
+      <td>**Type**</td>
+      <td>**Initial Page**</td>
+      <td>**After Load**</td>
+    </tr>
+    <tr>
+      <td>Displayed <br />HTML</td>
+      <td>
+
+        ```tsx
+        <Layout>
+          <NavBar />
+          <Sidebar />
+          <RightPane>
+            <Post />
+            {/* Before Loading Comments */}
+            <Spinner />
+          </RightPane>
+        </Layout>
+        ```
+
+      </td>
+      <td>
+        ```tsx
+        <Layout>
+          <NavBar />
+          <Sidebar />
+          <RightPane>
+            <Post />
+            {/* Complete load Comments */}
+            <Comments />
+          </RightPane>
+        </Layout>
+        ```
+      </td>
+    </tr>
+    <tr>
+      <td>Wireframe</td>
+      <td><img src={"/assets/why-create-server-component/loading-comment.png"} /></td>
+      <td><img src={"/assets/why-create-server-component/complete-comment.png"} /></td>
+    </tr>
+  </table>
+
+</Figure>
+
+위와 같이 처음 HTML은 `Comments`위치에 `Spinner`로 빠르게 화면을 보여준다. 이후 `Comments`를 client에서 그리는게 아니라,
+Server에서 `Comments`를 그려서 보내주면서, 나머지 Comments 영역을 채우게 된다.
+
+이는 동일한 HTTP connection에서 여러 조각으로 응답 할 수 있는 `Streaming`의 장점이기도 하고, client에서 그리는게 아니기 때문에 JS를 로드하기 전
+화면을 채울 수 있다.
+
+### Selective Hydration
+위에서 이야기 한 내용은 server에서 HTML을 생성하는 방식이고, 이번에는 client에서 hydration 하는 방식이다.
+
+SSR에서 페이지를 완성하는 순서는 다음과 같다.
+1. Server에서 HTML을 생성한다.
+2. Client에서 JS를 로드한다.
+3. Client에서 hydration을 진행한다.
+
+여기서 `Suspense`와 `Lazy`를 사용해서 2번과 3번 과정을 부분적으로 진행 할 수 있게 된다.
+<Figure index={3} title="Lazy loading with Suspense">
+
+```tsx
+import { lazy } from 'react';
+
+const Comments = lazy(() => import('./Comments.js'));
+
+// ...
+
+<Suspense fallback={<Spinner />}>
+  <Comments />
+</Suspense>
+```
+
+</Figure>
+
+사용하는 측에서는 복잡하게 설정하지 않더라도 위와 같이 `Suspense`와 `Lazy`를 이용하면 자연스럽게 이루어진다.
+React는 자연스럽게 Comments를 나누어서 HTML 생성, hydration을 진행하는 것 이다.
+
+## Suspense 의 역할
+
+여기까지가 React 18에서 Server Side Rendering을 위한 새로운 방식을 소개한 내용이다.
+한가지 더 이야기 하자면 `Suspense`의 역할 변화이다.
+
+`Suspense`는 [React 16.6](https://legacy.reactjs.org/blog/2018/11/27/react-16-roadmap.html#react-166-shipped-the-one-with-suspense-for-code-splitting)에 소개되었고,
+이때의 `Suspense` 용도는 code-splitting을 위한 용도였다. code를 나누어서 로드하며, fallback으로 code를 로드 할 때 보여 줄 loading 화면을 지정하는 용도였다.
+
+하지만, React 18에서는 위에서 이야기 한 모든 기능들이 `Suspense`를 활용한다.
+Server side에서 HTML을 그리는 기준도 Suspense를 기점으로 나누며, JS 로드 뿐 아니라 hydration을 하는 기준도 `Suspense`를 기점으로 나누게된다.
+
+<Figure index={4} title="Changes roles of Suspense">
+
+  | React Version | Roles of `Suspense`  |
+  | --- | --- |
+  | Pre-React 18 | lazy loading |
+  | React 18 and later | lazy loading <br /> **Boundary of HTML chunk** <br /> **Selective Hydration** |
+
+</Figure>
+
+## Conclusion
+이로써 React 18에서 Server Side Rendering을 위한 새로운 방식을 소개한 내용을 정리해보았다.
+
+내용을 정리하자면 다음과 같다.
+- 기존 SSR의 한계는 page 단위로 작업을 모두 한번에 처리한 것이다.
+- 그로 인해, HTML 생성, JS 로드, Hydration이 모두 한번에 이루어져야 했고, 이로 인해 느린 부분이 발생했다.
+- React 18에서는 Streaming HTML과 Selective Hydration을 통해 이러한 한계를 극복하고자 한다.
+- Streaming HTML은 HTML을 나눠서 보내는 방식으로, 부분적으로 화면을 빠르게 보여줄 수 있다.
+- Selective Hydration은 JS 로드와 Hydration을 부분적으로 진행하는 방식으로, 부분적으로 화면을 상호작용 할 수 있게 한다.
+- `Suspense`는 React 18에서는 lazy loading 뿐 아니라, HTML chunk의 Boundary와 Selective Hydration의 기준으로 사용된다.
+
+이번 조사로 깨닫게 된 것은 Suspense의 역할이 기존보다 더욱 중요해졌다는 것이며, 이를 통해서 실제 개발시에도 이를 유념해서 사용해보려한다.
+시간이 난다면, 꼭 [New Suspense SSR Architecture in React 18](https://github.com/reactwg/react-18/discussions/37)을 한번 읽어보자.
+
+## Result
+이 글에서 설명한 내용을 바탕으로 최초 질문에 대한 답을 정리해보자.
+:::note[Question]
+Q. SSR(Server Side Rendering)과 CSR(Client Side Rendering)의 차이점은 무엇인가?
+:::
+:::tip[Answer]
+A. SSR은 Server에서 HTML을 생성해서 사용자에게 전달하는 방식이고, CSR은 Client에서 JS를 로드해서 화면을 그리는 방식이다.
+:::
+:::note[Question]
+Q. 기존 방식 (nextjs page router)에서 어떤 한계가 nextjs app router 방식을 만들게 되었을까?
+:::
+:::tip[Answer]
+A. 기존 SSR은 page 단위로 작업을 모두 한번에 처리해야 했고, 이로 인해 HTML 생성, JS 로드, Hydration이 모두 한번에 이루어져야 했다. 이러한 한계를 극복하기 위해 React 18에서는 Streaming HTML과 Selective Hydration을 사용한다.
+:::
+:::note[Question]
+Q. React에서 `Suspense`를 사용하는 이유는 무엇일까?
+:::
+:::tip[Answer]
+A. React 18 이전에는 `Suspense`는 lazy loading을 위한 용도였지만, React 18에서는 lazy loading 뿐 아니라, HTML chunk의 Boundary와 Selective Hydration의 기준으로 사용된다.
+:::
+
+
+## Reference
+- https://github.com/reactwg/react-18/discussions/37
+
