@@ -97,6 +97,7 @@ module.exports = {
     prism: {
       theme: lightCodeTheme,
       darkTheme: darkCodeTheme,
+      additionalLanguages: ['docker', 'bash', 'powershell', 'shell-session'],
       magicComments: [
         // Remember to extend the default highlight class name as well!
         {
