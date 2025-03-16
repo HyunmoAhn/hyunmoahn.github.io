@@ -1,5 +1,5 @@
 ---
-slug: nextjs-docker-and-standalone
+slug: nextjs-docker-standalone-and-custom-server
 title: Next.js를 Docker와 Standalone, 그리고 custom server
 description: Next.js의 standalone과 custom server를 이리저리 조합해서 Dockerizing을 해보자.
 keywords:

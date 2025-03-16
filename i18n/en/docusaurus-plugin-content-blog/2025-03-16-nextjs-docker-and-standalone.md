@@ -1,5 +1,5 @@
 ---
-slug: nextjs-docker-and-standalone
+slug: nextjs-docker-standalone-and-custom-server
 title: Next.js with Docker, Standalone, and Custom Server
 description: Let's explore Dockerizing Next.js by combining standalone mode and a custom server.
 keywords:
