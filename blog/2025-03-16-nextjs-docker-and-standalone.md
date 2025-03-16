@@ -122,7 +122,7 @@ npm install
 next build
 ```
 
-먼저 package install 과정과 next build를 실행한다. 이 과정은 local 환경 혹은 CI server 환경에서 실행된다.
+먼저 package install 과정과 `next build`를 실행한다. 이 과정은 local 환경 혹은 CI server 환경에서 실행된다.
 빌드 된 결과물은 `.next` 폴더에 생성된다.
 ```
 basic
@@ -145,7 +145,7 @@ COPY package.json package-lock.json ./
 
 RUN npm install --only=production
 ```
-Dockerfile을 순서대로 진행하는 것인데, 주목할 점은 `pacakge.json`을 복사하고 `npm install`을 실행하는 부분이다.
+Dockerfile을 순서대로 진행하는 것인데, 주목할 점은 `pacakge.json`와 `package-lock.json` 을 복사하고 `npm install`을 실행하는 부분이다.
 
 docker 환경에서도 npm install을 하는건 docker 실행시 사용하는 스크립트가 `next start` 스크립트이며, 이를 위해 `node_modules` 코드들이 필요한 것이다.
 
@@ -258,7 +258,7 @@ docker run --rm -it -p 3000:3000 basic
 | 2     | Copy            | Docker      | Local에서 빌드 한 Next build output 을 docker 내부로 copy 합니다.                                                            |
 | 3     | Run next server | Docker      | `next start` 로 next server를 실행합니다.                                                                               |
 
-이렇게 standalone 과정에서는 docker에서의 npm install 과정이 필요없게 되고 용랑은 다음과 같다.
+이렇게 standalone 과정에서는 docker에서의 npm install 과정이 필요없게 되고 docker 내부에  용랑은 다음과 같다.
 
 ```
 REPOSITORY   TAG       IMAGE ID       SIZE
@@ -297,7 +297,7 @@ app.prepare().then(() => {
 })
 ```
 
-따라서 중요한 점은 dev server와 production build에 server.ts의 실행을 별도로 해주어야한다.
+따라서 중요한 점은 dev server와 production build에 `server.ts`의 실행을 별도로 해주어야한다.
 
 ```json
 // package.json
@@ -309,7 +309,7 @@ app.prepare().then(() => {
 }
 ```
 
-dev server는 nodemon으로 server.ts를 실행하여 hotload를 보장해주고, build의 경우는 next build 이후에 server.ts를 transpiling 해준다.
+dev server는 nodemon으로 `server.ts`를 실행하여 hotload를 보장해주고, build의 경우는 next build 이후에 server.ts를 transpiling 해준다.
 
 ```dockerfile
 FROM node:22.14-alpine
@@ -418,15 +418,15 @@ Custom Server 문서에서 Standalone을 사용할 때 `next build`에서 생성
 
 다소 복잡할 수 있지만, 일단 예제를 살펴보자.
 
-Standalone과 Custom Server를 같이 사용할 때 고려해야하는 건 Custom Server의 server.ts의 번들링이다.
-Standalone은 별도의 node_modules 인스톨 없이 next build 결과물을 사용하는게 장점이다. 하지만 Custom server에서 사용하는 module의 결과물은 standalone의 결과물에 포함되어 있지 않다.
+Standalone과 Custom Server를 같이 사용할 때 고려해야하는 건 **Custom Server의 server.ts의 번들링**이다.
+Standalone은 별도의 `node_modules` 인스톨 없이 next build 결과물을 사용하는게 장점이다. 하지만 Custom server에서 사용하는 module의 결과물은 standalone의 **결과물에 포함되어 있지 않다**.
 그러면 custom server의 node_modules를 위해 다시 npm install이 필요하다는 결론에 이르게 된다.
 
 custom server를 위한 package.json을 별도로 관리하진 않으므로, custom server의 node_modules도 install 없이 사용할 방법을 찾아야한다.
 내가 접근한 방식은 bundling이다.
 
-기존에 custom server의 접근 방식은 ts를 js로 바꾸어주는 tsc만 사용을 했다고 하면, 이번에는 bundling을 진행하여 별도 node_modules 없이 custom server를 실행 할 수 있도록 한다.
-예제에서는 esbuild를 사용한다. 실제 현업에서는 webpack을 사용해도 좋고 rollup을 사용 할 수도 있다.
+기존에 custom server의 접근 방식은 ts를 js로 바꾸어주는 tsc만 사용을 했다고 하면, 이번에는 bundling을 진행하여 별도 `node_modules` 없이 custom server를 실행 할 수 있도록 한다.
+예제에서는 `esbuild`를 사용한다. 실제 현업에서는 `webpack`을 사용해도 좋고 `rollup`을 사용 할 수도 있다.
 
 ```ts
 // scripts/build-server.ts
@@ -478,7 +478,7 @@ Require stack:
   ]
 }
 ```
-오류 내용을 분석해보면, node_modules 안에 있는 next와 같은 모듈을 찾지 못해서 발생하는 오류인데 이를 수정하기 위해 Dockerfile에 `node_modules/next`를 복사해주는 과정이 포함된다.
+오류 내용을 분석해보면, `node_modules` 안에 있는 `next`와 같은 모듈을 찾지 못해서 발생하는 오류인데 이를 수정하기 위해 Dockerfile에 `node_modules/next`를 복사해주는 과정이 포함된다.
 
 ```dockerfile
 FROM node:22.14-alpine
@@ -506,8 +506,8 @@ next build
 ts-node --project tsconfig.server.json scripts/build-server.ts
 ```
 
-package의 install을 추가, next build를 진행 한 뒤 마지막으로 custom server의 bundling을 진행한다.
-이때, dist-server의 server 코드는 node_modules 없이 단일 파일로 실행 가능한 코드로 번들링 된다.
+package의 install을 추가, `next build`를 진행 한 뒤 마지막으로 custom server의 bundling을 진행한다.
+이때, `dist-server`의 server 코드는 `node_modules` 없이 단일 파일로 실행 가능한 코드로 번들링 된다.
 
 ```
 standalone
@@ -533,7 +533,7 @@ COPY dist-server ./
 COPY node_modules/next ./node_modules/next 
 ```
 
-dockerizing 과정에서 standalone과 custom server의 과정과 동일하게, standalone 파일을 복사 한 뒤 dist-server 파일 모두 docker 환경에 복사한다.
+dockerizing 과정에서 standalone과 custom server의 과정과 동일하게, standalone 파일을 복사 한 뒤 `dist-server` 파일 모두 docker 환경에 복사한다.
 추가로, 위에 서술했던 `MODULE_NOT_FOUND` 오류를 해결하기 위해 `node_modules/next`를 복사해서 넣어준다.
 프로젝트 케이스에 따라 다른 모듈을 추가로 복사해야 할 경우도 있으므로, 상황에 맞게 판단해서 추가해야한다. [(git issue)](https://github.com/vercel/next.js/discussions/34599#discussioncomment-8406070) 
 
@@ -572,8 +572,8 @@ custom-server-with-standalone  latest    061bac5bae79  313MB
 
 이로써 Next.js의 4가지 경우의 dockerizing을 살펴보았다.
 
-standalone의 경우 bundle size를 줄이기 위해 next build에 필요한 파일을 포함하게 하는 기법이고, 
-custom server는 next.js의 기본 서버 코드를 사용하지 않고 커스텀하면서 server 코드를 별도로 build, bundling하는 방법이다.
+- **standalone의 경우** bundle size를 줄이기 위해 next build에 필요한 파일을 포함하게 하는 기법이다. 
+- **custom server**는 next.js의 기본 서버 코드를 사용하지 않고 커스텀하면서 server 코드를 별도로 build, bundling하는 방법이다.
 
 표로 정리한다면 다음과 같다.
 
