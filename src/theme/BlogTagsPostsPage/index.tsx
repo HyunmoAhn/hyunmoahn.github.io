@@ -13,7 +13,7 @@ import Unlisted from '@theme/ContentVisibility/Unlisted';
 import Heading from '@theme/Heading';
 import { getTaggedSideBar } from '../../utils';
 
-function BlogTagsPostsPageMetadata({ tag }: Props): JSX.Element {
+function BlogTagsPostsPageMetadata({ tag }: Props): React.ReactElement {
   const title = useBlogTagsPostsPageTitle(tag);
   return (
     <>
@@ -23,7 +23,7 @@ function BlogTagsPostsPageMetadata({ tag }: Props): JSX.Element {
   );
 }
 
-function BlogTagsPostsPageContent({ tag, items, sidebar, listMetadata }: Props): JSX.Element {
+function BlogTagsPostsPageContent({ tag, items, sidebar, listMetadata }: Props): React.ReactElement {
   const title = useBlogTagsPostsPageTitle(tag);
   const taggedSideBar = getTaggedSideBar({ selectTag: tag.label, items, sidebar });
 
@@ -47,7 +47,7 @@ function BlogTagsPostsPageContent({ tag, items, sidebar, listMetadata }: Props):
     </BlogLayout>
   );
 }
-export default function BlogTagsPostsPage(props: Props): JSX.Element {
+export default function BlogTagsPostsPage(props: Props): React.ReactElement {
   return (
     <HtmlClassNameProvider
       className={clsx(ThemeClassNames.wrapper.blogPages, ThemeClassNames.page.blogTagPostListPage)}
