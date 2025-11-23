@@ -18,7 +18,7 @@ tags: [k8s, LB, gatewayAPI, L4, L7, OSI 7 Layer, TCP, HTTP, TLS, web, blog]
 
 ## 동기
 
-이 글은 명확한 주제를 가지고 작성하는건 아니다. 
+이 글은 명확한 주제를 가지고 작성하는 것은 아니다. 
 
 Web Server를 운영하는데 [K8S(Kubernetes)](https://kubernetes.io/)로, [ingress nginx controller](https://github.com/kubernetes/ingress-nginx)를 사용하고 있다.
 하지만, 26년 3월까지 [maintenance 종료](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/)가 예정되어 있어 다음 방법으로 [Gateway API](https://gateway-api.sigs.k8s.io/)를 고민하고 있다.
@@ -30,12 +30,12 @@ Gateway API를 고민하며 평소에는 대소롭지 않게 여겼던 네트워
 
 ## 질문
 
-Q. LB(Load Balancer)를 사용하는데 L4 LB, L7 LB라는 용어가 자주보인다. 이 두가지의 차이가 뭘까?
+Q. LB(Load Balancer)를 사용하는데 L4 LB, L7 LB라는 용어가 자주 보인다. 이 두 가지의 차이는 무엇일까?
 
-Q. Gateway API에서는 HTTP 연결과 TCP 연결을 구분해서 사용한다. 이 차이가 구체적으로 뭘까?
+Q. Gateway API에서는 HTTP 연결과 TCP 연결을 구분해서 사용한다. 이 차이는 구체적으로 무엇일까?
 
-Q. Gateway API의 [TLS 개념](https://gateway-api.sigs.k8s.io/guides/tls/)을 보게되면 TLS Mode "Passthrough", "Terminate" 같은 용어가 나온다.
-이게 어떤 개념일까?
+Q. Gateway API의 [TLS 개념](https://gateway-api.sigs.k8s.io/guides/tls/)을 보게 되면 TLS Mode "Passthrough", "Terminate" 같은 용어가 나온다.
+이것들은 어떤 개념일까?
 
 
 
@@ -103,7 +103,7 @@ LB가 어떤 역할을 하는지, 단순 메세지 전송만 담당하는지 (L4
 
 구체적인 LB의 동작도 L4, L7에 따라 각각 Forward와 Proxy로 나뉜다. 이는 TCP의 연결 방식에 관련이 있는데, 아래를 살펴보자.
 
-Forward는 TCP 연결을 유지해서 서버까지 Client의 TCP를 유지해서 가져간다.
+Forward는 Client의 TCP 연결을 서버까지 그대로 전달한다.
 ```shell
 Client -- TCP --> LB(forward) -- TCP(src: client, dst: server) --> server
 ```
@@ -136,8 +136,8 @@ L4, L7의 차이 그리고 Forward, Proxy의 차이는 다음과 같이 정리 �
 TCP는 L4 - Transport Layer로 데이터 전송에 관심을 가진다. 
 반면 HTTP는 L7 - Application Layer로 메세지, 데이터의 내용에 관심을 가지는 레이어이다.
 
-TCP의 역할은 데이터를 전송하는 것이며, 데이터는 단일 데이터로 전송할 때 속도가 늦어지거나 안정성이 떨어지기 때문에
-여러 패킷을 나누어 잘게 쪼개서 전달한다.
+TCP의 역할은 데이터를 전송하는 것이며, 데이터를 한 번에 전송하면 속도가 늦어지거나 안정성이 떨어지기 때문에
+여러 패킷으로 나누어 잘게 쪼개서 전달한다.
 여러개로 나뉜 패킷들의 올바른 전송을 위해 패킷들의 순서 정렬, 에러 제어 등 역할을 한다.
 또한, 3 way handshake로 연결을 수립하고 4 way close로 연결을 종료하는 등 연결 및 전송을 수행한다.
 
@@ -172,9 +172,9 @@ flowchart LR
     Clinet --TLS Packet --> Gateway(Terminate) -- Decrypted Packet  --> Server
 ```
 Gateway가 TLS 복호화를 진행하고, Gateway는 복호화 된 데이터를 열람 할 수 있다. 이로써 Request의 path, header와 같은 정보를 보고
-Server로의 경로를 바꾸거나, 여러가지 로직을 넣을 수 있게 된다. 
+Server로의 경로를 바꾸거나, 여러가지 로직을 넣을 수 있게 된다.
 복호화 된 데이터는 그대로 Server로 전달하게 되어 Server에서도 복호화 된 데이터를 그대로 받는다.
-이러한 방식이 TLS terminate 입니다. 중간 Gateway에서 TLS를 종료시켜서 Gateway도 메세지를 사용하고, Server도 메세지를 그대로 사용할 수 있다.  
+이러한 방식이 TLS terminate이다. 중간 Gateway에서 TLS를 종료시켜서 Gateway도 메세지를 사용하고, Server도 메세지를 그대로 사용할 수 있다.  
 
 Gateway가 메세지를 확인해야하는데, Gateway와 Server와의 통신도 암호화를 해야한다면 어떤 구조가 가능할까?
 ```mermaid
@@ -194,10 +194,10 @@ Gateway는 TLS 인증서를 가지고 있어야 할 것이다.
 
 시나리오를 가정하여, Client의 요청이 LB에서 메세지의 분석 없이 Server로의 전달만 목표로 한다면 어떤 아키텍쳐를 사용하는게 좋을까?
 
-메세지의 분석이 필요 없다면 LB는 L4 Layer 역할만 하면되므로 L4 LB를 선택할 가능성이 높습니다. 그렇다면 자연스럽게 L4 LB forward 모드를 사용하여 
+메세지의 분석이 필요 없다면 LB는 L4 Layer 역할만 하면 되므로 L4 LB를 선택할 가능성이 높다. 그렇다면 자연스럽게 L4 LB forward 모드를 사용하여
 Server에서는 응답을 Client로 직접 내려준다.
 
-TLS는 어떻게 될까요? TLS를 확인할 필요가 없으므로 LB에서는 Passthrough를 선택할 수도 있고, 인증서 관리를 Server가 아닌 LB로 위임하기 위해 
+TLS는 어떻게 될까? TLS를 확인할 필요가 없으므로 LB에서는 Passthrough를 선택할 수도 있고, 인증서 관리를 Server가 아닌 LB로 위임하기 위해
 TLS Terminate 전략을 사용할 수도 있다.
 
 전략을 정리하면 아래와 같다.
@@ -220,8 +220,8 @@ flowchart TD
 ```
 
 만약 LB에서 메세지를 보고 path 별, Request header별 데이터를 분기해서 전달하는 조건이라면 어떻게 될까?
-LB에서 메세지를 보고 분기를 해야하므로 L7 LB를 사용해야한다. 그러면 LB는 Proxy 모드로 LB는 Client와 Server와 각각 TCP 연결을 수립한다.
-TLS는 어떻게 될까요? 암호화 된 정보를 확인할 수는 없으므로 LB에서 복호화를 해야하고, 이후 Server로 
+LB에서 메세지를 보고 분기를 해야하므로 L7 LB를 사용해야 한다. 그러면 LB는 Proxy 모드로 LB는 Client와 Server와 각각 TCP 연결을 수립한다.
+TLS는 어떻게 될까? 암호화 된 정보를 확인할 수는 없으므로 LB에서 복호화를 해야하고, 이후 Server로
 암호화 된 요청이 가야하는지에 따라 TLS Termination으로 일반 패킷을 보낼지, TLS Re-encrypt를 통해 다시 패킷을 암호화할지 결정한다.
 
 - L7 LB 사용
