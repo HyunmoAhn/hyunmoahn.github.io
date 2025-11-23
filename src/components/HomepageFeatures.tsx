@@ -11,7 +11,7 @@ import styles from './HomepageFeatures.module.css';
 type FeatureItem = {
   title: string;
   image: string;
-  description: JSX.Element;
+  description: React.ReactElement;
 };
 
 const FeatureList: FeatureItem[] = [
@@ -61,7 +61,7 @@ function Feature({ title, image, description }: FeatureItem) {
   );
 }
 
-export default function HomepageFeatures(): JSX.Element {
+export default function HomepageFeatures(): React.ReactElement {
   return (
     <section className={styles.features}>
       <div className="container">
