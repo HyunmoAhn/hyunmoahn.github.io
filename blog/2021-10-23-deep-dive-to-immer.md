@@ -48,15 +48,15 @@ console.log(baseState === nextState) // false
 console.log(nextState)
 /*
 [
-  { 
-    title: "Learn TypeScript", 
+  {
+    title: "Learn TypeScript",
     done: true,
   },
-  { 
-    title: "Learn TypeScript", 
+  {
+    title: "Try Immer",
     done: true,
   },
-  { 
+  {
     title: "Tweet about It",
   },
 ]
