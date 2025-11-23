@@ -142,7 +142,7 @@ L4, L7의 차이와 주요 동작 모드를 정리하면 다음과 같다.
 - **L7 LB**는 HTTP 메세지를 확인할 수 있기 때문에 URL 경로별 라우팅, 헤더 기반 분기, 쿠키 기반 세션 유지 등 다양한 전략을 사용할 수 있다.
 - **L4 LB (DSR 모드)** 는 메세지 확인은 불가능하지만, 응답 트래픽이 LB를 거치지 않고 서버에서 클라이언트로 직접 전달되어 LB의 네트워크 부하가 크게 줄어드는 성능상 이점이 있다. 일반적으로 응답 데이터가 요청보다 훨씬 크기 때문에 이 효과가 크다.  
 
-이런 특징들을 본인의 애플리케이션에는 어떤 종류가 맞는지에 따라 결정 할 수 있다.
+이런 특징들을 본인의 애플리케이션에는 어떤 종류가 맞는지에 따라 결정할 수 있다.
 
 ## TCP? HTTP?
 
@@ -151,7 +151,7 @@ TCP는 L4 - Transport Layer로 데이터 전송에 관심을 가진다.
 
 TCP의 역할은 데이터를 전송하는 것이며, 데이터를 한 번에 전송하면 속도가 늦어지거나 안정성이 떨어지기 때문에
 여러 패킷으로 나누어 잘게 쪼개서 전달한다.
-여러개로 나뉜 패킷들의 올바른 전송을 위해 패킷들의 순서 정렬, 에러 제어 등 역할을 한다.
+여러 개로 나뉜 패킷들의 올바른 전송을 위해 패킷들의 순서 정렬, 에러 제어 등 역할을 한다.
 또한, 3 way handshake로 연결을 수립하고 4 way close로 연결을 종료하는 등 연결 및 전송을 수행한다.
 
 HTTP의 역할은 메세지이다. 데이터에 의미를 부여하고 해석하고 사용하기 때문에 Header, Body와 같은 규칙을 가지고 있다.
@@ -191,7 +191,7 @@ Server로의 경로를 바꾸거나, 여러가지 로직을 넣을 수 있게 �
 복호화 된 데이터는 그대로 Server로 전달하게 되어 Server에서도 복호화 된 데이터를 그대로 받는다.
 이러한 방식이 TLS terminate이다. 중간 Gateway에서 TLS를 종료시켜서 Gateway도 메세지를 사용하고, Server도 메세지를 그대로 사용할 수 있다.  
 
-Gateway가 메세지를 확인해야하는데, Gateway와 Server와의 통신도 암호화를 해야한다면 어떤 구조가 가능할까?
+Gateway가 메세지를 확인해야 하는데, Gateway와 Server와의 통신도 암호화를 해야 한다면 어떤 구조가 가능할까?
 ```mermaid
 flowchart LR
     Clinet --TLS Packet --> Gateway(Decrypt & Encrypt) -- TLS Packet  --> Server
@@ -203,11 +203,11 @@ Gateway는 TLS 인증서를 가지고 있어야 할 것이다.
 
 ## Conclusion
 이 글에서 OSI 7계층 중 L4 - Transport 계층, L7 - Application 계층을 알아보았고, TCP와 HTTP도 간략하게 알아보았다.
-또한, L4 LB / L7 LB의 forward 모드와 proxy 모드, TLS termination과 관련 된 내용도 확인했다.
+또한, L4 LB / L7 LB의 DSR 모드와 Proxy 모드, TLS termination과 관련 된 내용도 확인했다.
 
 각각의 개념을 따로 보았지만, 이는 한가지로 연결되는 개념일 수 있다.
 
-시나리오를 가정하여, Client의 요청이 LB에서 메세지의 분석 없이 Server로의 전달만 목표로 한다면 어떤 아키텍쳐를 사용하는게 좋을까?
+시나리오를 가정하여, Client의 요청이 LB에서 메세지의 분석 없이 Server로의 전달만 목표로 한다면 어떤 아키텍처를 사용하는 게 좋을까?
 
 메세지의 분석이 필요 없다면 LB는 L4 Layer 역할만 하면 되므로 L4 LB를 선택할 가능성이 높다. 그렇다면 자연스럽게 L4 LB DSR 모드를 사용하여
 Server에서는 응답을 Client로 직접 내려준다.
@@ -237,16 +237,16 @@ flowchart LR
 ```
 <br/>
 만약 LB에서 메세지를 보고 path 별, Request header별 데이터를 분기해서 전달하는 조건이라면 어떻게 될까?
-LB에서 메세지를 보고 분기를 해야하므로 L7 LB를 사용해야 한다. 그러면 LB는 Proxy 모드로 LB는 Client와 Server와 각각 TCP 연결을 수립한다.
-TLS는 어떻게 될까? 암호화 된 정보를 확인할 수는 없으므로 LB에서 복호화를 해야하고, 이후 Server로
-암호화 된 요청이 가야하는지에 따라 TLS Termination으로 일반 패킷을 보낼지, TLS Re-encrypt를 통해 다시 패킷을 암호화할지 결정한다.
+LB에서 메세지를 보고 분기를 해야 하므로 L7 LB를 사용해야 한다. 그러면 LB는 Proxy 모드로 LB는 Client와 Server와 각각 TCP 연결을 수립한다.
+TLS는 어떻게 될까? 암호화 된 정보를 확인할 수는 없으므로 LB에서 복호화를 해야 하고, 이후 Server로
+암호화 된 요청이 가야 하는지에 따라 TLS Termination으로 일반 패킷을 보낼지, TLS Re-encrypt를 통해 다시 패킷을 암호화할지 결정한다.
 
 - L7 LB 사용
   - proxy 모드
   - TCP는 LB에서 Client와 Server에 각각 연결하게 됨.
   - Server는 응답을 LB를 거쳐 LB가 Client로 응답을 전달함.
 - TLS Terminate 사용
-  - LB에서 요청의 메세지를 확인해야하므로 TLS를 복호화해서 확인하고, Server로 일반 패킷을 전달한다.
+  - LB에서 요청의 메세지를 확인해야 하므로 TLS를 복호화해서 확인하고, Server로 일반 패킷을 전달한다.
 
 - TCP
 ```mermaid
