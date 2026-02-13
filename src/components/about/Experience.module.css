@@ -1,0 +1,145 @@
+.experienceBlock {
+  margin-bottom: 2.75rem;
+  padding: 1.5rem;
+  border: 1px solid var(--color-gray-light);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgb(40 98 66 / 0.09), transparent 46%), var(--color-white);
+}
+
+.experienceHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.875rem;
+}
+
+.experienceHeader h3 {
+  margin: 0;
+  font-size: 1.375rem;
+}
+
+.experienceHeader p {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+}
+
+.experienceHeader span {
+  color: var(--color-green);
+  font-weight: 600;
+}
+
+.experienceHeader em {
+  color: var(--color-gray-darker);
+  font-size: 0.9rem;
+}
+
+.experienceDescription {
+  margin-bottom: 1.25rem;
+  color: var(--color-gray-darkest);
+  line-height: 1.65;
+}
+
+.projectGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.projectCard {
+  height: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--color-gray-light);
+  background-color: var(--color-white);
+  overflow: hidden;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.projectCard:hover {
+  transform: translateY(-2px);
+  border-color: rgb(40 98 66 / 0.45);
+  box-shadow: 0 10px 26px rgb(0 0 0 / 0.12);
+}
+
+.projectImageWrapper {
+  height: 148px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background: linear-gradient(140deg, rgb(40 98 66 / 0.14), rgb(40 98 66 / 0.04));
+}
+
+.projectImage {
+  max-width: 100%;
+  max-height: 100%;
+  width: 100%;
+  object-fit: contain;
+}
+
+.projectImageFallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background: rgb(40 98 66 / 0.12);
+}
+
+.projectBody {
+  padding: 1rem 1rem 0.75rem;
+}
+
+.projectHeading {
+  margin: 0 0 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.projectHeading strong {
+  font-size: 1rem;
+}
+
+.projectHeading span {
+  color: var(--color-gray-darker);
+  font-size: 0.85rem;
+}
+
+.projectDescription {
+  margin: 0;
+  color: var(--color-gray-darkest);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.projectFooter {
+  padding: 0 1rem 1rem;
+  color: var(--color-gray-darker);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 1200px) {
+  .projectGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .experienceBlock {
+    padding: 1rem;
+  }
+
+  .experienceHeader p {
+    align-items: flex-start;
+  }
+
+  .projectGrid {
+    grid-template-columns: 1fr;
+  }
+}

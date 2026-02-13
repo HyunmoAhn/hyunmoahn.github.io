@@ -1,0 +1,175 @@
+.pageWrap {
+  padding: 2.5rem 0 4rem;
+  background:
+    radial-gradient(circle at 90% 0%, rgb(40 98 66 / 0.12), transparent 38%),
+    radial-gradient(circle at 10% 20%, rgb(40 98 66 / 0.08), transparent 34%);
+}
+
+.containerInner {
+  display: grid;
+  gap: 2.5rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.05fr 1.35fr;
+  gap: 1rem;
+}
+
+.profileCard,
+.introCard,
+.educationCard {
+  border-radius: 18px;
+  border: 1px solid var(--color-gray-light);
+  background-color: var(--color-white);
+}
+
+.profileCard {
+  padding: 1.75rem;
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+}
+
+.avatarRing {
+  width: 120px;
+  height: 120px;
+  padding: 4px;
+  border-radius: 999px;
+  background: linear-gradient(145deg, var(--color-green-light), var(--color-green-darkest));
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  object-fit: cover;
+  display: block;
+}
+
+.profileInfo h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.profileInfo p {
+  margin-bottom: 0;
+}
+
+.eyebrow {
+  margin: 0 0 0.25rem;
+  color: var(--color-green);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.contactRow {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.contactRow a,
+.contactRow span {
+  font-size: 0.9rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: rgb(40 98 66 / 0.12);
+}
+
+.contactRow a {
+  color: var(--color-green-darkest);
+  text-decoration: none;
+}
+
+.contactRow a:hover {
+  text-decoration: underline;
+}
+
+.introCard {
+  padding: 1.75rem;
+}
+
+.introCard h2 {
+  margin-top: 0;
+  margin-bottom: 0.85rem;
+}
+
+.introCard p {
+  margin-bottom: 0.8rem;
+  line-height: 1.65;
+}
+
+.introCard ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.sectionWrap {
+  display: grid;
+  gap: 1rem;
+}
+
+.sectionHeader {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  gap: 0.7rem;
+}
+
+.sectionHeader::before {
+  content: '';
+  width: 4px;
+  height: 1.2rem;
+  border-radius: 999px;
+  background-color: var(--color-green);
+}
+
+.sectionHeader h2 {
+  margin: 0;
+}
+
+.educationCard {
+  padding: 1.5rem;
+}
+
+.educationCard h3 {
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+}
+
+.educationCard a {
+  color: inherit;
+}
+
+.educationCard p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+@media (max-width: 996px) {
+  .pageWrap {
+    padding-top: 1.5rem;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .profileCard,
+  .introCard,
+  .educationCard {
+    padding: 1.2rem;
+  }
+
+  .profileInfo h1 {
+    font-size: 1.6rem;
+  }
+}

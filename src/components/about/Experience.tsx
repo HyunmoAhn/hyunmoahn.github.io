@@ -1,5 +1,5 @@
 import React from 'react';
-import style from '../../pages/index.module.css';
+import style from './Experience.module.css';
 
 export interface ProjectInfo {
   name: string;
@@ -19,51 +19,52 @@ export interface ExperienceInfo {
 
 function ProjectCard({ name, description, imageUrl, tech, period }: ProjectInfo) {
   return (
-    <div className={`${style.cardWrapper} col col--4  margin-bottom--md`}>
-      <div className={`card ${style.card}`}>
-        <div className={`card__image ${style.cardImageWrapper}`}>
-          <img className={style.cardImage} src={imageUrl} alt="projects" title={name} />
-        </div>
-        <div className="card__body">
-          <p>
-            <b>{name}</b> <br />
-            <small>{period}</small>
-          </p>
-          <p>
-            {description.split('\n').map((chunk) => (
-              <>
-                {chunk}
-                <br />
-              </>
-            ))}
-          </p>
-        </div>
-        <div className="card__footer">
-          <small>
-            <em>{tech}</em>
-          </small>
-        </div>
+    <article className={style.projectCard}>
+      <div className={style.projectImageWrapper}>
+        {imageUrl ? (
+          <img className={style.projectImage} src={imageUrl} alt={`${name} logo`} title={name} />
+        ) : (
+          <div className={style.projectImageFallback} aria-hidden="true" />
+        )}
       </div>
-    </div>
+      <div className={style.projectBody}>
+        <p className={style.projectHeading}>
+          <strong>{name}</strong>
+          <span>{period}</span>
+        </p>
+        <p className={style.projectDescription}>
+          {description.split('\n').map((chunk, index) => (
+            <React.Fragment key={`${name}-desc-${index}`}>
+              {chunk}
+              <br />
+            </React.Fragment>
+          ))}
+        </p>
+      </div>
+      <footer className={style.projectFooter}>
+        <em>{tech}</em>
+      </footer>
+    </article>
   );
 }
 
 function Experience({ name, role, period, description, projects }: ExperienceInfo) {
   return (
-    <div className="margin-bottom--xl">
-      <h3>{name}</h3>
-      <p>
-        {role}
-        <br />
-        <em>{period}</em>
-      </p>
-      <p>{description}</p>
-      <div className="row">
+    <article className={style.experienceBlock}>
+      <header className={style.experienceHeader}>
+        <h3>{name}</h3>
+        <p>
+          <span>{role}</span>
+          <em>{period}</em>
+        </p>
+      </header>
+      <p className={style.experienceDescription}>{description}</p>
+      <div className={style.projectGrid}>
         {projects.map((project) => (
           <ProjectCard key={project.name} {...project} />
         ))}
       </div>
-    </div>
+    </article>
   );
 }
 

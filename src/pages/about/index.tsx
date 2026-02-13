@@ -8,7 +8,7 @@ import lineMonaryIcon from '@site/static/icon/line-monary.jpeg';
 import lineIcon from '@site/static/icon/line-brand.png';
 
 import Experience, { ExperienceInfo, ProjectInfo } from '../../components/about/Experience';
-import style from '../index.module.css';
+import style from './index.module.css';
 
 const EXPERIENCE_INFO: ExperienceInfo[] = [
   {
@@ -107,64 +107,73 @@ LINE Plus employees work with colleagues from around the world in areas such as 
 function About() {
   return (
     <Layout title="About">
-      <div className="container">
-        <div className="row margin--lg margin-top--xl">
-          <div className="avatar avatar--vertical col col--4 margin-bottom--md">
-            <img
-              className="avatar__photo avatar__photo--xl"
-              src="https://github.com/hyunmoAhn.png"
-              alt="icon"
-            />
-            <div className="avatar__intro">
-              <div className="avatar__name">Hyunmo Ahn</div>
-              <small className="avatar__subtitle">Web Front-end Developer</small>
-              <small className="avatar__subtitle">
-                <a href="https://github.com/HyunmoAhn">Github</a> | mos_dev@naver.com
-              </small>
-            </div>
-          </div>
-          <div className="card col col--8 margin-bottom--md">
-            <div className="card__header">
-              <h3>Who am I?</h3>
-            </div>
-            <div className="card__body">
+      <main className={style.pageWrap}>
+        <div className={`container ${style.containerInner}`}>
+          <section className={style.hero}>
+            <article className={style.profileCard}>
+              <div className={style.avatarRing}>
+                <img
+                  className={style.avatarImage}
+                  src="https://github.com/hyunmoAhn.png"
+                  alt="Hyunmo Ahn"
+                />
+              </div>
+              <div className={style.profileInfo}>
+                <p className={style.eyebrow}>Front-end Engineer</p>
+                <h1>Hyunmo Ahn</h1>
+                <p>
+                  Building practical, high-quality web experiences with product-focused thinking.
+                </p>
+                <div className={style.contactRow}>
+                  <a href="https://github.com/HyunmoAhn">GitHub</a>
+                  <span>mos_dev@naver.com</span>
+                </div>
+              </div>
+            </article>
+
+            <article className={style.introCard}>
+              <h2>Who am I?</h2>
               <p>
-                I love to develop. <br />
-                When I develop, I always think about how the user will use it. <br />
-                I like to learn fresh technology or knowledge.
-                <br />I have wonder that how to work about each npm library.
+                I love building products and care deeply about how users actually experience them.
+                <br />I enjoy learning modern technologies and understanding how each npm library
+                works under the hood.
               </p>
+              <ul>
+                <li>7+ years in web frontend development</li>
+                <li>Strong production experience in fintech and messenger ecosystems</li>
+                <li>Focused on maintainable architecture and user-centric UI</li>
+              </ul>
+            </article>
+          </section>
+
+          <section className={style.sectionWrap}>
+            <div className={style.sectionHeader}>
+              <h2>Experience</h2>
             </div>
-          </div>
-        </div>
-        <div className="row container">
-          <div className="col col--2">
-            <h2 className={style.underline}>Experience</h2>
-          </div>
-          <div className="col col--10 row margin-bottom--lg">
-            {EXPERIENCE_INFO.map((item) => (
-              <Experience key={item.name} {...item} />
-            ))}
-          </div>
-        </div>
-        <div className="row container">
-          <div className="col col--2">
-            <h2 className={style.underline}>Education</h2>
-          </div>
-          <div className="col col--10 row margin-bottom--lg">
-            <div className="margin-bottom--xl">
+            <div>
+              {EXPERIENCE_INFO.map((item) => (
+                <Experience key={item.name} {...item} />
+              ))}
+            </div>
+          </section>
+
+          <section className={style.sectionWrap}>
+            <div className={style.sectionHeader}>
+              <h2>Education</h2>
+            </div>
+            <article className={style.educationCard}>
               <h3>
                 <a href="https://www.pusan.ac.kr/eng/Main.do">Pusan National University of Korea</a>
               </h3>
               <p>
                 Bachelor of Computer Science Engineering
                 <br />
-                <em>Match 2013 to August 2019</em>
+                <em>March 2013 to August 2019</em>
               </p>
-            </div>
-          </div>
+            </article>
+          </section>
         </div>
-      </div>
+      </main>
     </Layout>
   );
 }
