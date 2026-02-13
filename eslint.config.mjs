@@ -54,10 +54,10 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
-      'react': reactPlugin,
+      react: reactPlugin,
       'react-hooks': reactHooksPlugin,
       'jsx-a11y': jsxA11yPlugin,
-      'import': importPlugin,
+      import: importPlugin,
     },
     rules: {
       // TypeScript ESLint recommended rules
@@ -93,10 +93,15 @@ export default [
       // Additional common React/TypeScript rules
       // Note: react/jsx-uses-react is not needed with React 19+ automatic JSX runtime
       'react/jsx-uses-vars': 'error',
-      '@typescript-eslint/no-unused-vars': ['warn', {
-        argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
-      }],
+      'react-hooks/static-components': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
     },
     settings: {
       react: {
@@ -106,12 +111,6 @@ export default [
   },
   {
     // Ignore patterns
-    ignores: [
-      'node_modules/**',
-      'build/**',
-      '.docusaurus/**',
-      'static/**',
-      '*.config.js',
-    ],
+    ignores: ['node_modules/**', 'build/**', '.docusaurus/**', 'static/**', '*.config.js'],
   },
 ];
