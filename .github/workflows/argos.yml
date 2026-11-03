@@ -31,5 +31,11 @@ jobs:
       - name: Take screenshots with Playwright
         run: pnpm exec playwright test
 
+      - name: Upload raw screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-screenshots
+          path: screenshots
+
       - name: Upload screenshots to Argos
         run: pnpm exec argos upload ./screenshots
