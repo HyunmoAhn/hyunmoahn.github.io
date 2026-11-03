@@ -5,6 +5,7 @@ import type { WrapperProps } from '@docusaurus/types';
 import { useThemeConfig } from '@docusaurus/theme-common';
 import { useBaseUrlUtils } from '@docusaurus/useBaseUrl';
 import { useTaggedSidebar } from '../../utils';
+import { isFromMainList } from '../../postListOrigin';
 
 type Props = WrapperProps<typeof BlogPostPageType>;
 
@@ -13,7 +14,9 @@ export default function BlogPostPageWrapper(props: Props): React.JSX.Element {
   const navbarPaths = useThemeConfig()
     .navbar.items.filter((item) => typeof item.to === 'string')
     .map((item) => withBaseUrl(item.to as string));
-  const navbarTag = props.content.metadata.tags.find((tag) => navbarPaths.includes(tag.permalink));
+  const navbarTag = isFromMainList()
+    ? undefined
+    : props.content.metadata.tags.find((tag) => navbarPaths.includes(tag.permalink));
   const sidebar = useTaggedSidebar(props.sidebar, navbarTag);
 
   return <BlogPostPage {...props} sidebar={sidebar} />;

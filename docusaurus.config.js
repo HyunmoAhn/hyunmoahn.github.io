@@ -22,6 +22,7 @@ module.exports = {
     mermaid: true,
   },
   themes: ['@docusaurus/theme-mermaid'],
+  clientModules: [require.resolve('./src/postListOrigin.ts')],
   themeConfig: {
     image: 'img/dark-room-computer.jpeg',
     metadata: [
