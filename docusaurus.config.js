@@ -3,6 +3,7 @@ const darkCodeTheme = require('prism-react-renderer').themes.dracula;
 
 const GAME_ROUTE_BASE_PATH = 'game';
 const GAME_TITLE = 'hmos.dev game';
+const GAME_SEARCH_INDEX_NAME = 'hmos_game';
 // Game content is Korean only, so its plugin is registered only for the default locale build.
 // Read lazily: Docusaurus sets the locale env right before reloading the config for each locale.
 const isDefaultLocale = () => (process.env.DOCUSAURUS_CURRENT_LOCALE ?? 'ko') === 'ko';
@@ -32,6 +33,7 @@ module.exports = () => ({
   customFields: {
     gameRouteBasePath: GAME_ROUTE_BASE_PATH,
     gameTitle: GAME_TITLE,
+    gameSearchIndexName: GAME_SEARCH_INDEX_NAME,
   },
   themeConfig: {
     image: 'img/dark-room-computer.jpeg',
