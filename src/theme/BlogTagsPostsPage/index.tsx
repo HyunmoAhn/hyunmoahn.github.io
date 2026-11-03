@@ -11,7 +11,7 @@ import type { Props } from '@theme/BlogTagsPostsPage';
 import BlogPostItems from '@theme/BlogPostItems';
 import Unlisted from '@theme/ContentVisibility/Unlisted';
 import Heading from '@theme/Heading';
-import { getTaggedSideBar } from '../../utils';
+import { useTaggedSidebar } from '../../utils';
 
 function BlogTagsPostsPageMetadata({ tag }: Props): React.ReactElement {
   const title = useBlogTagsPostsPageTitle(tag);
@@ -25,7 +25,7 @@ function BlogTagsPostsPageMetadata({ tag }: Props): React.ReactElement {
 
 function BlogTagsPostsPageContent({ tag, items, sidebar, listMetadata }: Props): React.ReactElement {
   const title = useBlogTagsPostsPageTitle(tag);
-  const taggedSideBar = getTaggedSideBar({ selectTag: tag.label, items, sidebar });
+  const taggedSideBar = useTaggedSidebar(sidebar, tag);
 
   return (
     <BlogLayout sidebar={taggedSideBar}>
