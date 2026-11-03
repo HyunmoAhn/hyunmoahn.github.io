@@ -1,8 +1,12 @@
 .pageWrap {
   padding: 2.5rem 0 4rem;
   background:
-    radial-gradient(circle at 90% 0%, rgb(40 98 66 / 0.12), transparent 38%),
-    radial-gradient(circle at 10% 20%, rgb(40 98 66 / 0.08), transparent 34%);
+    radial-gradient(circle at 90% 0%, var(--blog-accent-soft), transparent 38%),
+    radial-gradient(
+      circle at 10% 20%,
+      color-mix(in srgb, var(--ifm-color-primary) 8%, transparent),
+      transparent 34%
+    );
 }
 
 .containerInner {
@@ -19,9 +23,9 @@
 .profileCard,
 .introCard,
 .educationCard {
-  border-radius: 18px;
-  border: 1px solid var(--color-gray-light);
-  background-color: var(--color-white);
+  border-radius: var(--blog-radius-lg);
+  border: 1px solid var(--blog-border-color);
+  background-color: var(--ifm-background-surface-color);
 }
 
 .profileCard {
@@ -36,7 +40,11 @@
   height: 120px;
   padding: 4px;
   border-radius: 999px;
-  background: linear-gradient(145deg, var(--color-green-light), var(--color-green-darkest));
+  background: linear-gradient(
+    145deg,
+    var(--ifm-color-primary-lightest),
+    var(--ifm-color-primary-darkest)
+  );
 }
 
 .avatarImage {
@@ -58,7 +66,7 @@
 
 .eyebrow {
   margin: 0 0 0.25rem;
-  color: var(--color-green);
+  color: var(--ifm-color-primary);
   font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -77,11 +85,11 @@
   font-size: 0.9rem;
   padding: 0.3rem 0.65rem;
   border-radius: 999px;
-  background: rgb(40 98 66 / 0.12);
+  background: var(--blog-accent-soft);
 }
 
 .contactRow a {
-  color: var(--color-green-darkest);
+  color: var(--ifm-color-primary);
   text-decoration: none;
 }
 
@@ -127,7 +135,7 @@
   width: 4px;
   height: 1.2rem;
   border-radius: 999px;
-  background-color: var(--color-green);
+  background-color: var(--ifm-color-primary);
 }
 
 .sectionHeader h2 {

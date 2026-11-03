@@ -22,6 +22,7 @@ module.exports = {
     mermaid: true,
   },
   themes: ['@docusaurus/theme-mermaid'],
+  clientModules: [require.resolve('./src/postListOrigin.ts')],
   themeConfig: {
     image: 'img/dark-room-computer.jpeg',
     metadata: [
@@ -212,5 +213,20 @@ module.exports = {
         ],
       },
     ],
+    function postsByTagPlugin() {
+      return {
+        name: 'posts-by-tag',
+        async allContentLoaded({ allContent, actions }) {
+          const { blogPosts } = allContent['docusaurus-plugin-content-blog'].default;
+          const postsByTag = {};
+          blogPosts.forEach(({ metadata }) => {
+            metadata.tags.forEach((tag) => {
+              (postsByTag[tag.permalink] ??= []).push(metadata.permalink);
+            });
+          });
+          actions.setGlobalData(postsByTag);
+        },
+      };
+    },
   ],
 };

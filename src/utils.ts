@@ -1,25 +1,23 @@
-import type { PropBlogPostContent, BlogSidebar } from '@docusaurus/plugin-content-blog';
+import type { BlogSidebar } from '@docusaurus/plugin-content-blog';
+import { usePluginData } from '@docusaurus/useGlobalData';
 
-export interface TaggedSideBarParams {
-  items: readonly { readonly content: PropBlogPostContent }[];
-  sidebar: BlogSidebar;
-  selectTag: string;
-}
+type PostsByTag = Record<string, string[]>;
 
-export const getTaggedSideBar = ({ items, selectTag, sidebar }: TaggedSideBarParams) => {
-  const taggedContents = items.filter((item) =>
-    item.content.metadata.tags.some((tag) => {
-      return tag.label === selectTag;
-    }),
-  );
+export const usePostsByTag = () => usePluginData('posts-by-tag') as PostsByTag;
+
+export const useTaggedSidebar = (
+  sidebar: BlogSidebar,
+  tag: { label: string; permalink: string } | undefined,
+): BlogSidebar => {
+  const postsByTag = usePostsByTag();
+  if (!tag) {
+    return sidebar;
+  }
+  const taggedPermalinks = postsByTag[tag.permalink] ?? [];
 
   return {
     ...sidebar,
-    title: `"${selectTag}" posts`,
-    items: sidebar.items.filter((item) => {
-      return taggedContents.some((taggedContent) => {
-        return item.permalink === taggedContent.content.metadata.permalink;
-      });
-    }),
+    title: `"${tag.label}" posts`,
+    items: sidebar.items.filter((item) => taggedPermalinks.includes(item.permalink)),
   };
 };
