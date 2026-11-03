@@ -45,7 +45,7 @@
     "clsx": "^2.1.1",
     "docusaurus-plugin-sass": "^0.2.7",
     "file-loader": "^6.2.0",
-    "lucide-react": "^1.67.0",
+    "lucide-react": "^1.66.0",
     "prism-react-renderer": "^2.4.1",
     "raw-loader": "^4.0.2",
     "react": "^19.3.1",
@@ -60,15 +60,14 @@
     "@argos-ci/playwright": "^7.8.0",
     "@docusaurus/module-type-aliases": "3.10.2",
     "@docusaurus/types": "3.10.2",
-    "@eslint/js": "^9.39.5",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
-    "@types/node": "^24.19.2",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
-    "@types/uuid": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^8.72.1",
     "@typescript-eslint/parser": "^8.72.1",
     "cheerio": "^1.2.0",
-    "eslint": "^9.39.5",
+    "eslint": "^10.14.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
@@ -94,12 +93,5 @@
       "last 1 safari version"
     ]
   },
-  "packageManager": "pnpm@10.28.0",
-  "pnpm": {
-    "ignoredBuiltDependencies": [
-      "@parcel/watcher",
-      "core-js",
-      "es5-ext"
-    ]
-  }
+  "packageManager": "pnpm@12.16.1"
 }
