@@ -34,6 +34,13 @@ module.exports = () => ({
     gameRouteBasePath: GAME_ROUTE_BASE_PATH,
     gameTitle: GAME_TITLE,
     gameSearchIndexName: GAME_SEARCH_INDEX_NAME,
+    // Comments on game posts, backed by GitHub Discussions of this repo (https://giscus.app).
+    giscus: {
+      repo: 'HyunmoAhn/hyunmoahn.github.io',
+      repoId: 'MDEwOlJlcG9zaXRvcnkzMTc5MTkwNDY=',
+      category: 'Announcements',
+      categoryId: 'DIC_kwDOEvMPRs4DKTFf',
+    },
   },
   themeConfig: {
     image: 'img/dark-room-computer.jpeg',
