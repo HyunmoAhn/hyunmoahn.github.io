@@ -44,10 +44,6 @@ module.exports = () => ({
   },
   themeConfig: {
     image: 'img/dark-room-computer.jpeg',
-    metadata: [
-      { name: 'og:title', content: 'hmos.dev' },
-      { name: 'og:description', content: 'Front-end Developer Blog' },
-    ],
     // announcementBar: {
     //   content: 'This blog is work in progress. Please wait for my work.',
     //   backgroundColor: '#f58442',
