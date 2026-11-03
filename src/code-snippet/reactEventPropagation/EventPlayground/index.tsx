@@ -105,6 +105,7 @@ export const EventPlayground = ({
     };
 
     const button = document.getElementById(id);
+    if (!button) return;
 
     button.addEventListener('click', handleVanillaClickCapture, { capture: true });
     button.addEventListener('click', handleVanillaClickBubble, { capture: false });
