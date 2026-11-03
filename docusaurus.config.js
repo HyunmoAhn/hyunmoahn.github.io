@@ -1,8 +1,14 @@
 const lightCodeTheme = require('prism-react-renderer').themes.github;
 const darkCodeTheme = require('prism-react-renderer').themes.dracula;
 
+const GAME_ROUTE_BASE_PATH = 'game';
+const GAME_TITLE = 'hmos.dev game';
+// Game content is Korean only, so its plugin is registered only for the default locale build.
+// Read lazily: Docusaurus sets the locale env right before reloading the config for each locale.
+const isDefaultLocale = () => (process.env.DOCUSAURUS_CURRENT_LOCALE ?? 'ko') === 'ko';
+
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
-module.exports = {
+module.exports = () => ({
   title: 'hmos.dev',
   tagline: 'Front-End developer',
   url: 'https://hmos.dev',
@@ -23,6 +29,10 @@ module.exports = {
   },
   themes: ['@docusaurus/theme-mermaid'],
   clientModules: [require.resolve('./src/postListOrigin.ts')],
+  customFields: {
+    gameRouteBasePath: GAME_ROUTE_BASE_PATH,
+    gameTitle: GAME_TITLE,
+  },
   themeConfig: {
     image: 'img/dark-room-computer.jpeg',
     metadata: [
@@ -158,6 +168,19 @@ module.exports = {
   ],
   plugins: [
     'docusaurus-plugin-sass',
+    isDefaultLocale() && [
+      '@docusaurus/plugin-content-blog',
+      {
+        id: 'game',
+        blogTitle: GAME_TITLE,
+        blogDescription: '게임 모드와 한글패치',
+        path: './game',
+        routeBasePath: GAME_ROUTE_BASE_PATH,
+        showReadingTime: true,
+        authorsMapPath: '../authors.yml',
+        blogSidebarCount: 'ALL',
+      },
+    ],
     [
       '@docusaurus/plugin-pwa',
       {
@@ -217,16 +240,17 @@ module.exports = {
       return {
         name: 'posts-by-tag',
         async allContentLoaded({ allContent, actions }) {
-          const { blogPosts } = allContent['docusaurus-plugin-content-blog'].default;
           const postsByTag = {};
-          blogPosts.forEach(({ metadata }) => {
-            metadata.tags.forEach((tag) => {
-              (postsByTag[tag.permalink] ??= []).push(metadata.permalink);
+          Object.values(allContent['docusaurus-plugin-content-blog']).forEach(({ blogPosts }) => {
+            blogPosts.forEach(({ metadata }) => {
+              metadata.tags.forEach((tag) => {
+                (postsByTag[tag.permalink] ??= []).push(metadata.permalink);
+              });
             });
           });
           actions.setGlobalData(postsByTag);
         },
       };
     },
-  ],
-};
+  ].filter(Boolean),
+});
