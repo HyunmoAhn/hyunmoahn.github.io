@@ -94,7 +94,7 @@
       "last 1 safari version"
     ]
   },
-  "packageManager": "yarn@4.11.0",
+  "packageManager": "pnpm@10.28.0",
   "pnpm": {
     "ignoredBuiltDependencies": [
       "@parcel/watcher",
