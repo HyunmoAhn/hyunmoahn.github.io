@@ -13,10 +13,23 @@
   --docusaurus-error-code-line-bg: #ffccc080;
   --docusaurus-good-code-line-bg: #25a38940;
   --ifm-container-width-xl: 1520px;
+  --blog-radius-sm: 8px;
+  --blog-radius-md: 12px;
+  --blog-radius-lg: 16px;
+  --blog-border-color: rgb(0 0 0 / 0.08);
+  --blog-accent-soft: color-mix(in srgb, var(--ifm-color-primary) 12%, transparent);
+  --ifm-global-radius: var(--blog-radius-sm);
+  --ifm-code-border-radius: var(--blog-radius-md);
+  --ifm-card-border-radius: var(--blog-radius-lg);
+  --ifm-toc-border-color: var(--blog-border-color);
+  --ifm-table-border-color: var(--blog-border-color);
+  --ifm-hr-background-color: var(--blog-border-color);
 }
 
 /* If you have a different syntax highlighting theme for dark mode. */
 [data-theme='dark'] {
+  --blog-border-color: rgb(255 255 255 / 0.08);
+
   /* Color which works with dark mode syntax highlighting theme */
   --docusaurus-highlighted-code-line-bg: rgb(0 0 0 / 0.3);
   --docusaurus-error-code-line-bg: #cc333340;
@@ -46,6 +59,10 @@
   padding: 0 var(--ifm-pre-padding);
   border-left: 3px solid rgb(37 194 160);
   font-weight: 600;
+}
+
+.markdown img {
+  border-radius: var(--blog-radius-md);
 }
 
 .radix-themes {
