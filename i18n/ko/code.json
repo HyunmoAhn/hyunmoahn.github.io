@@ -1,0 +1,6 @@
+{
+  "theme.blog.tagTitle": {
+    "message": "\"{tagName}\" 태그로 연결된 {nPosts}",
+    "description": "The title of the page for a blog tag"
+  }
+}
